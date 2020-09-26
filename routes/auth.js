@@ -9,8 +9,8 @@ const router = require('express').Router()
  * @apiParam {String} Email             The new user's email
  * @apiParam {String} Password          The new user's password
  *
- * @apiSuccess {String} username        Username of the newly registered user.
- * @apiSuccess {String} email           Email of the newly registered user.
+ * @apiSuccess {String} username        Username of the newly registered user
+ * @apiSuccess {String} email           Email of the newly registered user
  */
 router.post('register', (req, res) => {
     console.log('register called')
