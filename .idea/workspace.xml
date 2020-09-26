@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ec31767e-5692-46d5-99a2-b121905b42f8" name="Default Changelist" comment="" />
+    <list default="true" id="ec31767e-5692-46d5-99a2-b121905b42f8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,7 +21,11 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1hxyxNQdUh4DV6Hv6tSExX7YlYk" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -26,8 +37,48 @@
     <property name="javascript.nodejs.core.library.typings.version" value="14.11.2" />
     <property name="nodejs_interpreter_path" value="node" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="terminal" />
+    <property name="prettierjs.PrettierConfiguration.Package" value="C:\Users\ugoro\WebstormProjects\just_fight_api\node_modules\prettier" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
     <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RunManager" selected="npm.dev">
+    <configuration name="dev" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="run" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="run" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="test" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="test" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="npm.dev" />
+        <item itemvalue="npm.run" />
+        <item itemvalue="npm.test" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -42,16 +93,69 @@
       <workItem from="1601064499238" duration="83000" />
       <workItem from="1601064602471" duration="490000" />
       <workItem from="1601117267710" duration="27000" />
+      <workItem from="1601117869880" duration="1268000" />
     </task>
+    <task id="LOCAL-00001" summary="Initial Commit">
+      <created>1601118184696</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1601118184696</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Initial Commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Initial Commit" />
+  </component>
   <component name="WindowStateProjectService">
-    <state x="552" y="149" key="SettingsEditor" timestamp="1601064715595">
+    <state x="734" y="310" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1601118766017">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="552" y="149" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1601064715595" />
+    <state x="734" y="310" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1601118766017" />
+    <state x="832" y="422" key="Github.ShareDialog" timestamp="1601118110834">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="832" y="422" key="Github.ShareDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1601118110834" />
+    <state x="752" y="135" key="Github.UntrackedFilesDialog" timestamp="1601118122315">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="752" y="135" key="Github.UntrackedFilesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1601118122315" />
+    <state width="1899" height="271" key="GridCell.Tab.0.bottom" timestamp="1601119146888">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="271" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1601119146888" />
+    <state width="1899" height="271" key="GridCell.Tab.0.center" timestamp="1601119146888">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="271" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1601119146888" />
+    <state width="1899" height="271" key="GridCell.Tab.0.left" timestamp="1601119146888">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="271" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1601119146888" />
+    <state width="1899" height="271" key="GridCell.Tab.0.right" timestamp="1601119146888">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="271" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1601119146888" />
+    <state x="743" y="139" key="RollbackChangesDialog" timestamp="1601118912288">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="743" y="139" key="RollbackChangesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1601118912288" />
+    <state x="552" y="149" key="SettingsEditor" timestamp="1601118796007">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="149" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1601118796007" />
+    <state x="552" y="249" key="Vcs.Push.Dialog.v2" timestamp="1601118186255">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="552" y="249" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1601118186255" />
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1601118770367">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1601118770367" />
   </component>
 </project>
