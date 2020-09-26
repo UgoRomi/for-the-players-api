@@ -12,7 +12,7 @@ const router = require("express").Router();
  * @apiSuccess {String} username        Username of the newly registered user
  * @apiSuccess {String} email           Email of the newly registered user
  */
-router.post("register", (req, res) => {
+router.post("/register", (req, res) => {
   res.json({ message: "register called" });
 });
 
@@ -26,7 +26,7 @@ router.post("register", (req, res) => {
  *
  * @apiSuccess {String} jwt             JWT for the session
  */
-router.post("login", (req, res) => {
+router.post("/login", (req, res) => {
   res.json({ message: "login called" });
 });
 
@@ -37,7 +37,7 @@ router.post("login", (req, res) => {
  *
  * @apiParam {String} email             The user's email
  */
-router.post("forgot-password", (req, res) => {
+router.post("/forgot-password", (req, res) => {
   res.json({ message: "forgot-password called" });
 });
 
