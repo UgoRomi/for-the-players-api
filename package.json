@@ -1,11 +1,12 @@
 {
   "name": "just_fight_api",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "doc": "apidoc -i . -o apidoc/ -e node_modules/"
   },
   "keywords": [],
   "author": "",
@@ -23,5 +24,17 @@
     "passport": "^0.4.1",
     "pg": "^8.3.3",
     "prettier": "^2.1.2"
+  },
+  "apidoc": {
+    "name": "Just Fight API",
+    "version": "0.1.0",
+    "description": "REST API for Just Fight, an italian eSports app",
+    "apidoc": {
+      "title": "Just Fight API",
+      "url" : "https://just-fight.herokuapp.com"
+    },
+    "template": {
+      "forceLanguage": "en"
+    }
   }
 }
