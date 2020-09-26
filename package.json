@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "doc": "apidoc -i . -o apidoc/ -e node_modules/",
-    "start": "npm run doc && node index.js"
+    "doc": "apidoc -i . -o public/apidoc -e \"(node_modules|public)\"",
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",

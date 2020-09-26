@@ -18,8 +18,6 @@ app.get('/', (req, res) => {
     })
 })
 
-app.use('/docs', express.static(path.join(__dirname, 'apidoc')))
-
 app.listen(process.env.PORT, () => {
     console.log(`listening on port ${process.env.PORT}`)
 })
