@@ -17,8 +17,10 @@ app.use(compression());
 
 // Routes
 const authRoutes = require("./routes/auth");
+const teamRoutes = require("./routes/teams");
 
 app.use("/auth", authRoutes);
+app.use("/teams", teamRoutes);
 
 app.get("/", (req, res) => {
   res.json({
