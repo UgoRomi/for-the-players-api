@@ -55,7 +55,7 @@ const router = require("express").Router();
  */
 
 /**
- * @api {get} /games/available                                             Lists all available games
+ * @api {get} /games/available                                             Lists available
  * @apiName List Available
  * @apiDescription Returns the list of all the games that have "show=true" in the DB
  * @apiGroup Games
@@ -68,7 +68,7 @@ const router = require("express").Router();
 router.get("/available", (req, res) => {});
 
 /**
- * @api {get} /games/available/:platformID                                 Lists all available games for the given platform
+ * @api {get} /games/available/:platformID                                 Lists available per platform
  * @apiName List available games in platform
  * @apiDescription Returns the list of all the games that have "show=true" in the DB for the given platform
  * @apiGroup Games
@@ -83,7 +83,7 @@ router.get("/available", (req, res) => {});
 router.get("/available/:platformID", (req, res) => {});
 
 /**
- * @api {get} /games/:gameID                                               Info about a particular game
+ * @api {get} /games/:gameID                                               Details
  * @apiName Game Details
  * @apiDescription Returns the detail of a single game. If the user has the "view_all_games" permission
  * it also shows the platforms in which the game has show=false
@@ -99,7 +99,7 @@ router.get("/available/:platformID", (req, res) => {});
 router.get("/:gameID", (req, res) => {});
 
 /**
- * @api {patch} /games/:gameID                                               Updates an already existing game
+ * @api {patch} /games/:gameID                                               Update
  * @apiPermission update_game
  * @apiName Update
  * @apiDescription Updates an already existing game
@@ -121,7 +121,7 @@ router.patch("/:gameID", (req, res) => {
 });
 
 /**
- * @api {delete} /games/:gameID                                               Deletes an existing game
+ * @api {delete} /games/:gameID                                               Delete
  * @apiPermission delete_game
  * @apiName Delete
  * @apiDescription Deletes an existing game
@@ -137,7 +137,7 @@ router.delete("/:gameID", (req, res) => {
 });
 
 /**
- * @api {get} /games                                                       Lists all games, available and not
+ * @api {get} /games                                                       List all
  * @apiPermission view_all_games
  * @apiName List all games
  * @apiGroup Games
@@ -150,7 +150,7 @@ router.delete("/:gameID", (req, res) => {
 router.get("/", (req, res) => {});
 
 /**
- * @api {post} /games                                                      Adds a new game
+ * @api {post} /games                                                      Add
  * @apiPermission add_game
  * @apiName Add
  * @apiDescription Add a new game

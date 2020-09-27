@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
 /**
- * @api {post} /auth/register Register a new user
+ * @api {post} /auth/register Register
  * @apiName Register
  * @apiGroup Auth
  *
