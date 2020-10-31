@@ -3,6 +3,9 @@ const User = require("../models/user")
 const {body} = require("express-validator")
 const {jsonParser} = require("../utils")
 const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
+const {userStatusNotVerified} = require("../models/utils/consts")
+const {userStatusBanned} = require("../models/utils/consts")
 const {checkValidation} = require("../utils")
 const {checkIfUserExists, checkUniqueEmail} = require("../models/utils/users")
 
@@ -57,27 +60,32 @@ router.post(
 	[
 		body("email")
 			.not()
-			.isEmpty({ignore_whitespace: true})
+			.isEmpty({ ignore_whitespace: true })
 			.trim()
 			.escape()
 			.isEmail()
 			.normalizeEmail()
 			.custom(checkIfUserExists),
-		body("password").not().isEmpty({ignore_whitespace: true}).trim().escape(),
+		body("password").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
 	],
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const {email, password} = req.body
-			const userOnDB = await User.query().findOne({email})
+			const { email, password } = req.body
+			const userOnDB = await User.query().findOne({ email }).execute()
 
 			// If the password is wrong
-			if (!(await userOnDB.checkCredentials(password)))
-				return res.status(400).json({error: "Password does not match"})
+			if (!bcrypt.compareSync(password, userOnDB.password))
+				return res.status(400).json({ error: "Password does not match" })
 
-			const token = jwt.sign({email}, process.env.JWT_SECRET)
+			if (userOnDB.status === userStatusBanned)
+				return res.status(400).json({ error: "User is banned" })
 
-			res.json({token})
+			if (userOnDB.status === userStatusNotVerified)
+				return res.status(400).json({ error: "User is not verified" })
+
+			const token = jwt.sign({ email }, process.env.JWT_SECRET)
+			res.json({ token })
 		} catch (e) {
 			next(e)
 		}

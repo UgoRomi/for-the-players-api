@@ -15,11 +15,6 @@ class User extends Model {
 		)
 		this.status = userStatuses[0]
 	}
-
-	async checkCredentials(password) {
-		const user = this
-		return await bcrypt.compare(password, user.password)
-	}
 }
 
 module.exports = User
