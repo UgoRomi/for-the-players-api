@@ -10,7 +10,7 @@ const app = express()
 
 // Middlewares
 app.use(helmet())
-app.use(morgan("short"))
+app.use(morgan("tiny"))
 app.use(cors())
 app.use(express.json())
 app.use(compression())

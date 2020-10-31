@@ -7,6 +7,14 @@ const checkUniqueEmail = async (email) => {
 	if (userAlreadyExists) throw Error("Email already in use")
 }
 
+const checkIfUserExists = async (email) => {
+	const userAlreadyExists = await User.query().findOne({
+		email,
+	})
+	if (!userAlreadyExists) throw Error("Email not in use")
+}
+
 module.exports = {
 	checkUniqueEmail,
+	checkIfUserExists,
 }
