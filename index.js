@@ -24,12 +24,6 @@ const teamRoutes = require("./routes/teams")
 app.use("/auth", authRoutes)
 app.use("/teams", teamRoutes)
 
-app.get("/", (req, res) => {
-	res.json({
-		message: "working",
-	})
-})
-
 app.listen(process.env.PORT, () => {
 	console.log(`listening on port ${process.env.PORT}`)
 })
