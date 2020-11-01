@@ -5,8 +5,10 @@ const cors = require("cors")
 const morgan = require("morgan")
 const helmet = require("helmet")
 const compression = require("compression")
-
 const app = express()
+const connectionError = require("./db")
+const _ = require("lodash")
+if (!_.isEmpty(connectionError)) return
 
 // Middlewares
 app.use(helmet())

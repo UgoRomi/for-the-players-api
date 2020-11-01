@@ -32,7 +32,7 @@ router.post(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const newUser = await User.query().insert({
+			const newUser = await User.create({
 				username: req.body.username,
 				password: req.body.password,
 				email: req.body.email,
@@ -72,7 +72,7 @@ router.post(
 	async (req, res, next) => {
 		try {
 			const { email, password } = req.body
-			const userOnDB = await User.query().findOne({ email }).execute()
+			const userOnDB = await User.findOne({ email }).exec()
 
 			// If the password is wrong
 			if (!bcrypt.compareSync(password, userOnDB.password))
