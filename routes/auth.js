@@ -1,26 +1,14 @@
 const router = require("express").Router()
-const User = require("../models/user")
-const {body} = require("express-validator")
-const {jsonParser} = require("../utils")
+const User = require("../models/user/model")
+const { body } = require("express-validator")
+const { jsonParser } = require("../utils")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
-const {userStatusNotVerified} = require("../models/utils/consts")
-const {userStatusBanned} = require("../models/utils/consts")
-const {checkValidation} = require("../utils")
-const {checkIfUserExists, checkUniqueEmail} = require("../models/utils/users")
+const { userStatusNotVerified } = require("../models/user/consts")
+const { userStatusBanned } = require("../models/user/consts")
+const { checkValidation } = require("../utils")
+const { checkIfUserExists, checkUniqueEmail } = require("../models/user/utils")
 
-/**
- * @api {post} /auth/register Register
- * @apiName Register
- * @apiGroup Auth
- *
- * @apiParam {String} username          The new user's username
- * @apiParam {String} email             The new user's email
- * @apiParam {String} password          The new user's password
- *
- * @apiSuccess {String} username        Username of the newly registered user
- * @apiSuccess {String} email           Email of the newly registered user
- */
 router.post(
 	"/signup",
 	jsonParser,
@@ -44,16 +32,6 @@ router.post(
 	}
 )
 
-/**
- * @api {post} /auth/login Login
- * @apiName Login
- * @apiGroup Auth
- *
- * @apiParam {String} email             The user's email
- * @apiParam {String} password          The user's password
- *
- * @apiSuccess {String} jwt             JWT for the session
- */
 router.post(
 	"/login",
 	jsonParser,

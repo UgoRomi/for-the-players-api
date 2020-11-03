@@ -8,6 +8,13 @@ const compression = require("compression")
 const app = express()
 const connectionError = require("./db")
 const _ = require("lodash")
+
+// Docs
+const swaggerUi = require("swagger-ui-express")
+const YAML = require("yamljs")
+const swaggerDocument = YAML.load("./swagger.yaml")
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+
 if (!_.isEmpty(connectionError)) return
 
 // Middlewares

@@ -1,0 +1,115 @@
+openapi: 3.0.0
+info:
+  title: Just Fight API
+  description: Just Fight API
+  version: 0.0.1
+servers:
+  - url: 'https://just-fight.herokuapp.com/'
+tags:
+  - name: auth
+    description: Endpoints about user auth
+paths:
+  /auth/signup:
+    post:
+      summary: registration endpoint
+      tags:
+        - auth
+      operationId: signup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  description: The new user's email
+                  type: string
+                password:
+                  description: The new user's password
+                  type: string
+                username:
+                  description: The new user's password
+                  type: string
+      responses:
+        '400':
+          description: 'The input data was sent wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '200':
+          description: 'User successfully registered'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: 'The username of the new User'
+                  email:
+                    type: string
+                    description: 'The email of the new user'
+                  status:
+                    $ref: '#/components/schemas/UserStatuses'
+  /auth/login:
+    post:
+      summary: login endpoint
+      tags:
+        - auth
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  description: The new user's email
+                  type: string
+                password:
+                  description: The new user's password
+                  type: string
+      responses:
+        '400':
+          description: 'The input data was sent wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '200':
+          description: 'User successfully logged in'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: 'The JWT for the logged in user'
+
+components:
+  schemas:
+    SchemaValidationError:
+      type: array
+      items:
+        type: object
+        properties:
+          value:
+            type: string
+            description: 'The value that was received by the server'
+          msg:
+            type: string
+            description: 'Error message'
+          param:
+            type: string
+            description: 'Name of the field that caused the error'
+          location:
+            type: string
+            description: 'Where the field was that was received by the server'
+    UserStatuses:
+      type: string
+      enum:
+        - NOT_VERIFIED
+        - VERIFIED
+        - BANNED

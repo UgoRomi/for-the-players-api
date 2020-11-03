@@ -1,6 +1,10 @@
 const bcrypt = require("bcrypt")
 const { Schema, model } = require("mongoose")
-const { userStatuses, userStatusNotVerified } = require("./utils/consts")
+const {
+	userStatuses,
+	userStatusNotVerified,
+	userPermissions,
+} = require("./consts")
 require("dotenv").config()
 
 const userSchema = new Schema(
@@ -12,6 +16,12 @@ const userSchema = new Schema(
 			type: String,
 			enum: userStatuses,
 			default: userStatusNotVerified,
+		},
+		permissions: {
+			permission: {
+				type: String,
+				enum: userPermissions,
+			},
 		},
 	},
 	{ timestamps: true }
