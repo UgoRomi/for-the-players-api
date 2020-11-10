@@ -63,23 +63,18 @@ router.post(
 			if (userOnDB.status === userStatusNotVerified)
 				return res.status(400).json({ error: "User is not verified" })
 
-			const token = jwt.sign({ email }, process.env.JWT_SECRET)
+			const token = jwt.sign(
+				{
+					email,
+					id: userOnDB._id,
+				},
+				process.env.JWT_SECRET
+			)
 			res.json({ token })
 		} catch (e) {
 			next(e)
 		}
 	}
 )
-
-/**
- * @api {post} /auth/forgot-password Forgot Password
- * @apiName Forgot Password
- * @apiGroup Auth
- *
- * @apiParam {String} email             The user's email
- */
-router.post("/forgot-password", (req, res) => {
-	res.json({ message: "forgot-password called" })
-})
 
 module.exports = router

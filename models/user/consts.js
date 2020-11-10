@@ -32,5 +32,6 @@ module.exports = {
 
 	//Permissions
 	userPermissionCreatePlatform,
+	userPermissionCreateGame,
 	userPermissions,
 }

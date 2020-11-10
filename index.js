@@ -26,18 +26,23 @@ app.use(compression())
 
 // Routes
 const authRoutes = require("./routes/auth")
-const teamRoutes = require("./routes/teams")
 const platformRoutes = require("./routes/platforms")
+const gameRoutes = require("./routes/games")
 
 app.use("/auth", authRoutes)
-app.use("/team", teamRoutes)
 app.use("/platform", platformRoutes)
+app.use("/game", gameRoutes)
 
 // Error handling
-app.use((error, req, res, next) => {
+//404
+app.use("*", (req, res, _next) => {
+	return res.status(404).json({error: `URL ${req.baseUrl} not found`})
+})
+
+app.use((error, req, res, _next) => {
 	if (!error.statusCode) error.statusCode = 500
 
-	return res.status(error.statusCode).json({ error: error.toString() })
+	return res.status(error.statusCode).json({error: error.toString()})
 })
 
 app.listen(process.env.PORT, () => {

@@ -209,6 +209,79 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlatformObject'
+  /game:
+    get:
+      summary: Returns the list of all games
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - game
+      operationId: listAllGames
+      responses:
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '200':
+          description: 'List of games'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: 'The name of the game'
+    post:
+      summary: Create a new game
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - game
+      operationId: createGame
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: The new game's name
+                  type: string
+                maxNumberOfPlayersPerTeam:
+                  description: The maximum number of players a team can have for this game
+                  type: integer
+      responses:
+        '400':
+          description: 'The input data was sent wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '200':
+          description: 'Game successfully added'
 components:
   securitySchemes:
     BearerAuth:

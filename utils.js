@@ -60,17 +60,27 @@ const checkJWT = (requiredPermissions) => {
 			if (user.status === userStatusNotVerified)
 				return res.status(403).json({ errorMessage: "User not verified" })
 
+			const permissions =
+				requiredPermissions && _.isString(requiredPermissions)
+					? [requiredPermissions]
+					: requiredPermissions
+
 			if (
-				requiredPermissions.length > 0 &&
+				permissions &&
+				permissions.length > 0 &&
 				(!user.permissions ||
-					!user.permissions.every((permission) =>
-						requiredPermissions.includes(permission)
+					!permissions.every((permission) =>
+						user.permissions.includes(permission)
 					))
 			)
 				return res
 					.status(403)
 					.json({ errorMessage: "Insufficient permissions" })
 
+			req.user = {
+				email: decodedToken.email,
+				id: decodedToken.id,
+			}
 			return next()
 		} catch (e) {
 			return next(e)
