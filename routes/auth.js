@@ -24,6 +24,7 @@ router.post(
 				username: req.body.username,
 				password: req.body.password,
 				email: req.body.email,
+				permissions: [],
 			})
 			return res.json(newUser)
 		} catch (e) {

@@ -9,13 +9,15 @@ require("dotenv").config()
 
 const userSchema = new Schema(
 	{
-		username: String,
-		email: String,
-		password: String,
+		username: { type: String, unique: true, required: true },
+		email: { type: String, unique: true, required: true },
+		password: { type: String, unique: true, required: true },
 		status: {
 			type: String,
 			enum: userStatuses,
 			default: userStatusNotVerified,
+			unique: true,
+			required: true,
 		},
 		permissions: {
 			permission: {
@@ -49,6 +51,6 @@ userSchema.statics.isEmailUsed = (email) => {
 	return this.findOne({ email })
 }
 
-const User = model("User", userSchema)
+const user = model("User", userSchema)
 
-module.exports = User
+module.exports = user

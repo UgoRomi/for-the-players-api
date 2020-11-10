@@ -8,6 +8,12 @@ servers:
 tags:
   - name: auth
     description: Endpoints about user auth
+  - name: platform
+    description: Endpoints about platforms
+  - name: game
+    description: Endpoints about games
+  - name: team
+    description: Endpoints about teams
 paths:
   /auth/signup:
     post:
@@ -87,8 +93,127 @@ paths:
                   token:
                     type: string
                     description: 'The JWT for the logged in user'
-
+  /platform:
+    post:
+      summary: Create a new platform
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - platform
+      operationId: createPlatform
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: The new platform's name
+                  type: string
+                show:
+                  description: If the platform should be showed to the end user
+                  type: boolean
+      responses:
+        '400':
+          description: 'The input data was sent wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '200':
+          description: 'Platform successfully added'
+    get:
+      summary: Returns the list of all platforms that can be seen by the end user (The one that have visible=true)
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - platform
+      operationId: listAllVisiblePlatforms
+      responses:
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '200':
+          description: 'List of platforms'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: 'The name of the platform'
+                    games:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: 'The ID of the game'
+  /platform/{platformId}:
+    parameters:
+      - name: platformId
+        in: path
+        required: true
+        description: The MongoDB ID of the platform
+        schema:
+          $ref: '#/components/schemas/MongoID'
+    get:
+      tags:
+        - platform
+      security:
+        - BearerAuth: [ ]
+      summary: Returns the platforms that corresponds to the platform ID
+      responses:
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '404':
+          description: 'Platform not found'
+        '200':
+          description: 'The platform'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformObject'
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     SchemaValidationError:
       type: array
@@ -107,9 +232,40 @@ components:
           location:
             type: string
             description: 'Where the field was that was received by the server'
+    ErrorMessageResponse:
+      type: object
+      properties:
+        errorMessage:
+          type: string
     UserStatuses:
       type: string
       enum:
         - NOT_VERIFIED
         - VERIFIED
         - BANNED
+    MongoID:
+      type: string
+      maxLength: 24
+      minLength: 24
+    PlatformObject:
+      type: object
+      properties:
+        name:
+          description: The platform's name
+          type: string
+        show:
+          description: If the platform should be showed to the end user
+          type: boolean
+        games:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                maxLength: 24
+                minLength: 24
+                description: The mongo ID of the game
+              show:
+                type: boolean
+                description: If the user should see this game for the platform

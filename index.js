@@ -27,9 +27,18 @@ app.use(compression())
 // Routes
 const authRoutes = require("./routes/auth")
 const teamRoutes = require("./routes/teams")
+const platformRoutes = require("./routes/platforms")
 
 app.use("/auth", authRoutes)
-app.use("/teams", teamRoutes)
+app.use("/team", teamRoutes)
+app.use("/platform", platformRoutes)
+
+// Error handling
+app.use((error, req, res, next) => {
+	if (!error.statusCode) error.statusCode = 500
+
+	return res.status(error.statusCode).json({ error: error.toString() })
+})
 
 app.listen(process.env.PORT, () => {
 	console.log(`listening on port ${process.env.PORT}`)

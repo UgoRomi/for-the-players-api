@@ -9,13 +9,28 @@ const userStatuses = [
 ]
 
 // Permissions
+// Games
 const userPermissionCreateGame = "CREATE_GAME"
-const userPermissions = [userPermissionCreateGame]
+const userPermissionReadGame = "READ_GAME"
+const userPermissionUpdateGame = "UPDATE_GAME"
+const userPermissionDeleteGame = "DELETE_GAME"
+//Platforms
+const userPermissionCreatePlatform = "CREATE_PLATFORM"
+const userPermissions = [
+	userPermissionCreateGame,
+	userPermissionReadGame,
+	userPermissionUpdateGame,
+	userPermissionDeleteGame,
+	userPermissionCreatePlatform,
+]
 
 module.exports = {
+	// Status
 	userStatuses,
 	userStatusNotVerified,
 	userStatusBanned,
-	userPermissionCreateGame,
+
+	//Permissions
+	userPermissionCreatePlatform,
 	userPermissions,
 }
