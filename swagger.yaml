@@ -14,6 +14,8 @@ tags:
     description: Endpoints about games
   - name: team
     description: Endpoints about teams
+  - name: user
+    description: Endpoints about user and user profile
 paths:
   /auth/signup:
     post:
@@ -30,6 +32,7 @@ paths:
                 email:
                   description: The new user's email
                   type: string
+                  format: email
                 password:
                   description: The new user's password
                   type: string
@@ -56,6 +59,7 @@ paths:
                   email:
                     type: string
                     description: 'The email of the new user'
+                    format: email
                   status:
                     $ref: '#/components/schemas/UserStatuses'
   /auth/login:
@@ -73,6 +77,7 @@ paths:
                 email:
                   description: The new user's email
                   type: string
+                  format: email
                 password:
                   description: The new user's password
                   type: string
@@ -282,6 +287,75 @@ paths:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '200':
           description: 'Game successfully added'
+  /user/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: The MongoDB ID of the user
+        schema:
+          $ref: '#/components/schemas/MongoID'
+    get:
+      tags:
+        - user
+      security:
+        - BearerAuth: [ ]
+      summary: Returns the user that corresponds to the user ID
+      responses:
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '404':
+          description: 'Platform not found'
+        '200':
+          description: 'The User'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    description: "The user's email"
+                  username:
+                    type: string
+                    description: "The user's username"
+                  createdAt:
+                    type: string
+                    format: date
+                  platforms:
+                    type: array
+                    description: "The platforms to which the user has registered"
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: "The platform's name"
+                        username:
+                          type: string
+                          description: "The user's username for this platform"
+                  teams:
+                    type: array
+                    description: "The team's of which the user is a part of"
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: "The team's name"
+                        role:
+                          $ref: "#/components/schemas/TeamRoles"
 components:
   securitySchemes:
     BearerAuth:
@@ -311,11 +385,18 @@ components:
         errorMessage:
           type: string
     UserStatuses:
+      description: "The possible statuses for a user"
       type: string
       enum:
         - NOT_VERIFIED
         - VERIFIED
         - BANNED
+    TeamRoles:
+      description: "The possible roles for team members"
+      type: string
+      enum:
+        - MEMBER
+        - LEADER
     MongoID:
       type: string
       maxLength: 24

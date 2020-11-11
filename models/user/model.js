@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt")
-const { Schema, model } = require("mongoose")
+const { Schema, model, ObjectId } = require("mongoose")
 const {
 	userStatuses,
 	userStatusNotVerified,
@@ -24,6 +24,10 @@ const userSchema = new Schema(
 				type: String,
 				enum: userPermissions,
 			},
+		},
+		platforms: {
+			id: { type: ObjectId, required: true },
+			username: { type: string, required: true },
 		},
 	},
 	{ timestamps: true }
