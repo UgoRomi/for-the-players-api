@@ -22,7 +22,6 @@
     <list default="true" id="ec31767e-5692-46d5-99a2-b121905b42f8" name="Default Changelist" comment="Created user model and made implemented registration (still WIP)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/user/model.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/user/model.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/swagger.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/swagger.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -209,7 +208,8 @@
       <workItem from="1604410579383" duration="9046000" />
       <workItem from="1604964764280" duration="30000" />
       <workItem from="1605043009646" duration="7674000" />
-      <workItem from="1605136909778" duration="1366000" />
+      <workItem from="1605136909778" duration="2242000" />
+      <workItem from="1605191265487" duration="616000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1601118184696</created>
@@ -351,7 +351,14 @@
       <option name="project" value="LOCAL" />
       <updated>1605050259360</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Added documentation for user details endpoint">
+      <created>1605138571118</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1605138571118</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -393,7 +400,8 @@
     <MESSAGE value="misc" />
     <MESSAGE value="Added auth middleware to check JWT and permissions&#10;Added error handling middleware&#10;Improved models&#10;Added create platform endpoint&#10;Improved swagger" />
     <MESSAGE value="Added user ID in JWT&#10;Added endpoints and relative documentation to add a game and list all games&#10;Added 404 handler" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added user ID in JWT&#10;Added endpoints and relative documentation to add a game and list all games&#10;Added 404 handler" />
+    <MESSAGE value="Added documentation for user details endpoint" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added documentation for user details endpoint" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -533,11 +541,11 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1577" y="268" key="VCS.ChangeListViewerDialog/0.0.2560.1400@0.0.2560.1400" timestamp="1604856412633" />
-    <state x="736" y="335" key="Vcs.Push.Dialog.v2" timestamp="1605050260594">
+    <state x="736" y="335" key="Vcs.Push.Dialog.v2" timestamp="1605138572036">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="552" y="249" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1601226823719" />
-    <state x="736" y="335" key="Vcs.Push.Dialog.v2/0.0.2560.1400@0.0.2560.1400" timestamp="1605050260594" />
+    <state x="736" y="335" key="Vcs.Push.Dialog.v2/0.0.2560.1400@0.0.2560.1400" timestamp="1605138572036" />
     <state x="1107" y="465" key="com.intellij.database.view.ui.AbstractDbRefactoringDialog" timestamp="1604395372612">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>

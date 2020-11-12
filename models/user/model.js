@@ -27,7 +27,7 @@ const userSchema = new Schema(
 		},
 		platforms: {
 			id: { type: ObjectId, required: true },
-			username: { type: string, required: true },
+			username: { type: String, required: true },
 		},
 	},
 	{ timestamps: true }
