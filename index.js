@@ -29,6 +29,7 @@ const authRoutes = require("./routes/auth")
 const platformRoutes = require("./routes/platforms")
 const gameRoutes = require("./routes/games")
 
+app.options('*', cors())
 app.use("/auth", authRoutes)
 app.use("/platform", platformRoutes)
 app.use("/game", gameRoutes)
