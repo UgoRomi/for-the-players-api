@@ -16,6 +16,10 @@ tags:
     description: Endpoints about teams
   - name: user
     description: Endpoints about user and user profile
+  - name: tournaments
+    description: Endpoints about tournaments and ladders
+  - name: rulesets
+    description: Endpoints about rulesets for tournaments
 paths:
   /auth/signup:
     post:
@@ -41,12 +45,12 @@ paths:
                   type: string
       responses:
         '400':
-          description: 'The input data was sent wrongly formatted'
+          description: 'The input data was wrongly formatted'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SchemaValidationError'
-        '200':
+        '201':
           description: 'User successfully registered'
           content:
             application/json:
@@ -83,7 +87,7 @@ paths:
                   type: string
       responses:
         '400':
-          description: 'The input data was sent wrongly formatted'
+          description: 'The input data was wrongly formatted'
           content:
             application/json:
               schema:
@@ -120,7 +124,7 @@ paths:
                   type: boolean
       responses:
         '400':
-          description: 'The input data was sent wrongly formatted'
+          description: 'The input data was wrongly formatted'
           content:
             application/json:
               schema:
@@ -137,7 +141,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
+        '201':
           description: 'Platform successfully added'
     get:
       summary: Returns the list of all platforms that can be seen by the end user (The one that have visible=true)
@@ -247,6 +251,9 @@ paths:
                     name:
                       type: string
                       description: 'The name of the game'
+                    id:
+                      type: string
+                      description: The Mongo ID of the game
     post:
       summary: Create a new game
       security:
@@ -263,12 +270,9 @@ paths:
                 name:
                   description: The new game's name
                   type: string
-                maxNumberOfPlayersPerTeam:
-                  description: The maximum number of players a team can have for this game
-                  type: integer
       responses:
         '400':
-          description: 'The input data was sent wrongly formatted'
+          description: 'The input data was wrongly formatted'
           content:
             application/json:
               schema:
@@ -285,7 +289,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
+        '201':
           description: 'Game successfully added'
   /user/{userId}:
     parameters:
@@ -345,9 +349,9 @@ paths:
                         username:
                           type: string
                           description: "The user's username for this platform"
-                  teams:
+                  tournaments:
                     type: array
-                    description: "The team's of which the user is a part of"
+                    description: "The tournament of which the user is a part of"
                     items:
                       type: object
                       properties:
@@ -356,6 +360,184 @@ paths:
                           description: "The team's name"
                         role:
                           $ref: "#/components/schemas/TeamRoles"
+  /tournament:
+    post:
+      summary: Create a new tournament
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - tournaments
+      operationId: createTournament
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - game
+                - platform
+                - startsOn
+                - endsOn
+                - ruleset
+                - type
+              properties:
+                name:
+                  description: The new tournament's name
+                  type: string
+                game:
+                  description: The Mongo ID of the game on which the tournament will be played on
+                  type: string
+                  minLength: 24
+                  maxLength: 24
+                platform:
+                  description: The Mongo ID of the platform on which the tournament will be played on
+                  type: string
+                  minLength: 24
+                  maxLength: 24
+                show:
+                  description: If the tournament should appear in the list of upcoming tournaments in the app
+                  type: boolean
+                startsOn:
+                  description: The date and time on which the tournament will start
+                  type: string
+                  format: date-time
+                endsOn:
+                  description: The date and time on which the tournament will end
+                  type: string
+                  format: date-time
+                ruleset:
+                  description: The Mongo ID of the ruleset to use for this tournament
+                  type: string
+                  minLength: 24
+                  maxLength: 24
+                type:
+                  $ref: '#/components/schemas/TournamentTypes'
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '201':
+          description: 'Tournament added'
+  /ruleset:
+    get:
+      summary: Returns all rulesets
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - rulesets
+      operationId: listRulesets
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '200':
+          description: 'The list of all rulesets'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: 'The name of the ruleset'
+                    id:
+                      type: string
+                      description: The Mongo ID of the ruleset
+                    game:
+                      type: string
+                      description: The Mongo ID of the game the ruleset is for
+                    description:
+                      type: string
+                      description: The description of the ruleset
+                    maxNumberOfPlayers:
+                      type: integer
+                      description: The maximum number of players that can be in a team when using this ruleset
+    post:
+      summary: Create a new ruleset for a game
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - rulesets
+      operationId: createRuleset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - game
+                - maxNumberOfPlayers
+                - description
+                - name
+              properties:
+                name:
+                  description: The ruleset's name, must be unique
+                  type: string
+                maxNumberOfPlayers:
+                  description: The maximum number of players a team can have
+                  type: integer
+                description:
+                  description: The ruleset's description
+                  type: string
+                game:
+                  description: Mongo ID of the game
+                  type: string
+                  minLength: 24
+                  maxLength: 24
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Unauthorized'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '201':
+          description: 'Ruleset added'
 components:
   securitySchemes:
     BearerAuth:
@@ -395,8 +577,15 @@ components:
       description: "The possible roles for team members"
       type: string
       enum:
+        - INVITED
         - MEMBER
         - LEADER
+    TournamentTypes:
+      description: "The possible types of a tournament"
+      type: string
+      enum:
+        - TOURNAMENT
+        - LADDER
     MongoID:
       type: string
       maxLength: 24

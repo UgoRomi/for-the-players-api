@@ -1,5 +1,4 @@
 const router = require("express").Router()
-const User = require("../models/user/model")
 const { body } = require("express-validator")
 const { jsonParser } = require("../utils")
 const jwt = require("jsonwebtoken")
@@ -8,6 +7,9 @@ const { userStatusNotVerified } = require("../models/user/consts")
 const { userStatusBanned } = require("../models/user/consts")
 const { checkValidation } = require("../utils")
 const { checkIfUserExists, checkUniqueEmail } = require("../models/user/utils")
+const mongoose = require("mongoose")
+
+const User = mongoose.model("User")
 
 router.post(
 	"/signup",
@@ -26,7 +28,7 @@ router.post(
 				email: req.body.email,
 				permissions: [],
 			})
-			return res.json(newUser)
+			return res.status(201).json(newUser)
 		} catch (e) {
 			return next(e)
 		}
@@ -70,7 +72,7 @@ router.post(
 				},
 				process.env.JWT_SECRET
 			)
-			res.json({ token })
+			return res.json({ token })
 		} catch (e) {
 			next(e)
 		}

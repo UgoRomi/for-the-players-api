@@ -16,12 +16,18 @@ const userPermissionUpdateGame = "UPDATE_GAME"
 const userPermissionDeleteGame = "DELETE_GAME"
 //Platforms
 const userPermissionCreatePlatform = "CREATE_PLATFORM"
+//Tournaments
+const userPermissionCreateTournament = "CREATE_TOURNAMENT"
+//Ruleset
+const userPermissionCreateRuleset = "CREATE_RULESET"
 const userPermissions = [
 	userPermissionCreateGame,
 	userPermissionReadGame,
 	userPermissionUpdateGame,
 	userPermissionDeleteGame,
 	userPermissionCreatePlatform,
+	userPermissionCreateTournament,
+	userPermissionCreateRuleset,
 ]
 
 module.exports = {
@@ -33,5 +39,7 @@ module.exports = {
 	//Permissions
 	userPermissionCreatePlatform,
 	userPermissionCreateGame,
+	userPermissionCreateTournament,
+	userPermissionCreateRuleset,
 	userPermissions,
 }

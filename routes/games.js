@@ -1,9 +1,10 @@
 const { body } = require("express-validator")
-
 const { checkJWT, checkValidation } = require("../utils")
 const router = require("express").Router()
-const Game = require("../models/game/model")
 const { userPermissionCreateGame } = require("../models/user/consts")
+const mongoose = require("mongoose")
+
+const Game = mongoose.model("Game")
 
 router.get("/", checkJWT(), async (req, res, _next) => {
 	// Get all games
@@ -13,7 +14,7 @@ router.get("/", checkJWT(), async (req, res, _next) => {
 		games.map((game) => {
 			return {
 				name: game.name,
-				maxNumberOfPlayersPerTeam: game.maxNumberOfPlayersPerTeam,
+				id: game._id,
 			}
 		})
 	)
@@ -21,20 +22,16 @@ router.get("/", checkJWT(), async (req, res, _next) => {
 
 router.post(
 	"/",
-	[
-		body("name").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
-		body("maxNumberOfPlayersPerTeam").isNumeric(),
-	],
-	checkValidation,
+	[body("name").not().isEmpty({ ignore_whitespace: true }).trim().escape()],
 	checkJWT([userPermissionCreateGame]),
+	checkValidation,
 	async (req, res, next) => {
 		try {
 			await Game.create({
 				name: req.body.name,
-				maxNumberOfPlayersPerTeam: req.body.maxNumberOfPlayersPerTeam,
 				addedBy: req.user.id,
 			})
-			return res.status(200).json()
+			return res.status(201).json()
 		} catch (e) {
 			next(e)
 		}

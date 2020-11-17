@@ -1,5 +1,5 @@
-const User = require("./model")
-
+const mongoose = require("mongoose")
+const User = mongoose.model("User")
 
 const checkUniqueEmail = async (email) => {
 	const userAlreadyExists = await User.findOne({

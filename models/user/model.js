@@ -12,6 +12,7 @@ const userSchema = new Schema(
 		username: { type: String, unique: true, required: true },
 		email: { type: String, unique: true, required: true },
 		password: { type: String, unique: true, required: true },
+		elo: { type: Number, default: 1500 },
 		status: {
 			type: String,
 			enum: userStatuses,
@@ -26,7 +27,7 @@ const userSchema = new Schema(
 			},
 		},
 		platforms: {
-			id: { type: ObjectId, required: true },
+			id: { type: ObjectId, required: true, ref: "Platform" },
 			username: { type: String, required: true },
 		},
 	},

@@ -8,6 +8,11 @@ const compression = require("compression")
 const app = express()
 const connectionError = require("./db")
 const _ = require("lodash")
+require("./models/user/model")
+require("./models/tournament/model")
+require("./models/platform/model")
+require("./models/ruleset/model")
+require("./models/game/model")
 
 // Docs
 const swaggerUi = require("swagger-ui-express")
@@ -28,22 +33,25 @@ app.use(compression())
 const authRoutes = require("./routes/auth")
 const platformRoutes = require("./routes/platforms")
 const gameRoutes = require("./routes/games")
+const tournamentRoutes = require("./routes/tournaments")
+const rulesetRoutes = require("./routes/rulesets")
 
-app.options('*', cors())
 app.use("/auth", authRoutes)
 app.use("/platform", platformRoutes)
 app.use("/game", gameRoutes)
+app.use("/tournament", tournamentRoutes)
+app.use("/ruleset", rulesetRoutes)
 
 // Error handling
 //404
 app.use("*", (req, res, _next) => {
-	return res.status(404).json({error: `URL ${req.baseUrl} not found`})
+	return res.status(404).json({ error: `URL ${req.baseUrl} not found` })
 })
 
 app.use((error, req, res, _next) => {
 	if (!error.statusCode) error.statusCode = 500
 
-	return res.status(error.statusCode).json({error: error.toString()})
+	return res.status(error.statusCode).json({ error: error.toString() })
 })
 
 app.listen(process.env.PORT, () => {

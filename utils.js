@@ -2,12 +2,14 @@ const bodyParser = require("body-parser")
 const { validationResult } = require("express-validator")
 const _ = require("lodash")
 const jwt = require("jsonwebtoken")
-const userModel = require("./models/user/model")
+const { formatISO, parseISO } = require("date-fns")
+const mongoose = require("mongoose")
 const {
 	userStatusBanned,
 	userStatusNotVerified,
 } = require("./models/user/consts")
 
+const User = mongoose.model("User")
 const jsonParser = bodyParser.json()
 
 const checkValidation = (req, res, next) => {
@@ -46,11 +48,9 @@ const checkJWT = (requiredPermissions) => {
 			if (!decodedToken)
 				return res.status(401).json({ errorMessage: "Invalid Bearer token" })
 
-			const user = await userModel
-				.findOne({
-					email: decodedToken.email,
-				})
-				.lean()
+			const user = await User.findOne({
+				email: decodedToken.email,
+			}).lean()
 			if (!user)
 				return res.status(401).json({ errorMessage: "Invalid Bearer token" })
 
@@ -88,8 +88,19 @@ const checkJWT = (requiredPermissions) => {
 	}
 }
 
+const convertToMongoId = (id) => {
+	return mongoose.Types.ObjectId(id)
+}
+
+const toISO = (date) => {
+	if (date instanceof Date) return formatISO(date)
+	return parseISO(date)
+}
+
 module.exports = {
 	jsonParser,
 	checkValidation,
 	checkJWT,
+	convertToMongoId,
+	toISO,
 }
