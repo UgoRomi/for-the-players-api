@@ -1,16 +1,13 @@
-const bodyParser = require("body-parser")
 const { validationResult } = require("express-validator")
 const _ = require("lodash")
 const jwt = require("jsonwebtoken")
-const { formatISO, parseISO } = require("date-fns")
 const mongoose = require("mongoose")
 const {
 	userStatusBanned,
 	userStatusNotVerified,
-} = require("./models/user/consts")
+} = require("../models/user/consts")
 
 const User = mongoose.model("User")
-const jsonParser = bodyParser.json()
 
 const checkValidation = (req, res, next) => {
 	const validationErrors = validationResult(req)
@@ -88,19 +85,7 @@ const checkJWT = (requiredPermissions) => {
 	}
 }
 
-const convertToMongoId = (id) => {
-	return mongoose.Types.ObjectId(id)
-}
-
-const toISO = (date) => {
-	if (date instanceof Date) return formatISO(date)
-	return parseISO(date)
-}
-
 module.exports = {
-	jsonParser,
 	checkValidation,
 	checkJWT,
-	convertToMongoId,
-	toISO,
 }

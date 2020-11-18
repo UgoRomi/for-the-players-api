@@ -136,7 +136,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '403':
-          description: 'Unauthorized'
+          description: 'Forbidden'
           content:
             application/json:
               schema:
@@ -158,7 +158,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '403':
-          description: 'Unauthorized'
+          description: 'Forbidden'
           content:
             application/json:
               schema:
@@ -205,7 +205,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '403':
-          description: 'Unauthorized'
+          description: 'Forbidden'
           content:
             application/json:
               schema:
@@ -234,7 +234,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '403':
-          description: 'Unauthorized'
+          description: 'Forbidden'
           content:
             application/json:
               schema:
@@ -254,6 +254,9 @@ paths:
                     id:
                       type: string
                       description: The Mongo ID of the game
+                    imgUrl:
+                      type: string
+                      description: The image for the game
     post:
       summary: Create a new game
       security:
@@ -265,10 +268,22 @@ paths:
         content:
           application/json:
             schema:
+              required:
+                - name
               type: object
               properties:
                 name:
                   description: The new game's name
+                  type: string
+                imgUrl:
+                  description: >
+                    The imgurl link of the new game's image.
+                    If this is present `imgBase64` will be ignored
+                  type: string
+                imgBase64:
+                  description: >
+                    The base64 of the new game's image.
+                    If `imgUrl` is present this will be ignored
                   type: string
       responses:
         '400':
@@ -284,7 +299,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '403':
-          description: 'Unauthorized'
+          description: 'Forbidden'
           content:
             application/json:
               schema:
@@ -313,7 +328,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '403':
-          description: 'Unauthorized'
+          description: 'Forbidden'
           content:
             application/json:
               schema:
@@ -381,6 +396,7 @@ paths:
                 - endsOn
                 - ruleset
                 - type
+                - show
               properties:
                 name:
                   description: The new tournament's name
@@ -413,6 +429,16 @@ paths:
                   maxLength: 24
                 type:
                   $ref: '#/components/schemas/TournamentTypes'
+                imgUrl:
+                  description: >
+                    The imgurl link of the new tournament's image.
+                    If this is present `imgBase64` will be ignored
+                  type: string
+                imgBase64:
+                  description: >
+                    The base64 of the new tournament's image.
+                    If `imgUrl` is present this will be ignored
+                  type: string
       responses:
         '400':
           description: 'The input data was wrongly formatted'
@@ -427,13 +453,81 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '403':
-          description: 'Unauthorized'
+          description: 'Forbidden'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '201':
           description: 'Tournament added'
+    get:
+      summary: List all visible tournaments
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - tournaments
+      operationId: listVisibleTournaments
+      parameters:
+        - in: query
+          name: gameId
+          schema:
+            $ref: '#/components/schemas/MongoID'
+          description: Only show tournaments for a given game
+        - in: query
+          name: type
+          schema:
+            $ref: '#/components/schemas/TournamentTypes'
+          description: Only show a type of tournament
+      responses:
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '200':
+          description: 'List of all visible tournaments'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: 'The name of the tournament'
+                    id:
+                      type: string
+                      description: The Mongo ID of the tournament
+                    startsOn:
+                      type: string
+                      format: date-time
+                      description: The time on which the tournament starts
+                    endsOn:
+                      type: string
+                      format: date-time
+                      description: The time on which the tournament ends
+                    ruleset:
+                      type: string
+                      description: The ruleset used in this tournament
+                    type:
+                      $ref: '#/components/schemas/TournamentTypes'
+                    numberOfTeams:
+                      type: integer
+                      description: How many teams are already signed up to this tournament
+                    imgUrl:
+                      type: string
+                      description: The URL of the tournament's image
+                    game:
+                      type: string
+                      description: The name of the game this tournament is on
   /ruleset:
     get:
       summary: Returns all rulesets
@@ -456,7 +550,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '403':
-          description: 'Unauthorized'
+          description: 'Forbidden'
           content:
             application/json:
               schema:
@@ -482,7 +576,7 @@ paths:
                     description:
                       type: string
                       description: The description of the ruleset
-                    maxNumberOfPlayers:
+                    maxNumberOfPlayersPerTeam:
                       type: integer
                       description: The maximum number of players that can be in a team when using this ruleset
     post:
@@ -499,14 +593,14 @@ paths:
               type: object
               required:
                 - game
-                - maxNumberOfPlayers
+                - maxNumberOfPlayersPerTeam
                 - description
                 - name
               properties:
                 name:
                   description: The ruleset's name, must be unique
                   type: string
-                maxNumberOfPlayers:
+                maxNumberOfPlayersPerTeam:
                   description: The maximum number of players a team can have
                   type: integer
                 description:
@@ -531,7 +625,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '403':
-          description: 'Unauthorized'
+          description: 'Forbidden'
           content:
             application/json:
               schema:

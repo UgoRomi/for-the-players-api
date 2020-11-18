@@ -1,48 +1,51 @@
 const { userPermissionCreateTournament } = require("../models/user/consts")
 const { types } = require("../models/tournament/consts")
-const { body } = require("express-validator")
-const {
-	checkJWT,
-	checkValidation,
-	jsonParser,
-	convertToMongoId,
-	toISO,
-} = require("../utils")
+const { body, query } = require("express-validator")
+const { convertToMongoId, toISO } = require("../utils/custom-sanitizers")
+const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
 const { checkUniqueName } = require("../models/tournament/utils")
 const mongoose = require("mongoose")
+const { checkIfValidaImageData } = require("../utils/custom-validators")
+const { checkImgInput } = require("../utils/helpers")
 const { checkIfRulesetExists } = require("../models/ruleset/utils")
 const { checkIfPlatformExists } = require("../models/platform/utils")
 const { checkIfGameExists } = require("../models/game/utils")
 
 const Tournament = mongoose.model("Tournament")
+const Ruleset = mongoose.model("Ruleset")
+const Game = mongoose.model("Game")
 
 router.post(
 	"/",
-	jsonParser,
+	checkJWT(userPermissionCreateTournament),
 	[
-		body("name").not().isEmpty().custom(checkUniqueName),
+		body("name").notEmpty({ ignore_whitespace: true }).custom(checkUniqueName),
 		body("game")
-			.not()
-			.isEmpty()
+			.notEmpty({ ignore_whitespace: true })
 			.customSanitizer(convertToMongoId)
 			.custom(checkIfGameExists),
 		body("platform")
-			.not()
-			.isEmpty()
+			.notEmpty({ ignore_whitespace: true })
 			.customSanitizer(convertToMongoId)
 			.custom(checkIfPlatformExists),
 		body("show").isBoolean(),
-		body("startsOn").not().isEmpty().isDate().customSanitizer(toISO),
-		body("endsOn").not().isEmpty().isDate().customSanitizer(toISO),
+		body("startsOn")
+			.notEmpty({ ignore_whitespace: true })
+			.isDate()
+			.customSanitizer(toISO),
+		body("endsOn")
+			.notEmpty({ ignore_whitespace: true })
+			.isDate()
+			.customSanitizer(toISO),
 		body("ruleset")
-			.not()
-			.isEmpty()
+			.notEmpty({ ignore_whitespace: true })
 			.customSanitizer(convertToMongoId)
 			.custom(checkIfRulesetExists),
 		body("type").isIn(types),
+		body("imgUrl").optional().isURL(),
+		body("imgBase64").isBase64().custom(checkIfValidaImageData),
 	],
-	checkJWT(userPermissionCreateTournament),
 	checkValidation,
 	async (req, res, next) => {
 		try {
@@ -56,6 +59,9 @@ router.post(
 				ruleset,
 				type,
 			} = req.body
+
+			const imageURL = await checkImgInput(req.body)
+
 			await Tournament.create({
 				name,
 				game,
@@ -65,9 +71,57 @@ router.post(
 				endsOn,
 				ruleset,
 				type,
+				imgUrl: imageURL,
 				createdBy: req.user.id,
 			})
 			return res.status(201).json()
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.get(
+	"/",
+	checkJWT(),
+	[
+		query("gameId")
+			.optional()
+			.isAlphanumeric()
+			.customSanitizer(convertToMongoId)
+			.custom(checkIfGameExists),
+		query("type").optional().isString().isIn(types),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const findQuery = { show: true }
+
+			if (req.query.gameId) findQuery.game = req.query.gameId
+			if (req.query.type) findQuery.type = req.query.type
+
+			const tournaments = await Tournament.find(findQuery).lean()
+			const result = await Promise.all(
+				tournaments.map(async (tournament) => {
+					const { name, startsOn, endsOn, type, imgUrl } = tournament
+					const rulesetDoc = await Ruleset.findById(
+						tournament.ruleset.toString()
+					).lean()
+					const gameDoc = await Game.findById(tournament.game.toString()).lean()
+					return {
+						name,
+						id: tournament._id,
+						startsOn,
+						endsOn,
+						ruleset: rulesetDoc.name,
+						type,
+						numberOfTeams: tournament.teams.length,
+						imgUrl,
+						game: gameDoc.name,
+					}
+				})
+			)
+			return res.json(result)
 		} catch (e) {
 			next(e)
 		}

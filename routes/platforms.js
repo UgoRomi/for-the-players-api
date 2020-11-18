@@ -1,7 +1,6 @@
 const { userPermissionCreatePlatform } = require("../models/user/consts")
-const { checkValidation, checkJWT } = require("../utils")
+const { checkValidation, checkJWT } = require("../utils/custom-middlewares")
 const { body } = require("express-validator")
-const { jsonParser } = require("../utils")
 const router = require("express").Router()
 const mongoose = require("mongoose")
 
@@ -9,7 +8,6 @@ const Platform = mongoose.model("Platform")
 
 router.post(
 	"/",
-	jsonParser,
 	[
 		body("name").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
 		body("show").isBoolean(),

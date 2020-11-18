@@ -1,8 +1,10 @@
 const mongoose = require("mongoose")
+mongoose.set("debug", false)
 try {
 	mongoose.connect(process.env.DB_URL, {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
+		useCreateIndex: true,
 	})
 } catch (e) {
 	return e

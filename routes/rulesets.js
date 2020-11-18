@@ -2,37 +2,34 @@ const { checkIfGameExists } = require("../models/game/utils")
 const { userPermissionCreateRuleset } = require("../models/user/consts")
 const router = require("express").Router()
 const { body } = require("express-validator")
-const {
-	checkJWT,
-	checkValidation,
-	jsonParser,
-	convertToMongoId,
-} = require("../utils")
+const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
+const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
 
 const Ruleset = mongoose.model("Ruleset")
 
 router.post(
 	"/",
-	jsonParser,
 	[
 		body("game")
-			.not()
-			.isEmpty()
+			.notEmpty({ ignore_whitespace: true })
 			.customSanitizer(convertToMongoId)
 			.custom(checkIfGameExists),
-		body("maxNumberOfPlayers").not().isEmpty().isInt(),
-		body("description").not().isEmpty(),
-		body("name").not().isEmpty(),
+		body("maxNumberOfPlayersPerTeam")
+			.not()
+			.isEmpty({ ignore_whitespace: true })
+			.isInt(),
+		body("description").not().isEmpty({ ignore_whitespace: true }),
+		body("name").not().isEmpty({ ignore_whitespace: true }),
 	],
 	checkJWT(userPermissionCreateRuleset),
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const { game, maxNumberOfPlayers, description, name } = req.body
+			const { game, maxNumberOfPlayersPerTeam, description, name } = req.body
 			await Ruleset.create({
 				game,
-				maxNumberOfPlayers,
+				maxNumberOfPlayersPerTeam,
 				description,
 				name,
 			})
@@ -53,7 +50,7 @@ router.get("/", checkJWT(), async (req, res, next) => {
 					id: ruleset._id,
 					game: ruleset.game,
 					description: ruleset.description,
-					maxNumberOfPlayers: ruleset.maxNumberOfPlayers,
+					maxNumberOfPlayersPerTeam: ruleset.maxNumberOfPlayersPerTeam,
 				}
 			})
 		)

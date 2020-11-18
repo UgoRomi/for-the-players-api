@@ -4,7 +4,7 @@ const rulesetSchema = new Schema(
 	{
 		name: { type: String, unique: true, required: true },
 		description: { type: String, unique: true },
-		numberOfPlayers: { type: Number, min: 0 },
+		maxNumberOfPlayersPerTeam: { type: Number, min: 1 },
 		game: { type: ObjectId, required: true, ref: "Game" },
 	},
 	{ timestamps: true }

@@ -18,6 +18,7 @@ const tournamentSchema = new Schema(
 		ruleset: { type: ObjectId, required: true, ref: "Ruleset" },
 		type: { type: String, required: true, enum: types },
 		createdBy: { type: ObjectId, required: true, ref: "User" },
+		imgUrl: { type: String, required: true },
 		teams: [
 			{
 				name: { type: String, required: true },

@@ -1,11 +1,10 @@
 const router = require("express").Router()
 const { body } = require("express-validator")
-const { jsonParser } = require("../utils")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
 const { userStatusNotVerified } = require("../models/user/consts")
 const { userStatusBanned } = require("../models/user/consts")
-const { checkValidation } = require("../utils")
+const { checkValidation } = require("../utils/custom-middlewares")
 const { checkIfUserExists, checkUniqueEmail } = require("../models/user/utils")
 const mongoose = require("mongoose")
 
@@ -13,7 +12,6 @@ const User = mongoose.model("User")
 
 router.post(
 	"/signup",
-	jsonParser,
 	[
 		body("username").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
 		body("password").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
@@ -37,11 +35,9 @@ router.post(
 
 router.post(
 	"/login",
-	jsonParser,
 	[
 		body("email")
-			.not()
-			.isEmpty({ ignore_whitespace: true })
+			.notEmpty({ ignore_whitespace: true })
 			.trim()
 			.escape()
 			.isEmail()
