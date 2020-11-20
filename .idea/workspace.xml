@@ -20,27 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ec31767e-5692-46d5-99a2-b121905b42f8" name="Default Changelist" comment="Created user model and made implemented registration (still WIP)">
-      <change afterPath="$PROJECT_DIR$/models/imgurToken/model.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/custom-middlewares.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/custom-sanitizers.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/custom-validators.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/efb3df68-61eb-4efb-9b0f-3827e0e603e2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/efb3df68-61eb-4efb-9b0f-3827e0e603e2.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db.js" beforeDir="false" afterPath="$PROJECT_DIR$/db.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/game/model.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/game/model.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/game/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/game/utils.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/ruleset/model.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/ruleset/model.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/tournament/model.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/tournament/model.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/auth.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/games.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/games.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/platforms.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/platforms.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/rulesets.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/rulesets.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/tournaments.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/tournaments.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/swagger.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/swagger.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/helpers.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +85,7 @@
       <recent name="C:\Users\ugoro\WebstormProjects\just_fight_api\routes" />
     </key>
   </component>
-  <component name="RunManager" selected="npm.dev">
+  <component name="RunManager" selected="npm.start">
     <configuration default="true" type="SwaggerCodegen">
       <option name="activeConfigurationType" value="FILE" />
       <option name="configurationPath" value="" />
@@ -174,10 +154,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="npm.start" />
         <item itemvalue="npm.dev" />
         <item itemvalue="npm.doc" />
         <item itemvalue="npm.migrate" />
-        <item itemvalue="npm.start" />
         <item itemvalue="npm.run" />
       </list>
     </recent_temporary>
@@ -237,7 +217,8 @@
       <workItem from="1605603518204" duration="19936000" />
       <workItem from="1605633998136" duration="400000" />
       <workItem from="1605691132149" duration="23859000" />
-      <workItem from="1605732128909" duration="512000" />
+      <workItem from="1605732128909" duration="2781000" />
+      <workItem from="1605895884725" duration="606000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1601118184696</created>
@@ -400,7 +381,14 @@
       <option name="project" value="LOCAL" />
       <updated>1605634351944</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="Added images and Imgur integration for games and tournaments&#10;Refactored utils&#10;Added list tournaments endpoints">
+      <created>1605732747653</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1605732747653</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -445,7 +433,8 @@
     <MESSAGE value="Added documentation for user details endpoint" />
     <MESSAGE value="Fixed an error which prevented the app from starting" />
     <MESSAGE value="Added multiple new endpoints and models to enable the creation of a new tournaments" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added multiple new endpoints and models to enable the creation of a new tournaments" />
+    <MESSAGE value="Added images and Imgur integration for games and tournaments&#10;Refactored utils&#10;Added list tournaments endpoints" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added images and Imgur integration for games and tournaments&#10;Refactored utils&#10;Added list tournaments endpoints" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -496,26 +485,26 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="752" y="135" key="Github.UntrackedFilesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1601118122315" />
-    <state width="2517" height="488" key="GridCell.Tab.0.bottom" timestamp="1605723458528">
+    <state width="2517" height="396" key="GridCell.Tab.0.bottom" timestamp="1605896495073">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="1899" height="271" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1601227030504" />
-    <state width="2517" height="488" key="GridCell.Tab.0.bottom/0.0.2560.1400@0.0.2560.1400" timestamp="1605723458528" />
-    <state width="2517" height="488" key="GridCell.Tab.0.center" timestamp="1605723458528">
+    <state width="2517" height="396" key="GridCell.Tab.0.bottom/0.0.2560.1400@0.0.2560.1400" timestamp="1605896495073" />
+    <state width="2517" height="396" key="GridCell.Tab.0.center" timestamp="1605896495073">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="1899" height="271" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1601227030504" />
-    <state width="2517" height="488" key="GridCell.Tab.0.center/0.0.2560.1400@0.0.2560.1400" timestamp="1605723458528" />
-    <state width="2517" height="488" key="GridCell.Tab.0.left" timestamp="1605723458528">
+    <state width="2517" height="396" key="GridCell.Tab.0.center/0.0.2560.1400@0.0.2560.1400" timestamp="1605896495073" />
+    <state width="2517" height="396" key="GridCell.Tab.0.left" timestamp="1605896495073">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="1899" height="271" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1601227030504" />
-    <state width="2517" height="488" key="GridCell.Tab.0.left/0.0.2560.1400@0.0.2560.1400" timestamp="1605723458528" />
-    <state width="2517" height="488" key="GridCell.Tab.0.right" timestamp="1605723458528">
+    <state width="2517" height="396" key="GridCell.Tab.0.left/0.0.2560.1400@0.0.2560.1400" timestamp="1605896495073" />
+    <state width="2517" height="396" key="GridCell.Tab.0.right" timestamp="1605896495073">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state width="1899" height="271" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1601227030504" />
-    <state width="2517" height="488" key="GridCell.Tab.0.right/0.0.2560.1400@0.0.2560.1400" timestamp="1605723458528" />
+    <state width="2517" height="396" key="GridCell.Tab.0.right/0.0.2560.1400@0.0.2560.1400" timestamp="1605896495073" />
     <state width="2517" height="488" key="GridCell.Tab.1.bottom" timestamp="1605723458528">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
@@ -585,11 +574,11 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1577" y="268" key="VCS.ChangeListViewerDialog/0.0.2560.1400@0.0.2560.1400" timestamp="1604856412633" />
-    <state x="736" y="335" key="Vcs.Push.Dialog.v2" timestamp="1605634355479">
+    <state x="736" y="335" key="Vcs.Push.Dialog.v2" timestamp="1605734920410">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="552" y="249" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1601226823719" />
-    <state x="736" y="335" key="Vcs.Push.Dialog.v2/0.0.2560.1400@0.0.2560.1400" timestamp="1605634355479" />
+    <state x="736" y="335" key="Vcs.Push.Dialog.v2/0.0.2560.1400@0.0.2560.1400" timestamp="1605734920410" />
     <state width="1288" height="708" key="XDebugger.FullValuePopup" timestamp="1605705246989">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
