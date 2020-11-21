@@ -1,10 +1,13 @@
 const { userPermissionCreateTournament } = require("../models/user/consts")
-const { types } = require("../models/tournament/consts")
+const { types, teamRoleLeader } = require("../models/tournament/consts")
 const { body, query } = require("express-validator")
 const { convertToMongoId, toISO } = require("../utils/custom-sanitizers")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
-const { checkUniqueName } = require("../models/tournament/utils")
+const {
+	checkUniqueName,
+	checkTeamNameInTournament,
+} = require("../models/tournament/utils")
 const mongoose = require("mongoose")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
 const { checkImgInput } = require("../utils/helpers")
@@ -122,6 +125,33 @@ router.get(
 				})
 			)
 			return res.json(result)
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.post(
+	"/:tournamentId/team",
+	checkJWT(),
+	[
+		body("name")
+			.notEmpty({ ignore_whitespace: true })
+			.custom(checkTeamNameInTournament),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const newTeam = {
+				name: req.body.name,
+				members: [{ role: teamRoleLeader, userId: req.userId }],
+			}
+			await Tournament.findByIdAndUpdate(req.params.tournamentId, {
+				$push: { teams: newTeam },
+			})
+			return res
+				.status(201)
+				.json({ msg: `${req.body.name} added to tournament` })
 		} catch (e) {
 			next(e)
 		}

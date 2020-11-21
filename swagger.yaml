@@ -528,6 +528,42 @@ paths:
                     game:
                       type: string
                       description: The name of the game this tournament is on
+  /tournament/:tournamentId/team:
+    parameters:
+      - name: tournamentId
+        in: path
+        required: true
+        description: The MongoDB ID of the tournament
+        schema:
+          $ref: '#/components/schemas/MongoID'
+    post:
+      summary: Create a new team in the tournament
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - tournaments
+      operationId: createTeam
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '201':
+          description: 'Team created'
   /ruleset:
     get:
       summary: Returns all rulesets

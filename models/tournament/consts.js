@@ -34,6 +34,7 @@ const secondsToAcceptLadderMatch = 15 * 60
 
 module.exports = {
 	teamRoleMember,
+	teamRoleLeader,
 	teamRoles,
 	types,
 	matchStatePending,
