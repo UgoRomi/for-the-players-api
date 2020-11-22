@@ -30,6 +30,10 @@ const teamSubmittedResults = [
 	teamSubmittedMatchResultTie,
 ]
 
+// Values that are added to a team object at runtime to tell the frontend if the team at it's current state can play in the tournament or not
+const teamStatusOk = "OK"
+const teamStatusNotOk = "NOT OK"
+
 const secondsToAcceptLadderMatch = 15 * 60
 
 module.exports = {
@@ -41,4 +45,6 @@ module.exports = {
 	matchStates,
 	teamSubmittedResults,
 	secondsToAcceptLadderMatch,
+	teamStatusOk,
+	teamStatusNotOk,
 }
