@@ -19,6 +19,10 @@ router.post(
 			.not()
 			.isEmpty({ ignore_whitespace: true })
 			.isInt(),
+		body("minNumberOfPlayersPerTeam")
+			.not()
+			.isEmpty({ ignore_whitespace: true })
+			.isInt(),
 		body("description").not().isEmpty({ ignore_whitespace: true }),
 		body("name").not().isEmpty({ ignore_whitespace: true }),
 	],
@@ -26,10 +30,17 @@ router.post(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const { game, maxNumberOfPlayersPerTeam, description, name } = req.body
+			const {
+				game,
+				maxNumberOfPlayersPerTeam,
+				minNumberOfPlayersPerTeam,
+				description,
+				name,
+			} = req.body
 			await Ruleset.create({
 				game,
 				maxNumberOfPlayersPerTeam,
+				minNumberOfPlayersPerTeam,
 				description,
 				name,
 			})
@@ -51,6 +62,7 @@ router.get("/", checkJWT(), async (req, res, next) => {
 					game: ruleset.game,
 					description: ruleset.description,
 					maxNumberOfPlayersPerTeam: ruleset.maxNumberOfPlayersPerTeam,
+					minNumberOfPlayersPerTeam: ruleset.minNumberOfPlayersPerTeam,
 				}
 			})
 		)

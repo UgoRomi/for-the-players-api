@@ -528,6 +528,120 @@ paths:
                     game:
                       type: string
                       description: The name of the game this tournament is on
+  /tournament/:tournamentId:
+    parameters:
+      - name: tournamentId
+        in: path
+        required: true
+        description: The MongoDB ID of the tournament
+        schema:
+          $ref: '#/components/schemas/MongoID'
+    get:
+      summary: Get a tournament details
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - tournaments
+      operationId: getTeam
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '200':
+          description: 'Success'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: 'The name of the tournament'
+                  id:
+                    type: string
+                    description: The Mongo ID of the tournament
+                  startsOn:
+                    type: string
+                    format: date-time
+                    description: The time on which the tournament starts
+                  endsOn:
+                    type: string
+                    format: date-time
+                    description: The time on which the tournament ends
+                  ruleset:
+                    type: string
+                    description: The ruleset used in this tournament
+                  type:
+                    $ref: '#/components/schemas/TournamentTypes'
+                  teams:
+                    type: array
+                    description: The teams signed up to this tournament
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The team's name
+                        elo:
+                          type: integer
+                          description: The team's ELO
+                        members:
+                          type: array
+                          description: The members of the team
+                          items:
+                            type: object
+                            properties:
+                              role:
+                                $ref: '#/components/schemas/TeamRoles'
+                              userId:
+                                type: string
+                                minLength: 24
+                                maxLength: 24
+                                description: The Mongo ID of the user that's a part of this team
+                  userTeam:
+                    description: The team of the user, if present
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The team's name
+                      elo:
+                        type: integer
+                        description: The team's ELO
+                      members:
+                        type: array
+                        description: The members of the team
+                        items:
+                          type: object
+                          properties:
+                            role:
+                              $ref: '#/components/schemas/TeamRoles'
+                            userId:
+                              type: string
+                              minLength: 24
+                              maxLength: 24
+                              description: The Mongo ID of the user that's a part of this team
+                  imgUrl:
+                    type: string
+                    description: The URL of the tournament's image
+                  game:
+                    type: string
+                    description: The name of the game this tournament is on
   /tournament/:tournamentId/team:
     parameters:
       - name: tournamentId
@@ -615,6 +729,9 @@ paths:
                     maxNumberOfPlayersPerTeam:
                       type: integer
                       description: The maximum number of players that can be in a team when using this ruleset
+                    minNumberOfPlayersPerTeam:
+                      type: integer
+                      description: The minimum number of players that can be in a team when using this ruleset
     post:
       summary: Create a new ruleset for a game
       security:
@@ -630,6 +747,7 @@ paths:
               required:
                 - game
                 - maxNumberOfPlayersPerTeam
+                - minNumberOfPlayersPerTeam
                 - description
                 - name
               properties:
@@ -638,6 +756,9 @@ paths:
                   type: string
                 maxNumberOfPlayersPerTeam:
                   description: The maximum number of players a team can have
+                  type: integer
+                minNumberOfPlayersPerTeam:
+                  description: The minimum number of players a team can have
                   type: integer
                 description:
                   description: The ruleset's description
