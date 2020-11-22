@@ -16,15 +16,13 @@ router.post(
 			.customSanitizer(convertToMongoId)
 			.custom(checkIfGameExists),
 		body("maxNumberOfPlayersPerTeam")
-			.not()
-			.isEmpty({ ignore_whitespace: true })
+			.notEmpty({ ignore_whitespace: true })
 			.isInt(),
 		body("minNumberOfPlayersPerTeam")
-			.not()
-			.isEmpty({ ignore_whitespace: true })
+			.notEmpty({ ignore_whitespace: true })
 			.isInt(),
-		body("description").not().isEmpty({ ignore_whitespace: true }),
-		body("name").not().isEmpty({ ignore_whitespace: true }),
+		body("description").notEmpty({ ignore_whitespace: true }),
+		body("name").notEmpty({ ignore_whitespace: true }),
 	],
 	checkJWT(userPermissionCreateRuleset),
 	checkValidation,

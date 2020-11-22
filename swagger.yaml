@@ -562,6 +562,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
+        '404':
+          description: 'Something was not found, check errorMessage for further info'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
         '200':
           description: 'Success'
           content:
@@ -584,8 +590,26 @@ paths:
                     format: date-time
                     description: The time on which the tournament ends
                   ruleset:
-                    type: string
+                    type: object
                     description: The ruleset used in this tournament
+                    properties:
+                      name:
+                        type: string
+                        description: The ruleset's name
+                      id:
+                        type: string
+                        minLength: 24
+                        maxLength: 24
+                        description: The Mongo ID of the ruleset
+                      description:
+                        type: string
+                        description: The ruleset's description
+                      maxNumberOfPlayersPerteam:
+                        type: integer
+                        description: The maximum number of players a team can have
+                      minNumberOfPlayersPerTeam:
+                        type: integer
+                        description: The minimum number of players a team can have
                   type:
                     $ref: '#/components/schemas/TournamentTypes'
                   teams:
@@ -613,6 +637,8 @@ paths:
                                 minLength: 24
                                 maxLength: 24
                                 description: The Mongo ID of the user that's a part of this team
+                        teamStatus:
+                          $ref: '#/components/schemas/TeamStatuses'
                   userTeam:
                     description: The team of the user, if present
                     type: object
@@ -636,6 +662,8 @@ paths:
                               minLength: 24
                               maxLength: 24
                               description: The Mongo ID of the user that's a part of this team
+                      teamStatus:
+                        $ref: '#/components/schemas/TeamStatuses'
                   imgUrl:
                     type: string
                     description: The URL of the tournament's image
@@ -837,6 +865,12 @@ components:
       enum:
         - TOURNAMENT
         - LADDER
+    TeamStatuses:
+      description: " Values that are added to a team object at runtime to tell the frontend if the team at it's current state can play in the tournament or not"
+      type: string
+      enum:
+        - OK
+        - NOT OK
     MongoID:
       type: string
       maxLength: 24

@@ -28,7 +28,7 @@ if (!_.isEmpty(connectionError)) return
 // Middlewares
 app.use(helmet())
 // noinspection JSCheckFunctionSignatures
-app.use(morgan("tiny"))
+app.use(morgan("dev"))
 app.use(cors())
 app.use(express.json({ limit: "10mb" }))
 // noinspection JSCheckFunctionSignatures

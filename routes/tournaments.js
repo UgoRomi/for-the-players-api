@@ -1,12 +1,18 @@
 const { userPermissionCreateTournament } = require("../models/user/consts")
-const { types, teamRoleLeader } = require("../models/tournament/consts")
-const { body, query } = require("express-validator")
+const {
+	types,
+	teamRoleLeader,
+	teamStatusNotOk,
+	teamStatusOk,
+} = require("../models/tournament/consts")
+const { body, query, param } = require("express-validator")
 const { convertToMongoId, toISO } = require("../utils/custom-sanitizers")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
 const {
 	checkUniqueName,
 	checkTeamNameInTournament,
+	checkTournamentExists,
 } = require("../models/tournament/utils")
 const mongoose = require("mongoose")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
@@ -135,6 +141,7 @@ router.post(
 	"/:tournamentId/team",
 	checkJWT(),
 	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
 		body("name")
 			.notEmpty({ ignore_whitespace: true })
 			.custom(checkTeamNameInTournament),
@@ -142,9 +149,25 @@ router.post(
 	checkValidation,
 	async (req, res, next) => {
 		try {
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+			if (
+				tournament.teams.some((tournament) =>
+					tournament.members.some(
+						(member) => member.userId.toString() === req.user.id
+					)
+				)
+			)
+				return res.status(400).json({
+					value: "userId",
+					msg: "User is already registered in a team",
+					param: "userId",
+					location: "JWT",
+				})
 			const newTeam = {
 				name: req.body.name,
-				members: [{ role: teamRoleLeader, userId: req.userId }],
+				members: [{ role: teamRoleLeader, userId: req.user.id }],
 			}
 			await Tournament.findByIdAndUpdate(req.params.tournamentId, {
 				$push: { teams: newTeam },
@@ -152,6 +175,71 @@ router.post(
 			return res
 				.status(201)
 				.json({ msg: `${req.body.name} added to tournament` })
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.get(
+	"/:tournamentId",
+	checkJWT(),
+	[param("tournamentId").custom(checkTournamentExists)],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+			const ruleset = await Ruleset.findById(tournament.ruleset).lean()
+
+			// Get the team the user is a part of, if it exists
+			const userTeam = tournament.teams.find((team) =>
+				team.members.some((member) => member.userId.toString() === req.user.id)
+			)
+			// Check if the team the user is a part of can play in the tournament
+			if (userTeam) {
+				userTeam.teamStatus =
+					userTeam.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
+					userTeam.members.length >= ruleset.minNumberOfPlayersPerTeam
+						? teamStatusOk
+						: teamStatusNotOk
+			}
+			return res.status(200).json({
+				name: tournament.name,
+				id: tournament._id,
+				startsOn: tournament.startsOn,
+				endsOn: tournament.endsOn,
+				ruleset: {
+					name: ruleset.name,
+					id: ruleset._id,
+					description: ruleset.description,
+					maxNumberOfPlayersPerTeam: ruleset.maxNumberOfPlayersPerTeam,
+					minNumberOfPlayersPerTeam: ruleset.minNumberOfPlayersPerTeam,
+				},
+				type: tournament.type,
+				// Remove the team the user is a part of, if present
+				teams: tournament.teams
+					.filter(
+						(team) =>
+							!team.members.some(
+								(member) => member.userId.toString() === req.user.id
+							)
+					)
+					.map((team) => {
+						return {
+							...team,
+							teamStatus:
+								team.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
+								team.members.length >= ruleset.minNumberOfPlayersPerTeam
+									? teamStatusOk
+									: teamStatusNotOk,
+						}
+					}),
+				userTeam,
+				imgUrl: tournament.imgUrl,
+				game: tournament.game,
+			})
 		} catch (e) {
 			next(e)
 		}
