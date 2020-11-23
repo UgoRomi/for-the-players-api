@@ -26,7 +26,7 @@ const checkValidation = (req, res, next) => {
 	next()
 }
 
-const checkJWT = (requiredPermissions) => {
+const checkJWT = (requiredPermissions, mustBeVerified = true) => {
 	return async (req, res, next) => {
 		try {
 			if (!_.has(req.headers, "authorization"))
@@ -64,7 +64,7 @@ const checkJWT = (requiredPermissions) => {
 			if (user.status === userStatusBanned)
 				return res.status(403).json({ errorMessage: "User is banned" })
 
-			if (user.status === userStatusNotVerified)
+			if (mustBeVerified && user.status === userStatusNotVerified)
 				return res.status(403).json({ errorMessage: "User not verified" })
 
 			const permissions =

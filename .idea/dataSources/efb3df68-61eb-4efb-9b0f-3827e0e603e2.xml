@@ -167,36 +167,40 @@
       <Position>5</Position>
       <DataType>String(0)|12s</DataType>
     </column>
-    <column id="59" parent="9" name="teams.name">
+    <column id="59" parent="9" name="teams.members.userId">
       <Position>6</Position>
-      <DataType>String(0)|12s</DataType>
-    </column>
-    <column id="60" parent="10" name="_id">
       <DataType>ObjectId(0)|12s</DataType>
     </column>
-    <column id="61" parent="10" name="createdAt">
+    <column id="60" parent="9" name="teams.name">
+      <Position>7</Position>
+      <DataType>String(0)|12s</DataType>
+    </column>
+    <column id="61" parent="10" name="_id">
+      <DataType>ObjectId(0)|12s</DataType>
+    </column>
+    <column id="62" parent="10" name="createdAt">
       <DataType>Date(0)|91s</DataType>
     </column>
-    <column id="62" parent="10" name="password">
+    <column id="63" parent="10" name="password">
       <DataType>String(0)|12s</DataType>
     </column>
-    <column id="63" parent="10" name="status">
+    <column id="64" parent="10" name="status">
       <DataType>String(0)|12s</DataType>
     </column>
-    <column id="64" parent="10" name="email">
+    <column id="65" parent="10" name="email">
       <DataType>String(0)|12s</DataType>
     </column>
-    <column id="65" parent="10" name="username">
+    <column id="66" parent="10" name="username">
       <DataType>String(0)|12s</DataType>
     </column>
-    <column id="66" parent="10" name="updatedAt">
+    <column id="67" parent="10" name="updatedAt">
       <DataType>Date(0)|91s</DataType>
     </column>
-    <column id="67" parent="10" name="__v">
+    <column id="68" parent="10" name="__v">
       <Position>1</Position>
       <DataType>Integer|4s</DataType>
     </column>
-    <column id="68" parent="10" name="permissions">
+    <column id="69" parent="10" name="permissions">
       <Position>1</Position>
       <DataType>array(0)|2003s</DataType>
     </column>

@@ -1,12 +1,20 @@
 const router = require("express").Router()
-const { body } = require("express-validator")
+const { body, param } = require("express-validator")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
-const { userStatusNotVerified } = require("../models/user/consts")
-const { userStatusBanned } = require("../models/user/consts")
-const { checkValidation } = require("../utils/custom-middlewares")
-const { checkIfUserExists, checkUniqueEmail } = require("../models/user/utils")
+const {
+	userStatusBanned,
+	userStatusVerified,
+	userStatusNotVerified,
+} = require("../models/user/consts")
+const { checkValidation, checkJWT } = require("../utils/custom-middlewares")
+const {
+	checkIfUserExists,
+	checkUniqueEmail,
+	checkUserNotVerified,
+} = require("../models/user/utils")
 const mongoose = require("mongoose")
+const transporter = require("../email")
 
 const User = mongoose.model("User")
 
@@ -69,6 +77,42 @@ router.post(
 				process.env.JWT_SECRET
 			)
 			return res.json({ token })
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.get("/email", checkJWT([], false), async (req, res, next) => {
+	try {
+		const user = await User.findById(req.user.id)
+		if (!user) return res.status(404).json({ errorMessage: "User not found" })
+		if (user.status === userStatusVerified)
+			return res.status(400).json({ errorMessage: "User already verified" })
+
+		await transporter.sendMail({
+			from: process.env.SYSTEM_EMAIL, // sender address
+			to: req.user.email, // list of receivers
+			subject: "Conferma il tuo account JustFight", // Subject line
+			text: `Per confermare il tuo account copia e incolla il seguente link in una finestra del tuo browser ${req.headers.host}/auth/${req.user.id}/verify`, // plain text body
+			html: `Clicca sul seguente link per confermare il tuo account <a href='${req.headers.host}/auth/${req.user.id}/verify'>${req.headers.host}/auth/${req.user.id}/verify</a><br>Se il link non funziona prova a copiarlo e incollarlo in un'altra finestra del tuo browser`, // html body
+		})
+		return res.status(200).json({})
+	} catch (e) {
+		next(e)
+	}
+})
+
+router.get(
+	"/:userId/verify",
+	[param("userId").notEmpty().custom(checkUserNotVerified)],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			await User.findByIdAndUpdate(req.params.userId, {
+				status: userStatusVerified,
+			})
+			return res.status(200).json({})
 		} catch (e) {
 			next(e)
 		}

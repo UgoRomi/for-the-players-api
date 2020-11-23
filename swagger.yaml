@@ -102,6 +102,29 @@ paths:
                   token:
                     type: string
                     description: 'The JWT for the logged in user'
+  /auth/email:
+    get:
+      summary: Send a verification email for the logged in user
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - auth
+      operationId: sendVerificationEmail
+      responses:
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '200':
+          description: 'Email sent'
   /platform:
     post:
       summary: Create a new platform
