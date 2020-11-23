@@ -22,19 +22,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ec31767e-5692-46d5-99a2-b121905b42f8" name="Default Changelist" comment="Created user model and made implemented registration (still WIP)">
-      <change afterPath="$PROJECT_DIR$/email.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/utils/email.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/efb3df68-61eb-4efb-9b0f-3827e0e603e2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/efb3df68-61eb-4efb-9b0f-3827e0e603e2.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/user/consts.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/user/consts.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/user/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/models/user/utils.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/auth.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/swagger.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/swagger.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/custom-middlewares.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/custom-middlewares.js" afterDir="false" />
-    </list>
+    <list default="true" id="ec31767e-5692-46d5-99a2-b121905b42f8" name="Default Changelist" comment="Created user model and made implemented registration (still WIP)" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -238,6 +226,7 @@
       <workItem from="1605974259905" duration="10925000" />
       <workItem from="1606066496667" duration="5374000" />
       <workItem from="1606135334469" duration="10205000" />
+      <workItem from="1606168249530" duration="87000" />
     </task>
     <task id="LOCAL-00001" summary="Initial Commit">
       <created>1601118184696</created>
@@ -442,7 +431,14 @@
       <option name="project" value="LOCAL" />
       <updated>1606077411245</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="Added email verification">
+      <created>1606168311435</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1606168311435</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -466,7 +462,6 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="renamed start script" />
     <MESSAGE value="Added docs" />
     <MESSAGE value="Trying to implement docs in heroku app" />
     <MESSAGE value="Since Heroku ran into some issues now trying to implement CD for the docs to netlify" />
@@ -491,7 +486,8 @@
     <MESSAGE value="Added minimum numbers of players per team in rulesets" />
     <MESSAGE value="Added tournament details endpoint&#10;Added a check that ensures that a user can only be in a single team per tournament" />
     <MESSAGE value="Team status consts" />
-    <option name="LAST_COMMIT_MESSAGE" value="Team status consts" />
+    <MESSAGE value="Added email verification" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added email verification" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REARRANGE_BEFORE_PROJECT_COMMIT" value="true" />
@@ -635,11 +631,11 @@
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="1577" y="268" key="VCS.ChangeListViewerDialog/0.0.2560.1400@0.0.2560.1400" timestamp="1604856412633" />
-    <state x="736" y="335" key="Vcs.Push.Dialog.v2" timestamp="1606077412527">
+    <state x="736" y="335" key="Vcs.Push.Dialog.v2" timestamp="1606168316871">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
     <state x="552" y="249" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1601226823719" />
-    <state x="736" y="335" key="Vcs.Push.Dialog.v2/0.0.2560.1400@0.0.2560.1400" timestamp="1606077412527" />
+    <state x="736" y="335" key="Vcs.Push.Dialog.v2/0.0.2560.1400@0.0.2560.1400" timestamp="1606168316871" />
     <state width="1288" height="708" key="XDebugger.FullValuePopup" timestamp="1605705246989">
       <screen x="0" y="0" width="2560" height="1400" />
     </state>
