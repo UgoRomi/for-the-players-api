@@ -20,16 +20,18 @@ const userSchema = new Schema(
 			unique: true,
 			required: true,
 		},
-		permissions: {
-			permission: {
+		permissions: [
+			{
 				type: String,
 				enum: userPermissions,
 			},
-		},
-		platforms: {
-			id: { type: ObjectId, required: true, ref: "Platform" },
-			username: { type: String, required: true },
-		},
+		],
+		platforms: [
+			{
+				id: { type: ObjectId, required: true, ref: "Platform" },
+				username: { type: String, required: true },
+			},
+		],
 	},
 	{ timestamps: true }
 )
