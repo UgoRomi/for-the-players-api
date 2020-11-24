@@ -62,8 +62,5 @@
     "trailingComma": "es5",
     "bracketSpacing": true,
     "arrowParens": "always"
-  },
-  "engines": {
-    "node": "15.x"
   }
 }
