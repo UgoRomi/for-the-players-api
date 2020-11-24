@@ -66,6 +66,9 @@ paths:
                     format: email
                   status:
                     $ref: '#/components/schemas/UserStatuses'
+                  token:
+                    type: string
+                    description: 'The JWT of the newly created user. Only valid for the /auth/email endpoint'
   /auth/login:
     post:
       summary: login endpoint

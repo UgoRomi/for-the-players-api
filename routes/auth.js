@@ -34,7 +34,14 @@ router.post(
 				email: req.body.email,
 				permissions: [],
 			})
-			return res.status(201).json(newUser)
+			const token = jwt.sign(
+				{
+					email: newUser.email,
+					id: newUser._id,
+				},
+				process.env.JWT_SECRET
+			)
+			return res.status(201).json({ ...newUser._doc, token })
 		} catch (e) {
 			return next(e)
 		}
@@ -91,7 +98,7 @@ router.get("/email", checkJWT([], false), async (req, res, next) => {
 			return res.status(400).json({ errorMessage: "User already verified" })
 
 		await transporter.sendMail({
-			from: process.env.SYSTEM_EMAIL, // sender address
+			from: process.env.EMAIL_USERNAME, // sender address
 			to: req.user.email, // list of receivers
 			subject: "Conferma il tuo account JustFight", // Subject line
 			text: `Per confermare il tuo account copia e incolla il seguente link in una finestra del tuo browser ${req.headers.host}/auth/${req.user.id}/verify`, // plain text body
