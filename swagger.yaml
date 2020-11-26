@@ -20,6 +20,8 @@ tags:
     description: Endpoints about tournaments and ladders
   - name: rulesets
     description: Endpoints about rulesets for tournaments
+  - name: invites
+    description: Team invites
 paths:
   /auth/signup:
     post:
@@ -128,7 +130,7 @@ paths:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '200':
           description: 'Email sent'
-  /platform:
+  /platforms:
     post:
       summary: Create a new platform
       security:
@@ -209,7 +211,7 @@ paths:
                           id:
                             type: string
                             description: 'The ID of the game'
-  /platform/{platformId}:
+  /platforms/{platformId}:
     parameters:
       - name: platformId
         in: path
@@ -244,7 +246,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PlatformObject'
-  /game:
+  /games:
     get:
       summary: Returns the list of all games
       security:
@@ -332,21 +334,32 @@ paths:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '201':
           description: 'Game successfully added'
-  /user/{userId}:
+  /users:
     parameters:
-      - name: userId
-        in: path
-        required: true
-        description: The MongoDB ID of the user
+      - in: query
+        name: username
         schema:
-          $ref: '#/components/schemas/MongoID'
+          type: string
+        description: The user's username. Will match partial usernames
+      - in: query
+        name: email
+        schema:
+          type: string
+          format: email
+        description: The user's email. Will match partial emails
     get:
       tags:
         - user
       security:
         - BearerAuth: [ ]
-      summary: Returns the user that corresponds to the user ID
+      summary: Returns a list of users
       responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
         '401':
           description: 'Missing bearer token'
           content:
@@ -360,7 +373,52 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '404':
-          description: 'Platform not found'
+          description: 'User not found'
+        '200':
+          description: 'List of users matching the search'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    username:
+                      type: string
+                      description: The user's username
+  /users/:userId:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: The MongoDB ID of the user
+        schema:
+          $ref: '#/components/schemas/MongoID'
+    get:
+      tags:
+        - user
+      security:
+        - BearerToken: [ ]
+      summary: Returns a single user's details
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
         '200':
           description: 'The User'
           content:
@@ -368,6 +426,9 @@ paths:
               schema:
                 type: object
                 properties:
+                  elo:
+                    type: integer
+                    description: The player's ELO
                   email:
                     type: string
                     format: email
@@ -401,7 +462,46 @@ paths:
                           description: "The team's name"
                         role:
                           $ref: "#/components/schemas/TeamRoles"
-  /tournament:
+                        team:
+                          type: object
+                          description: The user's team in that tournament
+                          properties:
+                            name:
+                              type: string
+                              description: The team's name
+                            elo:
+                              type: integer
+                              description: The team's ELO
+                            members:
+                              type: array
+                              description: The members of the team
+                              items:
+                                type: object
+                                properties:
+                                  role:
+                                    $ref: '#/components/schemas/TeamRoles'
+                                  userId:
+                                    type: string
+                                    minLength: 24
+                                    maxLength: 24
+                                    description: The Mongo ID of the user that's a part of this team
+                            teamStatus:
+                              $ref: '#/components/schemas/TeamStatuses'
+                  invites:
+                    type: array
+                    description: List of invites the user has received
+                    items:
+                      type: object
+                      properties:
+                        tournamentId:
+                          type: string
+                          description: The ID of the tournament this invite refres to
+                        teamName:
+                          type: string
+                          description: The name of the team the user got invited to
+                        status:
+                          $ref: '#/components/schemas/TeamInvites'
+  /tournaments:
     post:
       summary: Create a new tournament
       security:
@@ -554,7 +654,7 @@ paths:
                     game:
                       type: string
                       description: The name of the game this tournament is on
-  /tournament/:tournamentId:
+  /tournaments/:tournamentId:
     parameters:
       - name: tournamentId
         in: path
@@ -696,7 +796,7 @@ paths:
                   game:
                     type: string
                     description: The name of the game this tournament is on
-  /tournament/:tournamentId/team:
+  /tournaments/:tournamentId/teams:
     parameters:
       - name: tournamentId
         in: path
@@ -711,6 +811,17 @@ paths:
       tags:
         - tournaments
       operationId: createTeam
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  description: The new team's name
+                  type: string
       responses:
         '400':
           description: 'The input data was wrongly formatted'
@@ -732,7 +843,231 @@ paths:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '201':
           description: 'Team created'
-  /ruleset:
+  /tournaments/:tournamentId/teams/:teamName:
+    parameters:
+      - name: tournamentId
+        in: path
+        required: true
+        description: The ID of the tournament
+        schema:
+          $ref: '#/components/schemas/MongoID'
+      - name: teamName
+        in: path
+        required: true
+        description: The name of the team
+        schema:
+          type: string
+    patch:
+      summary: Update the team details
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - tournaments
+      operationId: updateTeam
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The team's new name
+                membersToRemove:
+                  type: array
+                  items:
+                    type: string
+                    description: user ID
+                    minLength: 24
+                    maxLength: 24
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '404':
+          description: 'Resource not found'
+        '200':
+          description: 'Team updated'
+    delete:
+      summary: Deletes the team
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - tournaments
+      operationId: deleteTeam
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '404':
+          description: 'Resource not found'
+        '200':
+          description: 'Team deleted'
+  /tournaments/:tournamentId/teams/:teamName/invites:
+    parameters:
+      - name: tournamentId
+        in: path
+        required: true
+        description: The ID of the tournament
+        schema:
+          $ref: '#/components/schemas/MongoID'
+      - name: teamName
+        in: path
+        required: true
+        description: The name of the team
+        schema:
+          type: string
+    post:
+      summary: Invites a player to a team
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - tournaments
+      operationId: inviteToTeam
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  description: The ID of the user to invite
+                  minLength: 24
+                  maxLength: 24
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '404':
+          description: 'Resource not found'
+        201:
+          description: 'success'
+  /invites/:inviteId:
+    parameters:
+      - name: inviteId
+        in: path
+        required: true
+        description: The ID of the invite
+        schema:
+          $ref: '#/components/schemas/MongoID'
+    patch:
+      security:
+        - BearerAuth: [ ]
+      description: Updates the status of an invite
+      tags:
+        - invites
+      operationId: updateInvite
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newStatus:
+                  $ref: '#/components/schemas/TeamInvites'
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '404':
+          description: 'Invite not found'
+        '200':
+          description: 'Invite status updated'
+    delete:
+      security:
+        - BearerAuth: [ ]
+      description: >
+        Deletes an invite
+        Invite must be in status: PENDING
+      tags:
+        - invites
+      operationId: deleteInvite
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '404':
+          description: 'Invite not found'
+        '200':
+          description: 'Invite deleted'
+  /rulesets:
     get:
       summary: Returns all rulesets
       security:
@@ -882,9 +1217,15 @@ components:
       description: "The possible roles for team members"
       type: string
       enum:
-        - INVITED
         - MEMBER
         - LEADER
+    TeamInvites:
+      description: "The possible invite statuses for team members"
+      type: string
+      enum:
+        - PENDING
+        - DECLINED
+        - ACCEPTED
     TournamentTypes:
       description: "The possible types of a tournament"
       type: string

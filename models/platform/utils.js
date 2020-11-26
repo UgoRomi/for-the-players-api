@@ -9,6 +9,16 @@ const checkIfPlatformExists = async (platformId) => {
 	if (!platformExists) throw Error("Platform does not exists")
 }
 
+const checkUniqueName = async (platformName) => {
+	const platformExists = await Platform.findOne({
+		name: platformName,
+	})
+
+	if (platformExists)
+		throw Error(`Platform named ${platformName} already exists`)
+}
+
 module.exports = {
 	checkIfPlatformExists,
+	checkUniqueName,
 }

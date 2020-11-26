@@ -1,6 +1,5 @@
 const {
 	teamRoles,
-	teamRoleInvited,
 	types,
 	matchStates,
 	teamSubmittedResults,
@@ -23,12 +22,12 @@ const tournamentSchema = new Schema(
 			{
 				name: { type: String, required: true },
 				elo: { type: Number, required: true, default: 1500 },
+				invites: [{}],
 				members: [
 					{
 						role: {
 							type: String,
 							enum: teamRoles,
-							default: teamRoleInvited,
 							required: true,
 						},
 						userId: { type: ObjectId, ref: "User", required: true },

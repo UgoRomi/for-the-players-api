@@ -1,0 +1,16 @@
+- **/invites/:inviteId**
+    - PATCH
+    - DELETE
+- **/tournaments/:tournamentId/teams/:teamName/invites**
+    - POST
+- **/users**
+    - GET
+- **/users/:userId**
+    - GET
+- **/tournaments/:tournamentId/teams/:teamName**
+    - PATCH
+    - DELETE
+- **/platforms**
+    - GET
+- **/platforms/:platformId**
+    - GET

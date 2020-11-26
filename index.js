@@ -9,6 +9,9 @@ const app = express()
 const connectionError = require("./db")
 const _ = require("lodash")
 const bodyParser = require("body-parser")
+const rateLimit = require("express-rate-limit")
+
+app.set("trust proxy", true)
 
 require("./models/user/model")
 require("./models/tournament/model")
@@ -42,16 +45,24 @@ const gameRoutes = require("./routes/games")
 const tournamentRoutes = require("./routes/tournaments")
 const rulesetRoutes = require("./routes/rulesets")
 
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 100 // limit each IP to 100 requests per windowMs
+});
+
+//  apply to all requests
+app.use(limiter);
+
 app.use("/auth", authRoutes)
-app.use("/platform", platformRoutes)
-app.use("/game", gameRoutes)
-app.use("/tournament", tournamentRoutes)
-app.use("/ruleset", rulesetRoutes)
+app.use("/platforms", platformRoutes)
+app.use("/games", gameRoutes)
+app.use("/tournaments", tournamentRoutes)
+app.use("/rulesets", rulesetRoutes)
 
 // Error handling
 //404
 app.use("*", (req, res, _next) => {
-	return res.status(404).json({ error: `URL ${req.baseUrl} not found` })
+	return res.status(404).json({error: `URL ${req.baseUrl} not found`})
 })
 
 app.use((error, req, res, next) => {

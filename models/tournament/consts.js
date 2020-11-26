@@ -1,7 +1,6 @@
-const teamRoleInvited = "INVITED"
 const teamRoleMember = "MEMBER"
 const teamRoleLeader = "LEADER"
-const teamRoles = [teamRoleInvited, teamRoleMember, teamRoleLeader]
+const teamRoles = [teamRoleMember, teamRoleLeader]
 
 const tournamentType = "TOURNAMENT"
 const ladderType = "LADDER"

@@ -138,7 +138,7 @@ router.get(
 )
 
 router.post(
-	"/:tournamentId/team",
+	"/:tournamentId/teams",
 	checkJWT(),
 	[
 		param("tournamentId").custom(checkTournamentExists).bail(),

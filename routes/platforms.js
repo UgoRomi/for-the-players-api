@@ -3,13 +3,19 @@ const { checkValidation, checkJWT } = require("../utils/custom-middlewares")
 const { body } = require("express-validator")
 const router = require("express").Router()
 const mongoose = require("mongoose")
+const { checkUniqueName } = require("../models/platform/utils")
 
 const Platform = mongoose.model("Platform")
 
 router.post(
 	"/",
 	[
-		body("name").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
+		body("name")
+			.not()
+			.isEmpty({ ignore_whitespace: true })
+			.trim()
+			.escape()
+			.custom(checkUniqueName),
 		body("show").isBoolean(),
 	],
 	checkJWT([userPermissionCreatePlatform]),
