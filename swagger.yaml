@@ -107,6 +107,8 @@ paths:
                   token:
                     type: string
                     description: 'The JWT for the logged in user'
+                  status:
+                    $ref: '#/components/schemas/UserStatuses'
   /auth/email:
     get:
       summary: Send a verification email for the logged in user

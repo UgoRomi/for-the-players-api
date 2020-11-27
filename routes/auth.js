@@ -5,7 +5,6 @@ const bcrypt = require("bcrypt")
 const {
 	userStatusBanned,
 	userStatusVerified,
-	userStatusNotVerified,
 } = require("../models/user/consts")
 const { checkValidation, checkJWT } = require("../utils/custom-middlewares")
 const {
@@ -73,9 +72,6 @@ router.post(
 			if (userOnDB.status === userStatusBanned)
 				return res.status(400).json({ error: "User is banned" })
 
-			if (userOnDB.status === userStatusNotVerified)
-				return res.status(400).json({ error: "User is not verified" })
-
 			const token = jwt.sign(
 				{
 					email,
@@ -83,7 +79,7 @@ router.post(
 				},
 				process.env.JWT_SECRET
 			)
-			return res.json({ token })
+			return res.json({ token, status: userOnDB.status })
 		} catch (e) {
 			next(e)
 		}
