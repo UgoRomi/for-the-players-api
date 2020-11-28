@@ -6,6 +6,8 @@ const { checkValidation, checkJWT } = require("../utils/custom-middlewares")
 const { body, param } = require("express-validator")
 const router = require("express").Router()
 const mongoose = require("mongoose")
+const { checkImgInput } = require("../utils/helpers")
+const { checkIfValidaImageData } = require("../utils/custom-validators")
 const {
 	checkUniqueName,
 	checkIfPlatformExists,
@@ -24,14 +26,19 @@ router.post(
 			.escape()
 			.custom(checkUniqueName),
 		body("show").isBoolean(),
+		body("imgUrl").optional().isURL(),
+		body("imgBase64").isBase64().custom(checkIfValidaImageData),
 	],
 	checkJWT([userPermissionPlatform]),
 	checkValidation,
 	async (req, res, next) => {
+		const imageURL = await checkImgInput(req.body)
+
 		try {
 			await Platform.create({
 				name: req.body.name,
 				show: req.body.show,
+				imgUrl: imageURL,
 			})
 			return res.status(201).json()
 		} catch (e) {
@@ -48,6 +55,7 @@ router.get("/", checkJWT(), async (req, res, next) => {
 		const platforms = await Platform.find(findObject, {
 			"_id": 1,
 			"name": 1,
+			"imgUrl": 1,
 			"games.id": 1,
 			"games.name": 1,
 		}).lean()
@@ -79,7 +87,7 @@ router.get(
 					.status(403)
 					.json({ errorMessage: "Cannot access the requested platform" })
 
-			const { name, show } = platform
+			const { name, show, imageUrl } = platform
 			let { games } = platform
 
 			if (!req.user.permissions.includes(userPermissionGame))
@@ -88,6 +96,7 @@ router.get(
 			return res.status(200).json({
 				name,
 				show,
+				imageUrl,
 				games: games.map((game) => {
 					return { id: game._id.toString(), name: game.name, show: game.show }
 				}),

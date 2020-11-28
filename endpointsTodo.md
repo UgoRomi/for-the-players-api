@@ -2,10 +2,6 @@
     - GET
 - **/users/:userId**
     - GET
-- **/tournaments/:tournamentId/teams/:teamName**
+- **/tournaments/:tournamentId/teams/:teamId**
     - PATCH
     - DELETE
-- **/platforms**
-    - GET
-- **/platforms/:platformId**
-    - GET

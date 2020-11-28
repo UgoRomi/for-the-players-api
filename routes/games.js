@@ -26,6 +26,7 @@ router.get("/", checkJWT(), async (req, res, _next) => {
 
 router.post(
 	"/",
+	checkJWT([userPermissionCreateGame]),
 	[
 		body("name")
 			.notEmpty({ ignore_whitespace: true })
@@ -35,7 +36,6 @@ router.post(
 		body("imgUrl").optional().isURL(),
 		body("imgBase64").isBase64().custom(checkIfValidaImageData),
 	],
-	checkJWT([userPermissionCreateGame]),
 	checkValidation,
 	async (req, res, next) => {
 		try {

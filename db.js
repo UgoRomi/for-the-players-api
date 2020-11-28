@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-mongoose.set("debug", false)
+mongoose.set("debug", process.env.DEBUG)
 try {
 	mongoose.connect(process.env.DB_URL, {
 		useNewUrlParser: true,

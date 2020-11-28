@@ -100,7 +100,7 @@ router.get("/email", checkJWT([], false), async (req, res, next) => {
 			text: `Per confermare il tuo account copia e incolla il seguente link in una finestra del tuo browser ${req.headers.host}/auth/${req.user.id}/verify`, // plain text body
 			html: `Clicca sul seguente link per confermare il tuo account <a href='${req.headers.host}/auth/${req.user.id}/verify'>${req.headers.host}/auth/${req.user.id}/verify</a><br>Se il link non funziona prova a copiarlo e incollarlo in un'altra finestra del tuo browser`, // html body
 		})
-		return res.status(200).json({})
+		return res.status(200).json()
 	} catch (e) {
 		next(e)
 	}
@@ -115,7 +115,7 @@ router.get(
 			await User.findByIdAndUpdate(req.params.userId, {
 				status: userStatusVerified,
 			})
-			return res.status(200).json({})
+			return res.status(200).json()
 		} catch (e) {
 			next(e)
 		}

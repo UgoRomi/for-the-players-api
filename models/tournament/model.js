@@ -3,6 +3,7 @@ const {
 	types,
 	matchStates,
 	teamSubmittedResults,
+	teamRoleMember,
 } = require("./consts")
 const { Schema, model, ObjectId } = require("mongoose")
 
@@ -29,6 +30,7 @@ const tournamentSchema = new Schema(
 							type: String,
 							enum: teamRoles,
 							required: true,
+							default: teamRoleMember,
 						},
 						userId: { type: ObjectId, ref: "Users", required: true },
 					},

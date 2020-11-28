@@ -3,4 +3,4 @@ const teamInviteDeclined = "DECLINED"
 const teamInviteAccepted = "ACCEPTED"
 const teamInvites = [teamInvitePending, teamInviteDeclined, teamInviteAccepted]
 
-module.exports = { teamInvites, teamInvitePending }
+module.exports = { teamInvites, teamInvitePending, teamInviteAccepted }

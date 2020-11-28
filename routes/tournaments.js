@@ -250,12 +250,19 @@ router.get(
 )
 
 router.post(
-	"/:tournamentId/teams/:teamName/invites",
+	"/:tournamentId/teams/:teamId/invites",
 	checkJWT(),
 	[
-		param("tournamentId").custom(checkTournamentExists).bail(),
-		param("teamName").custom(checkTeamExists),
-		body("userId").custom(userExistsById),
+		param("tournamentId")
+			.customSanitizer(convertToMongoId)
+			.bail()
+			.custom(checkTournamentExists)
+			.bail(),
+		param("teamId")
+			.customSanitizer(convertToMongoId)
+			.bail()
+			.custom(checkTeamExists),
+		body("userId").bail().custom(userExistsById),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -271,7 +278,7 @@ router.post(
 			const { teams } = tournament
 
 			const userTeam = teams.find(
-				(team) => team.name.toUpperCase() === req.params.teamName.toUpperCase()
+				(team) => team._id.toString() === req.params.teamId.toString()
 			)
 
 			// Check that the user is in the team and is a leader
@@ -290,10 +297,10 @@ router.post(
 			await Invite.create({
 				userId: req.body.userId,
 				tournamentId: tournament._id.toString(),
-				teamName: req.params.teamName,
+				teamId: userTeam._id.toString(),
 			})
 
-			return res.status(201).json({})
+			return res.status(201).json()
 		} catch (e) {
 			next(e)
 		}

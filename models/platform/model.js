@@ -11,6 +11,7 @@ const gameSubSchema = new Schema(
 const platformSchema = new Schema(
 	{
 		name: { type: String, unique: true, required: true },
+		imgUrl: { type: String, required: true },
 		show: { type: Boolean, required: true, default: false },
 		games: [gameSubSchema],
 	},

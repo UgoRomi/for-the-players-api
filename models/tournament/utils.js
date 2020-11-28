@@ -19,14 +19,12 @@ const checkTournamentExists = async (tournamentId) => {
 	if (!tournament) throw new CustomError(error404, "Tournament not found")
 }
 
-const checkTeamExists = async (teamName, { req }) => {
+const checkTeamExists = async (teamId, { req }) => {
 	const tournament = await Tournament.findById(req.params.tournamentId).lean()
 	if (
-		!tournament.teams.some(
-			(team) => team.name.toUpperCase() === teamName.toUpperCase()
-		)
+		!tournament.teams.some((team) => team._id.toString() === teamId.toString())
 	)
-		throw new CustomError(error404, `Team named ${teamName} not found`)
+		throw new CustomError(error404, `Team not found`)
 }
 
 const _checkUniqueField = async (fieldName, fieldValue) => {
