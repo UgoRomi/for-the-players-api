@@ -1,8 +1,3 @@
-- **/invites/:inviteId**
-    - PATCH
-    - DELETE
-- **/tournaments/:tournamentId/teams/:teamName/invites**
-    - POST
 - **/users**
     - GET
 - **/users/:userId**

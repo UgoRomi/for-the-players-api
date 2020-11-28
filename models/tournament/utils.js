@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
 const { error404, CustomError } = require("../../utils/error-consts")
 
-const Tournament = mongoose.model("Tournament")
+const Tournament = mongoose.model("Tournaments")
 
 const checkUniqueName = async (name) => {
 	await _checkUniqueField("name", name)
@@ -19,6 +19,16 @@ const checkTournamentExists = async (tournamentId) => {
 	if (!tournament) throw new CustomError(error404, "Tournament not found")
 }
 
+const checkTeamExists = async (teamName, { req }) => {
+	const tournament = await Tournament.findById(req.params.tournamentId).lean()
+	if (
+		!tournament.teams.some(
+			(team) => team.name.toUpperCase() === teamName.toUpperCase()
+		)
+	)
+		throw new CustomError(error404, `Team named ${teamName} not found`)
+}
+
 const _checkUniqueField = async (fieldName, fieldValue) => {
 	const fieldAlreadyExists = await Tournament.findOne({
 		[fieldName]: fieldValue,
@@ -30,4 +40,5 @@ module.exports = {
 	checkUniqueName,
 	checkTeamNameInTournament,
 	checkTournamentExists,
+	checkTeamExists,
 }

@@ -28,7 +28,7 @@ const userSchema = new Schema(
 		],
 		platforms: [
 			{
-				id: { type: ObjectId, required: true, ref: "Platform" },
+				id: { type: ObjectId, required: true, ref: "Platforms" },
 				username: { type: String, required: true },
 			},
 		],
@@ -58,6 +58,6 @@ userSchema.statics.isEmailUsed = (email) => {
 	return this.findOne({ email })
 }
 
-const user = model("User", userSchema)
+const user = model("Users", userSchema)
 
 module.exports = user

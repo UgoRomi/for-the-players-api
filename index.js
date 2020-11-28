@@ -19,6 +19,7 @@ require("./models/platform/model")
 require("./models/ruleset/model")
 require("./models/game/model")
 require("./models/imgurToken/model")
+require("./models/invite/model")
 
 // Docs
 const swaggerUi = require("swagger-ui-express")
@@ -44,6 +45,7 @@ const platformRoutes = require("./routes/platforms")
 const gameRoutes = require("./routes/games")
 const tournamentRoutes = require("./routes/tournaments")
 const rulesetRoutes = require("./routes/rulesets")
+const invitesRoutes = require("./routes/invites")
 
 const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutes
@@ -58,6 +60,7 @@ app.use("/platforms", platformRoutes)
 app.use("/games", gameRoutes)
 app.use("/tournaments", tournamentRoutes)
 app.use("/rulesets", rulesetRoutes)
+app.use("/invites", invitesRoutes)
 
 // Error handling
 //404

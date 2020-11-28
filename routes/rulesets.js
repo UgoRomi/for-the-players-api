@@ -1,12 +1,12 @@
 const { checkIfGameExists } = require("../models/game/utils")
-const { userPermissionCreateRuleset } = require("../models/user/consts")
+const { userPermissionRuleset } = require("../models/user/consts")
 const router = require("express").Router()
 const { body } = require("express-validator")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
 
-const Ruleset = mongoose.model("Ruleset")
+const Ruleset = mongoose.model("Rulesets")
 
 router.post(
 	"/",
@@ -24,7 +24,7 @@ router.post(
 		body("description").notEmpty({ ignore_whitespace: true }),
 		body("name").notEmpty({ ignore_whitespace: true }),
 	],
-	checkJWT(userPermissionCreateRuleset),
+	checkJWT(userPermissionRuleset),
 	checkValidation,
 	async (req, res, next) => {
 		try {

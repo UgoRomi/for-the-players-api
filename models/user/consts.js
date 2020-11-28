@@ -10,24 +10,18 @@ const userStatuses = [
 
 // Permissions
 // Games
-const userPermissionCreateGame = "CREATE_GAME"
-const userPermissionReadGame = "READ_GAME"
-const userPermissionUpdateGame = "UPDATE_GAME"
-const userPermissionDeleteGame = "DELETE_GAME"
+const userPermissionGame = "GAME"
 //Platforms
-const userPermissionCreatePlatform = "CREATE_PLATFORM"
+const userPermissionPlatform = "PLATFORM"
 //Tournaments
-const userPermissionCreateTournament = "CREATE_TOURNAMENT"
+const userPermissionTournament = "TOURNAMENT"
 //Ruleset
-const userPermissionCreateRuleset = "CREATE_RULESET"
+const userPermissionRuleset = "RULESET"
 const userPermissions = [
-	userPermissionCreateGame,
-	userPermissionReadGame,
-	userPermissionUpdateGame,
-	userPermissionDeleteGame,
-	userPermissionCreatePlatform,
-	userPermissionCreateTournament,
-	userPermissionCreateRuleset,
+	userPermissionGame,
+	userPermissionPlatform,
+	userPermissionTournament,
+	userPermissionRuleset,
 ]
 
 module.exports = {
@@ -38,9 +32,9 @@ module.exports = {
 	userStatusVerified,
 
 	//Permissions
-	userPermissionCreatePlatform,
-	userPermissionCreateGame,
-	userPermissionCreateTournament,
-	userPermissionCreateRuleset,
+	userPermissionPlatform,
+	userPermissionGame,
+	userPermissionTournament,
+	userPermissionRuleset,
 	userPermissions,
 }

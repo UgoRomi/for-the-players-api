@@ -2,11 +2,11 @@ const { teamInvites, teamInvitePending } = require("./consts")
 const { Schema, model, ObjectId } = require("mongoose")
 
 const inviteSchema = new Schema({
-	userId: { type: ObjectId, ref: "User", required: true },
-	tournamentId: { type: ObjectId, ref: "User", required: true },
-	teamName: { type: string, required: true },
+	userId: { type: ObjectId, ref: "Users", required: true },
+	tournamentId: { type: ObjectId, ref: "Users", required: true },
+	teamName: { type: String, required: true },
 	status: {
-		type: string,
+		type: String,
 		enum: teamInvites,
 		default: teamInvitePending,
 		required: true,

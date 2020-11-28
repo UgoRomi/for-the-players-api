@@ -1,4 +1,5 @@
-const { userPermissionCreateTournament } = require("../models/user/consts")
+const { userPermissionTournament } = require("../models/user/consts")
+const { userExistsById } = require("../models/user/utils")
 const {
 	types,
 	teamRoleLeader,
@@ -13,6 +14,7 @@ const {
 	checkUniqueName,
 	checkTeamNameInTournament,
 	checkTournamentExists,
+	checkTeamExists,
 } = require("../models/tournament/utils")
 const mongoose = require("mongoose")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
@@ -21,13 +23,14 @@ const { checkIfRulesetExists } = require("../models/ruleset/utils")
 const { checkIfPlatformExists } = require("../models/platform/utils")
 const { checkIfGameExists } = require("../models/game/utils")
 
-const Tournament = mongoose.model("Tournament")
-const Ruleset = mongoose.model("Ruleset")
-const Game = mongoose.model("Game")
+const Tournament = mongoose.model("Tournaments")
+const Ruleset = mongoose.model("Rulesets")
+const Game = mongoose.model("Games")
+const Invite = mongoose.model("Invites")
 
 router.post(
 	"/",
-	checkJWT(userPermissionCreateTournament),
+	checkJWT(userPermissionTournament),
 	[
 		body("name").notEmpty({ ignore_whitespace: true }).custom(checkUniqueName),
 		body("game")
@@ -240,6 +243,57 @@ router.get(
 				imgUrl: tournament.imgUrl,
 				game: tournament.game,
 			})
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.post(
+	"/:tournamentId/teams/:teamName/invites",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("teamName").custom(checkTeamExists),
+		body("userId").custom(userExistsById),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			if (req.body.userId.toUpperCase() === req.user.id.toUpperCase())
+				return res
+					.status(422)
+					.json({ errorMessage: "The user tried to invite himself" })
+
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+			const { teams } = tournament
+
+			const userTeam = teams.find(
+				(team) => team.name.toUpperCase() === req.params.teamName.toUpperCase()
+			)
+
+			// Check that the user is in the team and is a leader
+			if (
+				!userTeam.members.some(
+					(member) =>
+						member.userId.toString() === req.user.id &&
+						member.role === teamRoleLeader
+				)
+			) {
+				return res
+					.status(403)
+					.json({ errorMessage: "The user is not a leader of this team" })
+			}
+
+			await Invite.create({
+				userId: req.body.userId,
+				tournamentId: tournament._id.toString(),
+				teamName: req.params.teamName,
+			})
+
+			return res.status(201).json({})
 		} catch (e) {
 			next(e)
 		}

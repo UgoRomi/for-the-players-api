@@ -7,7 +7,7 @@ const mongoose = require("mongoose")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
 const { checkUniqueName } = require("../models/game/utils")
 
-const Game = mongoose.model("Game")
+const Game = mongoose.model("Games")
 
 router.get("/", checkJWT(), async (req, res, _next) => {
 	// Get all games

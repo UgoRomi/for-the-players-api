@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-const Platform = mongoose.model("Platform")
+const Platform = mongoose.model("Platforms")
 
 const checkIfPlatformExists = async (platformId) => {
 	const platformExists = await Platform.findOne({

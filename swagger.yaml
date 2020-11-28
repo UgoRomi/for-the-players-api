@@ -202,9 +202,12 @@ paths:
                 items:
                   type: object
                   properties:
+                    _id:
+                      type: string
+                      description: The platform's id
                     name:
                       type: string
-                      description: 'The name of the platform'
+                      description: The platform's name
                     games:
                       type: array
                       items:
@@ -212,8 +215,11 @@ paths:
                         properties:
                           id:
                             type: string
-                            description: 'The ID of the game'
-  /platforms/{platformId}:
+                            description: The game's ID
+                          name:
+                            type: string
+                            description: The game's name
+  /platforms/:platformId:
     parameters:
       - name: platformId
         in: path
@@ -247,7 +253,30 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlatformObject'
+                type: object
+                properties:
+                  name:
+                    description: The platform's name
+                    type: string
+                  show:
+                    description: If the platform should be showed to the end user
+                    type: boolean
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          maxLength: 24
+                          minLength: 24
+                          description: The mongo ID of the game
+                        name:
+                          type: string
+                          description: The name's game
+                        show:
+                          type: boolean
+                          description: If the user should see this game for the platform
   /games:
     get:
       summary: Returns the list of all games
@@ -989,6 +1018,8 @@ paths:
                 $ref: '#/components/schemas/ErrorMessageResponse'
         '404':
           description: 'Resource not found'
+        '422':
+          description: 'The user tried to invite himself'
         201:
           description: 'success'
   /invites/:inviteId:
@@ -1244,25 +1275,3 @@ components:
       type: string
       maxLength: 24
       minLength: 24
-    PlatformObject:
-      type: object
-      properties:
-        name:
-          description: The platform's name
-          type: string
-        show:
-          description: If the platform should be showed to the end user
-          type: boolean
-        games:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                maxLength: 24
-                minLength: 24
-                description: The mongo ID of the game
-              show:
-                type: boolean
-                description: If the user should see this game for the platform

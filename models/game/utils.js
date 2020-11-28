@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-const Game = mongoose.model("Game")
+const Game = mongoose.model("Games")
 
 const checkIfGameExists = async (gameId) => {
 	const gameExists = await Game.findOne({

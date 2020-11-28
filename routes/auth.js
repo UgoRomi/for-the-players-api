@@ -15,7 +15,7 @@ const {
 const mongoose = require("mongoose")
 const transporter = require("../email")
 
-const User = mongoose.model("User")
+const User = mongoose.model("Users")
 
 router.post(
 	"/signup",

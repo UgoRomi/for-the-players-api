@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-const Ruleset = mongoose.model("Ruleset")
+const Ruleset = mongoose.model("Rulesets")
 
 const checkIfRulesetExists = async (rulesetId) => {
 	const rulesetExists = await Ruleset.findOne({

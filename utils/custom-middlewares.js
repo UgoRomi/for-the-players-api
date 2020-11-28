@@ -8,7 +8,7 @@ const {
 	userStatusNotVerified,
 } = require("../models/user/consts")
 
-const User = mongoose.model("User")
+const User = mongoose.model("Users")
 
 const checkValidation = (req, res, next) => {
 	const validationErrors = validationResult(req)
@@ -87,6 +87,7 @@ const checkJWT = (requiredPermissions, mustBeVerified = true) => {
 			req.user = {
 				email: decodedToken.email,
 				id: decodedToken.id,
+				permissions: user.permissions,
 			}
 			return next()
 		} catch (e) {
