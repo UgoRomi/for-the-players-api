@@ -1,5 +1,6 @@
 const mongoose = require("mongoose")
 mongoose.set("debug", process.env.DEBUG)
+mongoose.set("useFindAndModify", false)
 try {
 	mongoose.connect(process.env.DB_URL, {
 		useNewUrlParser: true,

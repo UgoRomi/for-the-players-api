@@ -433,6 +433,12 @@ paths:
                     username:
                       type: string
                       description: The user's username
+                    email:
+                      type: string
+                      description: The user's email
+                    _id:
+                      type: string
+                      description: The user's ID
   /users/:userId:
     parameters:
       - name: userId
@@ -506,9 +512,18 @@ paths:
                       properties:
                         name:
                           type: string
-                          description: "The team's name"
-                        role:
-                          $ref: "#/components/schemas/TeamRoles"
+                          description: The tournament's name
+                        game:
+                          type: string
+                          description: The name of the tournament's game
+                        finished:
+                          type: boolean
+                          description: If the tournament is over
+                        platform:
+                          type: string
+                          description: The name of the tournament's platform
+                        type:
+                          $ref: '#/components/schemas/TournamentTypes'
                         team:
                           type: object
                           description: The user's team in that tournament
@@ -516,22 +531,6 @@ paths:
                             name:
                               type: string
                               description: The team's name
-                            elo:
-                              type: integer
-                              description: The team's ELO
-                            members:
-                              type: array
-                              description: The members of the team
-                              items:
-                                type: object
-                                properties:
-                                  role:
-                                    $ref: '#/components/schemas/TeamRoles'
-                                  userId:
-                                    type: string
-                                    minLength: 24
-                                    maxLength: 24
-                                    description: The Mongo ID of the user that's a part of this team
                             teamStatus:
                               $ref: '#/components/schemas/TeamStatuses'
                   invites:
@@ -983,6 +982,71 @@ paths:
           description: 'Resource not found'
         '200':
           description: 'Team deleted'
+    get:
+      summary: Get a team's details
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - tournaments
+      operationId: teamDetails
+      responses:
+        '400':
+          description: 'The input data was wrongly formatted'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaValidationError'
+        '401':
+          description: 'Missing bearer token'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '403':
+          description: 'Forbidden'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageResponse'
+        '404':
+          description: 'Resource not found'
+        '200':
+          description: 'Team deleted'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: The team's name
+                  members:
+                    type: array
+                    description: The list of members in the team
+                    items:
+                      type: object
+                      properties:
+                        role:
+                          $ref: '#/components/schemas/TeamRoles'
+                        _id:
+                          $ref: '#/components/schemas/MongoID'
+                        username:
+                          type: string
+                  invites:
+                    type: array
+                    description: A list of pending invites to this team
+                    items:
+                      type: object
+                      properties:
+                        userId:
+                          type: string
+                          minLength: 24
+                          maxLength: 24
+                        username:
+                          type: string
+                  status:
+                    type: boolean
+                    description: If the team can play the tournament in its current state
   /tournaments/:tournamentId/teams/:teamId/invites:
     parameters:
       - name: tournamentId

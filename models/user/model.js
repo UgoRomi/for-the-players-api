@@ -11,7 +11,7 @@ const userSchema = new Schema(
 	{
 		username: { type: String, unique: true, required: true },
 		email: { type: String, unique: true, required: true },
-		password: { type: String, unique: true, required: true },
+		password: { type: String, required: true },
 		elo: { type: Number, default: 1500 },
 		status: {
 			type: String,

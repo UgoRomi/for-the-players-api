@@ -1,5 +1,8 @@
 const { userPermissionTournament } = require("../models/user/consts")
-const { userExistsById } = require("../models/user/utils")
+const {
+	userExistsById,
+	multipleUsersExistById,
+} = require("../models/user/utils")
 const {
 	types,
 	teamRoleLeader,
@@ -15,6 +18,8 @@ const {
 	checkTeamNameInTournament,
 	checkTournamentExists,
 	checkTeamExists,
+	userNotInATeam,
+	userIsLeader,
 } = require("../models/tournament/utils")
 const mongoose = require("mongoose")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
@@ -249,6 +254,94 @@ router.get(
 	}
 )
 
+router.patch(
+	"/:tournamentId/teams/:teamId",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("teamId").custom(checkTeamExists),
+		body("name").optional().custom(checkTeamNameInTournament),
+		body("membersToRemove").optional().custom(multipleUsersExistById),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			if (!req.body.name && !req.body.membersToRemove)
+				return res.status(200).json()
+
+			if (
+				!(await userIsLeader(
+					req.params.teamId,
+					req.params.tournamentId,
+					req.user.id
+				))
+			)
+				return res.status(403).json({
+					errorMessage: "You need to be a leader to update a team's details",
+				})
+
+			const updateObject = {}
+
+			if (req.body.name) updateObject.$set = { "teams.$.name": req.body.name }
+			if (req.body.membersToRemove)
+				if (req.body.membersToRemove.length === 1) {
+					updateObject.$pull = {
+						"teams.$.members": { userId: req.body.membersToRemove },
+					}
+				} else {
+					updateObject.$pullAll = {
+						"teams.$.members": { userId: req.body.membersToRemove },
+					}
+				}
+
+			await Tournament.findOneAndUpdate(
+				{
+					"_id": req.params.tournamentId,
+					"teams._id": req.params.teamId,
+				},
+				updateObject
+			)
+
+			return res.status(200).json()
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.delete(
+	"/:tournamentId/teams/:teamId",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("teamId").custom(checkTeamExists),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			if (
+				!(await userIsLeader(
+					req.params.teamId,
+					req.params.tournamentId,
+					req.user.id
+				))
+			)
+				return res.status(403).json({
+					errorMessage: "You need to be a leader to delete a team",
+				})
+
+			await Tournament.findOneAndUpdate(
+				{ _id: req.params.tournamentId },
+				{ $pull: { teams: { _id: req.params.teamId } } }
+			)
+
+			return res.status(200).json()
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
 router.post(
 	"/:tournamentId/teams/:teamId/invites",
 	checkJWT(),
@@ -262,7 +355,7 @@ router.post(
 			.customSanitizer(convertToMongoId)
 			.bail()
 			.custom(checkTeamExists),
-		body("userId").bail().custom(userExistsById),
+		body("userId").bail().custom(userExistsById).custom(userNotInATeam),
 	],
 	checkValidation,
 	async (req, res, next) => {

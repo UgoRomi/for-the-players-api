@@ -10,7 +10,7 @@ const checkUniqueEmail = async (email) => {
 	if (userAlreadyExists) throw Error("Email already in use")
 }
 
-const checkIfUserExists = async (email) => {
+const checkUserEmailInUse = async (email) => {
 	const userAlreadyExists = await User.findOne({
 		email,
 	})
@@ -30,9 +30,14 @@ const userExistsById = async (userId) => {
 	if (!user) throw new CustomError(error404, "User does not exist")
 }
 
+const multipleUsersExistById = async (usersIds) => {
+	usersIds.forEach((userId) => userExistsById(userId))
+}
+
 module.exports = {
 	checkUniqueEmail,
-	checkIfUserExists,
+	checkUserEmailInUse,
 	checkUserNotVerified,
 	userExistsById,
+	multipleUsersExistById,
 }

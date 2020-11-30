@@ -8,7 +8,7 @@ const {
 } = require("../models/user/consts")
 const { checkValidation, checkJWT } = require("../utils/custom-middlewares")
 const {
-	checkIfUserExists,
+	checkUserEmailInUse,
 	checkUniqueEmail,
 	checkUserNotVerified,
 } = require("../models/user/utils")
@@ -56,7 +56,7 @@ router.post(
 			.escape()
 			.isEmail()
 			.normalizeEmail()
-			.custom(checkIfUserExists),
+			.custom(checkUserEmailInUse),
 		body("password").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
 	],
 	checkValidation,

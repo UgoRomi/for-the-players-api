@@ -1,7 +1,0 @@
-- **/users**
-    - GET
-- **/users/:userId**
-    - GET
-- **/tournaments/:tournamentId/teams/:teamId**
-    - PATCH
-    - DELETE
