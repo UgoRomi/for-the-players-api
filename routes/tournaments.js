@@ -32,6 +32,7 @@ const Tournament = mongoose.model("Tournaments")
 const Ruleset = mongoose.model("Rulesets")
 const Game = mongoose.model("Games")
 const Invite = mongoose.model("Invites")
+const Users = mongoose.model("Users")
 
 router.post(
 	"/",
@@ -207,12 +208,63 @@ router.get(
 			)
 			// Check if the team the user is a part of can play in the tournament
 			if (userTeam) {
+				userTeam.members = await Promise.all(
+					userTeam.members.map(async (member) => {
+						const user = await Users.findById(member.userId, "username").lean()
+						return {
+							...member,
+							username: user.username,
+						}
+					})
+				)
 				userTeam.teamStatus =
 					userTeam.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
 					userTeam.members.length >= ruleset.minNumberOfPlayersPerTeam
 						? teamStatusOk
 						: teamStatusNotOk
 			}
+
+			const teams = tournament.teams
+				.filter(
+					(team) =>
+						!team.members.some(
+							(member) => member.userId.toString() === req.user.id
+						)
+				)
+				.map((team) => {
+					return {
+						...team,
+						teamStatus:
+							team.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
+							team.members.length >= ruleset.minNumberOfPlayersPerTeam
+								? teamStatusOk
+								: teamStatusNotOk,
+					}
+				})
+
+			const teamsToReturn = await Promise.all(
+				teams.map(async (team) => {
+					let members = await Promise.all(
+						team.members.map(async (member) => {
+							const user = await Users.findById(
+								member.userId,
+								"username"
+							).lean()
+							if (!user) return
+							return {
+								...member,
+								username: user.username,
+							}
+						})
+					)
+					members = members.filter((member) => !!member)
+					return {
+						...team,
+						members,
+					}
+				})
+			)
+
 			return res.status(200).json({
 				name: tournament.name,
 				id: tournament._id,
@@ -227,23 +279,7 @@ router.get(
 				},
 				type: tournament.type,
 				// Remove the team the user is a part of, if present
-				teams: tournament.teams
-					.filter(
-						(team) =>
-							!team.members.some(
-								(member) => member.userId.toString() === req.user.id
-							)
-					)
-					.map((team) => {
-						return {
-							...team,
-							teamStatus:
-								team.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
-								team.members.length >= ruleset.minNumberOfPlayersPerTeam
-									? teamStatusOk
-									: teamStatusNotOk,
-						}
-					}),
+				teams: teamsToReturn,
 				userTeam,
 				imgUrl: tournament.imgUrl,
 				game: tournament.game,
