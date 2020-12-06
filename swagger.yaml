@@ -1,10 +1,10 @@
 openapi: 3.0.0
 info:
-  title: Just Fight API
-  description: Just Fight API
+  title: 4TP API
+  description: 4TP API
   version: 0.0.1
 servers:
-  - url: 'https://just-fight.herokuapp.com/'
+  - url: "https://for-the-players.herokuapp.com/"
 tags:
   - name: auth
     description: Endpoints about user auth
@@ -22,6 +22,8 @@ tags:
     description: Endpoints about rulesets for tournaments
   - name: invites
     description: Team invites
+  - name: matches
+    description: Tournament matches
 paths:
   /auth/signup:
     post:
@@ -46,14 +48,14 @@ paths:
                   description: The new user's password
                   type: string
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '201':
-          description: 'User successfully registered'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "201":
+          description: "User successfully registered"
           content:
             application/json:
               schema:
@@ -61,16 +63,16 @@ paths:
                 properties:
                   username:
                     type: string
-                    description: 'The username of the new User'
+                    description: "The username of the new User"
                   email:
                     type: string
-                    description: 'The email of the new user'
+                    description: "The email of the new user"
                     format: email
                   status:
-                    $ref: '#/components/schemas/UserStatuses'
+                    $ref: "#/components/schemas/UserStatuses"
                   token:
                     type: string
-                    description: 'The JWT of the newly created user. Only valid for the /auth/email endpoint'
+                    description: "The JWT of the newly created user. Only valid for the /auth/email endpoint"
   /auth/login:
     post:
       summary: login endpoint
@@ -91,14 +93,14 @@ paths:
                   description: The new user's password
                   type: string
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '200':
-          description: 'User successfully logged in'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "200":
+          description: "User successfully logged in"
           content:
             application/json:
               schema:
@@ -106,9 +108,9 @@ paths:
                 properties:
                   token:
                     type: string
-                    description: 'The JWT for the logged in user'
+                    description: "The JWT for the logged in user"
                   status:
-                    $ref: '#/components/schemas/UserStatuses'
+                    $ref: "#/components/schemas/UserStatuses"
   /auth/email:
     get:
       summary: Send a verification email for the logged in user
@@ -118,20 +120,20 @@ paths:
         - auth
       operationId: sendVerificationEmail
       responses:
-        '401':
-          description: 'Missing bearer token'
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
-          description: 'Email sent'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "Email sent"
   /platforms:
     post:
       summary: Create a new platform
@@ -163,26 +165,26 @@ paths:
                     If `imgUrl` is present this will be ignored
                   type: string
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '201':
-          description: 'Platform successfully added'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "201":
+          description: "Platform successfully added"
     get:
       summary: Returns the list of all platforms that can be seen by the end user (The one that have visible=true)
       security:
@@ -191,20 +193,20 @@ paths:
         - platform
       operationId: listAllVisiblePlatforms
       responses:
-        '401':
-          description: 'Missing bearer token'
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
-          description: 'List of platforms'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "List of platforms"
           content:
             application/json:
               schema:
@@ -239,7 +241,7 @@ paths:
         required: true
         description: The MongoDB ID of the platform
         schema:
-          $ref: '#/components/schemas/MongoID'
+          $ref: "#/components/schemas/MongoID"
     get:
       tags:
         - platform
@@ -247,22 +249,22 @@ paths:
         - BearerAuth: [ ]
       summary: Returns the platforms that corresponds to the platform ID
       responses:
-        '401':
-          description: 'Missing bearer token'
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '404':
-          description: 'Platform not found'
-        '200':
-          description: 'The platform'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Platform not found"
+        "200":
+          description: "The platform"
           content:
             application/json:
               schema:
@@ -302,20 +304,20 @@ paths:
         - game
       operationId: listAllGames
       responses:
-        '401':
-          description: 'Missing bearer token'
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
-          description: 'List of games'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "List of games"
           content:
             application/json:
               schema:
@@ -325,7 +327,7 @@ paths:
                   properties:
                     name:
                       type: string
-                      description: 'The name of the game'
+                      description: "The name of the game"
                     id:
                       type: string
                       description: The Mongo ID of the game
@@ -361,26 +363,26 @@ paths:
                     If `imgUrl` is present this will be ignored
                   type: string
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '201':
-          description: 'Game successfully added'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "201":
+          description: "Game successfully added"
   /users:
     parameters:
       - in: query
@@ -401,28 +403,28 @@ paths:
         - BearerAuth: [ ]
       summary: Returns a list of users
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '404':
-          description: 'User not found'
-        '200':
-          description: 'List of users matching the search'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "User not found"
+        "200":
+          description: "List of users matching the search"
           content:
             application/json:
               schema:
@@ -446,7 +448,7 @@ paths:
         required: true
         description: The MongoDB ID of the user
         schema:
-          $ref: '#/components/schemas/MongoID'
+          $ref: "#/components/schemas/MongoID"
     get:
       tags:
         - user
@@ -454,26 +456,26 @@ paths:
         - BearerToken: [ ]
       summary: Returns a single user's details
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
-          description: 'The User'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "The User"
           content:
             application/json:
               schema:
@@ -523,7 +525,7 @@ paths:
                           type: string
                           description: The name of the tournament's platform
                         type:
-                          $ref: '#/components/schemas/TournamentTypes'
+                          $ref: "#/components/schemas/TournamentTypes"
                         team:
                           type: object
                           description: The user's team in that tournament
@@ -532,7 +534,7 @@ paths:
                               type: string
                               description: The team's name
                             teamStatus:
-                              $ref: '#/components/schemas/TeamStatuses'
+                              $ref: "#/components/schemas/TeamStatuses"
                   invites:
                     type: array
                     description: List of invites the user has received
@@ -546,7 +548,7 @@ paths:
                           type: string
                           description: The name of the team the user got invited to
                         status:
-                          $ref: '#/components/schemas/TeamInvites'
+                          $ref: "#/components/schemas/TeamInvites"
   /tournaments:
     post:
       summary: Create a new tournament
@@ -600,7 +602,7 @@ paths:
                   minLength: 24
                   maxLength: 24
                 type:
-                  $ref: '#/components/schemas/TournamentTypes'
+                  $ref: "#/components/schemas/TournamentTypes"
                 imgUrl:
                   description: >
                     The imgurl link of the new tournament's image.
@@ -612,26 +614,26 @@ paths:
                     If `imgUrl` is present this will be ignored
                   type: string
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '201':
-          description: 'Tournament added'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "201":
+          description: "Tournament added"
     get:
       summary: List all visible tournaments
       security:
@@ -643,28 +645,28 @@ paths:
         - in: query
           name: gameId
           schema:
-            $ref: '#/components/schemas/MongoID'
+            $ref: "#/components/schemas/MongoID"
           description: Only show tournaments for a given game
         - in: query
           name: type
           schema:
-            $ref: '#/components/schemas/TournamentTypes'
+            $ref: "#/components/schemas/TournamentTypes"
           description: Only show a type of tournament
       responses:
-        '401':
-          description: 'Missing bearer token'
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
-          description: 'List of all visible tournaments'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "List of all visible tournaments"
           content:
             application/json:
               schema:
@@ -674,7 +676,7 @@ paths:
                   properties:
                     name:
                       type: string
-                      description: 'The name of the tournament'
+                      description: "The name of the tournament"
                     id:
                       type: string
                       description: The Mongo ID of the tournament
@@ -690,7 +692,7 @@ paths:
                       type: string
                       description: The ruleset used in this tournament
                     type:
-                      $ref: '#/components/schemas/TournamentTypes'
+                      $ref: "#/components/schemas/TournamentTypes"
                     numberOfTeams:
                       type: integer
                       description: How many teams are already signed up to this tournament
@@ -707,7 +709,7 @@ paths:
         required: true
         description: The MongoDB ID of the tournament
         schema:
-          $ref: '#/components/schemas/MongoID'
+          $ref: "#/components/schemas/MongoID"
     get:
       summary: Get a tournament details
       security:
@@ -716,32 +718,32 @@ paths:
         - tournaments
       operationId: getTeam
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '404':
-          description: 'Something was not found, check errorMessage for further info'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Something was not found, check errorMessage for further info"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
-          description: 'Success'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "Success"
           content:
             application/json:
               schema:
@@ -749,7 +751,7 @@ paths:
                 properties:
                   name:
                     type: string
-                    description: 'The name of the tournament'
+                    description: "The name of the tournament"
                   id:
                     type: string
                     description: The Mongo ID of the tournament
@@ -783,7 +785,7 @@ paths:
                         type: integer
                         description: The minimum number of players a team can have
                   type:
-                    $ref: '#/components/schemas/TournamentTypes'
+                    $ref: "#/components/schemas/TournamentTypes"
                   teams:
                     type: array
                     description: The teams signed up to this tournament
@@ -806,14 +808,14 @@ paths:
                             type: object
                             properties:
                               role:
-                                $ref: '#/components/schemas/TeamRoles'
+                                $ref: "#/components/schemas/TeamRoles"
                               userId:
                                 type: string
                                 minLength: 24
                                 maxLength: 24
                                 description: The Mongo ID of the user that's a part of this team
                         teamStatus:
-                          $ref: '#/components/schemas/TeamStatuses'
+                          $ref: "#/components/schemas/TeamStatuses"
                   userTeam:
                     description: The team of the user, if present
                     type: object
@@ -831,14 +833,14 @@ paths:
                           type: object
                           properties:
                             role:
-                              $ref: '#/components/schemas/TeamRoles'
+                              $ref: "#/components/schemas/TeamRoles"
                             userId:
                               type: string
                               minLength: 24
                               maxLength: 24
                               description: The Mongo ID of the user that's a part of this team
                       teamStatus:
-                        $ref: '#/components/schemas/TeamStatuses'
+                        $ref: "#/components/schemas/TeamStatuses"
                   imgUrl:
                     type: string
                     description: The URL of the tournament's image
@@ -852,7 +854,7 @@ paths:
         required: true
         description: The MongoDB ID of the tournament
         schema:
-          $ref: '#/components/schemas/MongoID'
+          $ref: "#/components/schemas/MongoID"
     post:
       summary: Create a new team in the tournament
       security:
@@ -872,26 +874,26 @@ paths:
                   description: The new team's name
                   type: string
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '201':
-          description: 'Team created'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "201":
+          description: "Team created"
   /tournaments/:tournamentId/teams/:teamId:
     parameters:
       - name: tournamentId
@@ -899,13 +901,13 @@ paths:
         required: true
         description: The ID of the tournament
         schema:
-          $ref: '#/components/schemas/MongoID'
+          $ref: "#/components/schemas/MongoID"
       - name: teamId
         in: path
         required: true
         description: The ID of the team
         schema:
-          $ref: '#/components/schemas/MongoID'
+          $ref: "#/components/schemas/MongoID"
     patch:
       summary: Update the team details
       security:
@@ -930,28 +932,28 @@ paths:
                     minLength: 24
                     maxLength: 24
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '404':
-          description: 'Resource not found'
-        '200':
-          description: 'Team updated'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Resource not found"
+        "200":
+          description: "Team updated"
     delete:
       summary: Deletes the team
       security:
@@ -960,28 +962,28 @@ paths:
         - tournaments
       operationId: deleteTeam
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '404':
-          description: 'Resource not found'
-        '200':
-          description: 'Team deleted'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Resource not found"
+        "200":
+          description: "Team deleted"
     get:
       summary: Get a team's details
       security:
@@ -990,28 +992,28 @@ paths:
         - tournaments
       operationId: teamDetails
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '404':
-          description: 'Resource not found'
-        '200':
-          description: 'Team deleted'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Resource not found"
+        "200":
+          description: "Team deleted"
           content:
             application/json:
               schema:
@@ -1027,9 +1029,9 @@ paths:
                       type: object
                       properties:
                         role:
-                          $ref: '#/components/schemas/TeamRoles'
+                          $ref: "#/components/schemas/TeamRoles"
                         _id:
-                          $ref: '#/components/schemas/MongoID'
+                          $ref: "#/components/schemas/MongoID"
                         username:
                           type: string
                   invites:
@@ -1054,13 +1056,13 @@ paths:
         required: true
         description: The ID of the tournament
         schema:
-          $ref: '#/components/schemas/MongoID'
+          $ref: "#/components/schemas/MongoID"
       - name: teamId
         in: path
         required: true
         description: The ID of the team
         schema:
-          $ref: '#/components/schemas/MongoID'
+          $ref: "#/components/schemas/MongoID"
     post:
       summary: Invites a player to a team
       security:
@@ -1081,30 +1083,305 @@ paths:
                   minLength: 24
                   maxLength: 24
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '404':
-          description: 'Resource not found'
-        '422':
-          description: 'The user tried to invite himself'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Resource not found"
+        "422":
+          description: "The user tried to invite himself"
         201:
-          description: 'success'
+          description: "success"
+  /tournaments/:tournamentId/matches:
+    parameters:
+      - name: tournamentId
+        in: path
+        required: true
+        description: The ID of the tournament
+        schema:
+          $ref: "#/components/schemas/MongoID"
+    post:
+      security:
+        - BearerAuth: [ ]
+      description: Create a new match. The match has to be accepted by another team before it's valid
+      tags:
+        - matches
+      operationId: createMatch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                teamId:
+                  $ref: "#/components/schemas/MongoID"
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Tournament or team not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "201":
+          description: "Match has been created"
+    get:
+      security:
+        - BearerAuth: [ ]
+      description: "Get the list of matches for the given tournament"
+      tags:
+        - matches
+      operationId: getListOfMatches
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Tournament not found"
+        "200":
+          description: "List of matches"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    teamOne:
+                      type: object
+                      description: The team that created the match
+                      properties:
+                        _id:
+                          $ref: "#/components/schemas/MongoID"
+                        name:
+                          type: string
+                    teamTwo:
+                      type: object
+                      description: If present is the team that accepted the match
+                      properties:
+                        _id:
+                          $ref: "#/components/schemas/MongoID"
+                        name:
+                          type: string
+                    state:
+                      $ref: "#/components/schemas/MatchStatuses"
+                    createdAt:
+                      type: string
+                      format: date-time
+                      description: "When the match was first created"
+  /tournaments/:tournamentId/matches/:matchId:
+    parameters:
+      - name: tournamentId
+        in: path
+        required: true
+        description: The ID of the tournament
+        schema:
+          $ref: "#/components/schemas/MongoID"
+      - name: matchId
+        in: path
+        required: true
+        description: The ID of the match
+        schema:
+          $ref: "#/components/schemas/MongoID"
+    get:
+      security:
+        - BearerAuth: [ ]
+      description: Get the details of a match
+      tags:
+        - matches
+      operationId: getMatchDetils
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Tournament or match not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        '200':
+          description: "Match details"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  teamOne:
+                    type: object
+                    description: The team that created the match
+                    properties:
+                      _id:
+                        $ref: "#/components/schemas/MongoID"
+                      name:
+                        type: string
+                      result:
+                        $ref: "#/components/schemas/TeamSubmittedMatchResults"
+                  teamTwo:
+                    type: object
+                    description: If present is the team that accepted the match
+                    properties:
+                      _id:
+                        $ref: "#/components/schemas/MongoID"
+                      name:
+                        type: string
+                      result:
+                        $ref: "#/components/schemas/TeamSubmittedMatchResults"
+                  state:
+                    $ref: "#/components/schemas/MatchStatuses"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: "When the match was first created"
+                  acceptedAt:
+                    type: string
+                    format: date-time
+                    description: "When the match was accepted"
+    delete:
+      security:
+        - BearerAuth: [ ]
+      description: >
+        Deletes the match.
+        Only the leader of the team that created the match can do this
+        No results must have been posted for this to succeed
+      tags:
+        - matches
+      operationId: deleteMatch
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Tournament or match not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "Match deleted"
+    patch:
+      security:
+        - BearerAuth: [ ]
+      description: Used when a team accepts or quits the match or to post results
+      tags:
+        - matches
+      operationId: updateMatch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                teamId:
+                  $ref: "#/components/schemas/MongoID"
+                action:
+                  $ref: "#/components/schemas/UpdateMatchActions"
+                result:
+                  $ref: "#/components/schemas/TeamSubmittedMatchResults"
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Tournament or match not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "Match updated"
   /invites/:inviteId:
     parameters:
       - name: inviteId
@@ -1112,7 +1389,7 @@ paths:
         required: true
         description: The ID of the invite
         schema:
-          $ref: '#/components/schemas/MongoID'
+          $ref: "#/components/schemas/MongoID"
     patch:
       security:
         - BearerAuth: [ ]
@@ -1127,34 +1404,34 @@ paths:
               type: object
               properties:
                 newStatus:
-                  $ref: '#/components/schemas/TeamInvites'
+                  $ref: "#/components/schemas/TeamInvites"
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '404':
-          description: 'Invite not found'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Invite not found"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
-          description: 'Invite status updated'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "Invite status updated"
     delete:
       security:
         - BearerAuth: [ ]
@@ -1165,28 +1442,28 @@ paths:
         - invites
       operationId: deleteInvite
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '404':
-          description: 'Invite not found'
-        '200':
-          description: 'Invite deleted'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Invite not found"
+        "200":
+          description: "Invite deleted"
   /rulesets:
     get:
       summary: Returns all rulesets
@@ -1196,26 +1473,26 @@ paths:
         - rulesets
       operationId: listRulesets
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '200':
-          description: 'The list of all rulesets'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "The list of all rulesets"
           content:
             application/json:
               schema:
@@ -1225,7 +1502,7 @@ paths:
                   properties:
                     name:
                       type: string
-                      description: 'The name of the ruleset'
+                      description: "The name of the ruleset"
                     id:
                       type: string
                       description: The Mongo ID of the ruleset
@@ -1278,26 +1555,26 @@ paths:
                   minLength: 24
                   maxLength: 24
       responses:
-        '400':
-          description: 'The input data was wrongly formatted'
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaValidationError'
-        '401':
-          description: 'Missing bearer token'
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '403':
-          description: 'Forbidden'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageResponse'
-        '201':
-          description: 'Ruleset added'
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "201":
+          description: "Ruleset added"
 components:
   securitySchemes:
     BearerAuth:
@@ -1311,16 +1588,16 @@ components:
         properties:
           value:
             type: string
-            description: 'The value that was received by the server'
+            description: "The value that was received by the server"
           msg:
             type: string
-            description: 'Error message'
+            description: "Error message"
           param:
             type: string
-            description: 'Name of the field that caused the error'
+            description: "Name of the field that caused the error"
           location:
             type: string
-            description: 'Where the field was that was received by the server'
+            description: "Where the field was that was received by the server"
     ErrorMessageResponse:
       type: object
       properties:
@@ -1333,6 +1610,29 @@ components:
         - NOT_VERIFIED
         - VERIFIED
         - BANNED
+    MatchStatuses:
+      description: "The possible statuses of a match"
+      type: string
+      enum:
+        - PENDING
+        - TIE
+        - TEAM1
+        - TEAM2
+        - DISPUTE
+    TeamSubmittedMatchResults:
+      description: "The list of possible results a team can choose from"
+      type: string
+      enum:
+        - WIN
+        - LOSS
+        - TIE
+    UpdateMatchActions:
+      description: "The actions available on the 'updateMatch' endpoint"
+      type: string
+      enum:
+        - JOIN
+        - QUIT
+        - POST_RESULT
     TeamRoles:
       description: "The possible roles for team members"
       type: string

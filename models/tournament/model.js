@@ -1,7 +1,6 @@
 const {
 	teamRoles,
 	types,
-	matchStates,
 	teamSubmittedResults,
 	teamRoleMember,
 } = require("./consts")
@@ -39,12 +38,10 @@ const tournamentSchema = new Schema(
 		],
 		matches: [
 			{
-				teamOne: { type: String, required: true },
-				teamTwo: String,
-				createdBy: { type: ObjectId, required: true, ref: "Users" },
+				teamOne: { type: ObjectId, required: true },
+				teamTwo: ObjectId,
 				createdAt: { type: Date, required: true, default: Date.now() },
 				acceptedAt: { type: Date },
-				state: { type: String, enum: matchStates },
 				teamOneResult: { type: String, enum: teamSubmittedResults },
 				teamTwoResult: { type: String, enum: teamSubmittedResults },
 			},

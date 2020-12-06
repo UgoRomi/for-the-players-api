@@ -6,18 +6,18 @@ const tournamentType = "TOURNAMENT"
 const ladderType = "LADDER"
 const types = [tournamentType, ladderType]
 
-// The current state of the match. This gets automatically updated given what each team says the result is
-const matchStatePending = "PENDING",
-	matchStateTie = "TIE",
-	matchStateTeamOne = "TEAM1",
-	matchStateTeamTwo = "TEAM2",
-	matchStateDispute = "DISPUTE"
+// The current state of the match
+const matchStatusPending = "PENDING",
+	matchStatusTie = "TIE",
+	matchStatusTeamOne = "TEAM1",
+	matchStatusTeamTwo = "TEAM2",
+	matchStatusDispute = "DISPUTE"
 const matchStates = [
-	matchStatePending,
-	matchStateTie,
-	matchStateTeamOne,
-	matchStateTeamTwo,
-	matchStateDispute,
+	matchStatusPending,
+	matchStatusTie,
+	matchStatusTeamOne,
+	matchStatusTeamTwo,
+	matchStatusDispute,
 ]
 
 const teamSubmittedMatchResultWin = "WIN",
@@ -40,7 +40,7 @@ module.exports = {
 	teamRoleLeader,
 	teamRoles,
 	types,
-	matchStatePending,
+	matchStatusPending,
 	matchStates,
 	teamSubmittedResults,
 	secondsToAcceptLadderMatch,
