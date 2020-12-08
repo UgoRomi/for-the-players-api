@@ -39,6 +39,46 @@ const checkTeamExists = async (teamId, { req }) => {
 		throw new CustomError(error404, `Team not found`)
 }
 
+const checkUserInTeam = async (teamId, { req }) => {
+	const tournament = await Tournament.findById(req.params.tournamentId).lean()
+	const team = tournament.teams.find(
+		(team) => team._id.toString() === teamId.toString()
+	)
+	if (!team.members.some((member) => member.userId.toString() === req.user.id))
+		throw Error("You are not part of this team")
+}
+
+const checkUserIsLeaderInTeam = async (teamId, { req }) => {
+	const tournament = await Tournament.findById(req.params.tournamentId).lean()
+	const team = tournament.teams.find(
+		(team) => team._id.toString() === teamId.toString()
+	)
+	if (
+		!team.members.some(
+			(member) =>
+				member.userId.toString() === req.user.id &&
+				member.role === teamRoleLeader
+		)
+	)
+		throw Error("You are not the leader of this team")
+}
+
+const checkTeamHasOngoingMatches = async (teamId, { req }) => {
+	const tournament = await Tournament.findById(
+		req.params.tournamentId,
+		"teams matches"
+	).lean()
+
+	if (
+		tournament.matches.find(
+			(match) =>
+				(match.teamOne?.toString() === teamId && !match.teamOneResult) ||
+				(match.teamTwo?.toString() === teamId && !match.teamTwoResult)
+		)
+	)
+		throw Error("This team already has an ongoing match")
+}
+
 const _checkUniqueField = async (fieldName, fieldValue) => {
 	const fieldAlreadyExists = await Tournament.findOne({
 		[fieldName]: fieldValue,
@@ -74,4 +114,7 @@ module.exports = {
 	checkTeamExists,
 	userNotInATeam,
 	userIsLeader,
+	checkTeamHasOngoingMatches,
+	checkUserInTeam,
+	checkUserIsLeaderInTeam,
 }

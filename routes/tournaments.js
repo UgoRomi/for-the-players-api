@@ -20,6 +20,8 @@ const {
 	checkTeamExists,
 	userNotInATeam,
 	userIsLeader,
+	checkTeamHasOngoingMatches,
+	checkUserIsLeaderInTeam,
 } = require("../models/tournament/utils")
 const mongoose = require("mongoose")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
@@ -27,6 +29,7 @@ const { checkImgInput } = require("../utils/helpers")
 const { checkIfRulesetExists } = require("../models/ruleset/utils")
 const { checkIfPlatformExists } = require("../models/platform/utils")
 const { checkIfGameExists } = require("../models/game/utils")
+const { formatISO } = require("date-fns")
 
 const Tournament = mongoose.model("Tournaments")
 const Ruleset = mongoose.model("Rulesets")
@@ -429,6 +432,53 @@ router.post(
 				teamId: userTeam._id.toString(),
 			})
 
+			return res.status(201).json()
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.post(
+	"/:tournamentId/matches",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		body("teamId")
+			.custom(checkTeamExists)
+			.bail()
+			.custom(checkUserIsLeaderInTeam)
+			.custom(checkTeamHasOngoingMatches),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+			const { matches } = tournament
+
+			// TODO: Fix race condition
+			if (matches.some((match) => !match.teamTwo)) {
+				const matchToUpdate = matches.find((match) => !match.teamTwo)
+				matchToUpdate.teamTwo = req.body.teamId
+				matchToUpdate.acceptedAt = formatISO(Date.now())
+				tournament.matches = matches.map((match) => {
+					if (match._id === matchToUpdate._id) return matchToUpdate
+					return match
+				})
+				await Tournament.replaceOne({ _id: tournament._id }, tournament)
+				return res.status(200).json({ matchId: matchToUpdate._id.toString() })
+			}
+
+			const newMatch = {
+				teamOne: req.body.teamId,
+				acceptedAt: formatISO(Date.now()),
+			}
+			await Tournament.updateOne(
+				{ _id: req.params.tournamentId },
+				{ $push: { matches: newMatch } }
+			)
 			return res.status(201).json()
 		} catch (e) {
 			next(e)

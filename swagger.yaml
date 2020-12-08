@@ -1118,7 +1118,9 @@ paths:
     post:
       security:
         - BearerAuth: [ ]
-      description: Create a new match. The match has to be accepted by another team before it's valid
+      description: >
+        Create a new match. The match has to be accepted by another team before it's valid <br>
+        If there already is a match with an open spot for this tournament the team will automatically join that match
       tags:
         - matches
       operationId: createMatch
@@ -1155,8 +1157,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "The team joined a match"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matchId:
+                    $ref: "#/components/schemas/MongoID"
         "201":
-          description: "Match has been created"
+          description: "Match created"
     get:
       security:
         - BearerAuth: [ ]
