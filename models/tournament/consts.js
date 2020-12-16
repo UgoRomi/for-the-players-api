@@ -29,6 +29,9 @@ const teamSubmittedResults = [
 	teamSubmittedMatchResultTie,
 ]
 
+const updateMatchPostResult = "POST_RESULT"
+const updateMatchActions = [updateMatchPostResult]
+
 // Values that are added to a team object at runtime to tell the frontend if the team at it's current state can play in the tournament or not
 const teamStatusOk = "OK"
 const teamStatusNotOk = "NOT OK"
@@ -46,4 +49,6 @@ module.exports = {
 	secondsToAcceptLadderMatch,
 	teamStatusOk,
 	teamStatusNotOk,
+	updateMatchActions,
+	updateMatchPostResult,
 }

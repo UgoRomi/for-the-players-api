@@ -39,6 +39,16 @@ const checkTeamExists = async (teamId, { req }) => {
 		throw new CustomError(error404, `Team not found`)
 }
 
+const checkMatchExists = async (matchId, { req }) => {
+	const tournament = await Tournament.findById(req.params.tournamentId).lean()
+	if (
+		!tournament.matches.some(
+			(match) => match._id.toString() === matchId.toString()
+		)
+	)
+		throw new CustomError(error404, `Match not found`)
+}
+
 const checkUserInTeam = async (teamId, { req }) => {
 	const tournament = await Tournament.findById(req.params.tournamentId).lean()
 	const team = tournament.teams.find(
@@ -79,6 +89,10 @@ const checkTeamHasOngoingMatches = async (teamId, { req }) => {
 		throw Error("This team already has an ongoing match")
 }
 
+const userIsLeaderMiddleware = async (teamId, { req }) => {
+	return userIsLeader(teamId, req.params.tournamentId, req.user.id)
+}
+
 const _checkUniqueField = async (fieldName, fieldValue) => {
 	const fieldAlreadyExists = await Tournament.findOne({
 		[fieldName]: fieldValue,
@@ -117,4 +131,6 @@ module.exports = {
 	checkTeamHasOngoingMatches,
 	checkUserInTeam,
 	checkUserIsLeaderInTeam,
+	checkMatchExists,
+	userIsLeaderMiddleware,
 }

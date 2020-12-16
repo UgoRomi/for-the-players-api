@@ -8,6 +8,8 @@ const {
 	teamRoleLeader,
 	teamStatusNotOk,
 	teamStatusOk,
+	updateMatchActions,
+	teamSubmittedResults,
 } = require("../models/tournament/consts")
 const { body, query, param } = require("express-validator")
 const { convertToMongoId, toISO } = require("../utils/custom-sanitizers")
@@ -22,6 +24,8 @@ const {
 	userIsLeader,
 	checkTeamHasOngoingMatches,
 	checkUserIsLeaderInTeam,
+	checkMatchExists,
+	userIsLeaderMiddleware,
 } = require("../models/tournament/utils")
 const mongoose = require("mongoose")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
@@ -480,6 +484,46 @@ router.post(
 				{ $push: { matches: newMatch } }
 			)
 			return res.status(201).json()
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.patch(
+	"/:tournamentId/matches/:matchId",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("matchId").custom(checkMatchExists).bail(),
+		body("teamId")
+			.custom(checkTeamExists)
+			.custom(userIsLeaderMiddleware)
+			.bail(),
+		body("action").isIn(updateMatchActions),
+		body("result").isIn(teamSubmittedResults),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+			const match = tournament.matches.find(
+				(match) => match._id.toString() === req.params.matchId
+			)
+
+			//TODO: Fix race condition
+			if (match.teamOne.toString() === req.body.teamId)
+				match.teamOneResult = req.body.result
+			else if (match.teamTwo.toString() === req.body.teamId)
+				match.teamTwoResult = req.body.result
+			else
+				return res.status(404).json({
+					errorMessage: "This team isn't in this match",
+				})
+			await Tournament.replaceOne({ _id: tournament._id }, tournament)
+			return res.status(200).json({})
 		} catch (e) {
 			next(e)
 		}
