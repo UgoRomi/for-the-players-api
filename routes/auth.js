@@ -96,7 +96,7 @@ router.get("/email", checkJWT([], false), async (req, res, next) => {
 		await transporter.sendMail({
 			from: process.env.EMAIL_USERNAME, // sender address
 			to: req.user.email, // list of receivers
-			subject: "Conferma il tuo account JustFight", // Subject line
+			subject: "Conferma account 4ThePlayers", // Subject line
 			text: `Per confermare il tuo account copia e incolla il seguente link in una finestra del tuo browser ${req.headers.host}/auth/${req.user.id}/verify`, // plain text body
 			html: `Clicca sul seguente link per confermare il tuo account <a href='${req.headers.host}/auth/${req.user.id}/verify'>${req.headers.host}/auth/${req.user.id}/verify</a><br>Se il link non funziona prova a copiarlo e incollarlo in un'altra finestra del tuo browser`, // html body
 		})
