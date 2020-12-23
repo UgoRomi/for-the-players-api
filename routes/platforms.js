@@ -60,7 +60,7 @@ router.get("/", checkJWT(), async (req, res, next) => {
 			"games.name": 1,
 		}).lean()
 
-		return res.status(200).json({ platforms })
+		return res.status(200).json(platforms)
 	} catch (e) {
 		next(e)
 	}

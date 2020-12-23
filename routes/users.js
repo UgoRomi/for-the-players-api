@@ -33,7 +33,7 @@ router.get(
 				_id: 1,
 			})
 
-			return res.status(200).json({ users })
+			return res.status(200).json(users)
 		} catch (e) {
 			next(e)
 		}

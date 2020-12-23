@@ -234,7 +234,7 @@ paths:
                           name:
                             type: string
                             description: The game's name
-  /platforms/:platformId:
+  /platforms/{platformId}:
     parameters:
       - name: platformId
         in: path
@@ -441,7 +441,7 @@ paths:
                     _id:
                       type: string
                       description: The user's ID
-  /users/:userId:
+  /users/{userId}:
     parameters:
       - name: userId
         in: path
@@ -702,7 +702,7 @@ paths:
                     game:
                       type: string
                       description: The name of the game this tournament is on
-  /tournaments/:tournamentId:
+  /tournaments/{tournamentId}:
     parameters:
       - name: tournamentId
         in: path
@@ -847,7 +847,35 @@ paths:
                   game:
                     type: string
                     description: The name of the game this tournament is on
-  /tournaments/:tournamentId/teams:
+                  matches:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: The ID of the match
+                      teamOne:
+                        type: object
+                        description: The team that created the match
+                        properties:
+                          _id:
+                            $ref: "#/components/schemas/MongoID"
+                          name:
+                            type: string
+                      teamTwo:
+                        type: object
+                        description: If present is the team that accepted the match
+                        properties:
+                          _id:
+                            $ref: "#/components/schemas/MongoID"
+                          name:
+                            type: string
+                      status:
+                        $ref: "#/components/schemas/MatchStatuses"
+                      createdAt:
+                        type: string
+                        format: date-time
+                        description: "When the match was first created"
+  /tournaments/{tournamentId}/teams:
     parameters:
       - name: tournamentId
         in: path
@@ -894,7 +922,7 @@ paths:
                 $ref: "#/components/schemas/ErrorMessageResponse"
         "201":
           description: "Team created"
-  /tournaments/:tournamentId/teams/:teamId:
+  /tournaments/{tournamentId}/teams/{teamId}:
     parameters:
       - name: tournamentId
         in: path
@@ -1049,7 +1077,7 @@ paths:
                   status:
                     type: boolean
                     description: If the team can play the tournament in its current state
-  /tournaments/:tournamentId/teams/:teamId/invites:
+  /tournaments/{tournamentId}/teams/{teamId}/invites:
     parameters:
       - name: tournamentId
         in: path
@@ -1107,7 +1135,7 @@ paths:
           description: "The user tried to invite himself"
         201:
           description: "success"
-  /tournaments/:tournamentId/matches:
+  /tournaments/{tournamentId}/matches:
     parameters:
       - name: tournamentId
         in: path
@@ -1227,7 +1255,7 @@ paths:
                       type: string
                       format: date-time
                       description: "When the match was first created"
-  /tournaments/:tournamentId/matches/:matchId:
+  /tournaments/{tournamentId}/matches/{matchId}:
     parameters:
       - name: tournamentId
         in: path
@@ -1393,7 +1421,7 @@ paths:
                 $ref: "#/components/schemas/ErrorMessageResponse"
         "200":
           description: "Match updated"
-  /invites/:inviteId:
+  /invites/{inviteId}:
     parameters:
       - name: inviteId
         in: path

@@ -28,6 +28,7 @@ const {
 	userIsLeaderMiddleware,
 } = require("../models/tournament/utils")
 const mongoose = require("mongoose")
+const { calculateMatchStatus } = require("../models/tournament/utils")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
 const { checkImgInput } = require("../utils/helpers")
 const { checkIfRulesetExists } = require("../models/ruleset/utils")
@@ -272,6 +273,8 @@ router.get(
 				})
 			)
 
+			const matches = await calculateMatchStatus(tournament.matches)
+
 			return res.status(200).json({
 				name: tournament.name,
 				id: tournament._id,
@@ -290,6 +293,7 @@ router.get(
 				userTeam,
 				imgUrl: tournament.imgUrl,
 				game: tournament.game,
+				matches,
 			})
 		} catch (e) {
 			next(e)
@@ -524,6 +528,32 @@ router.patch(
 				})
 			await Tournament.replaceOne({ _id: tournament._id }, tournament)
 			return res.status(200).json({})
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.get(
+	"/:tournamentId/matches/:matchId",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("matchId").custom(checkMatchExists).bail(),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+			const match = tournament.matches.find(
+				(match) => match._id.toString() === req.params.matchId
+			)
+
+			const newMatch = await calculateMatchStatus([match])
+
+			return res.status(200).json(newMatch[0])
 		} catch (e) {
 			next(e)
 		}

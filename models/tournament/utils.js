@@ -1,6 +1,13 @@
 const mongoose = require("mongoose")
 const { teamRoleLeader } = require("./consts")
 const { error404, CustomError } = require("../../utils/error-consts")
+const { matchStatusTeamTwo } = require("./consts")
+const { matchStatusTeamOne } = require("./consts")
+const { teamSubmittedMatchResultWin } = require("./consts")
+const { matchStatusDispute } = require("./consts")
+const { matchStatusTie } = require("./consts")
+const { teamSubmittedMatchResultTie } = require("./consts")
+const { matchStatusPending } = require("./consts")
 
 const Tournament = mongoose.model("Tournaments")
 
@@ -121,6 +128,30 @@ const userIsLeader = async (teamId, tournamentId, userId) => {
 	)
 }
 
+const calculateMatchStatus = async (matches) => {
+	return matches.map((match) => {
+		const formattedMatch = {
+			_id: match._id,
+			teamOne: match.teamOne,
+			teamTwo: match.teamTwo,
+			createdAt: match.createdAt,
+		}
+		if (!match.teamTwo || !match.teamOneResult || !match.teamTwoResult)
+			formattedMatch.status = matchStatusPending
+		else if (
+			match.teamOneResult === teamSubmittedMatchResultTie &&
+			match.teamTwoResult === teamSubmittedMatchResultTie
+		)
+			formattedMatch.status = matchStatusTie
+		else if (match.teamOneResult === match.teamTwoResult)
+			formattedMatch.status = matchStatusDispute
+		else if (match.teamOneResult === teamSubmittedMatchResultWin)
+			formattedMatch.status = matchStatusTeamOne
+		else formattedMatch.status = matchStatusTeamTwo
+		return formattedMatch
+	})
+}
+
 module.exports = {
 	checkUniqueName,
 	checkTeamNameInTournament,
@@ -133,4 +164,5 @@ module.exports = {
 	checkUserIsLeaderInTeam,
 	checkMatchExists,
 	userIsLeaderMiddleware,
+	calculateMatchStatus,
 }
