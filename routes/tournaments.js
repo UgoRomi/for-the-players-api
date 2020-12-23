@@ -535,6 +535,26 @@ router.patch(
 )
 
 router.get(
+	"/:tournamentId/matches",
+	checkJWT(),
+	[param("tournamentId").custom(checkTournamentExists).bail()],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+
+			const matches = await calculateMatchStatus(tournament.matches)
+
+			return res.status(200).json(matches)
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.get(
 	"/:tournamentId/matches/:matchId",
 	checkJWT(),
 	[
