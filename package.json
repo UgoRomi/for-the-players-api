@@ -24,6 +24,7 @@
     "cors": "^2.8.5",
     "date-fns": "^2.16.1",
     "dotenv": "^8.2.0",
+    "elo-rank": "^1.0.4",
     "express": "^4.17.1",
     "express-jwt": "^6.0.0",
     "express-rate-limit": "^5.2.3",
@@ -42,18 +43,6 @@
   "devDependencies": {
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2"
-  },
-  "apidoc": {
-    "name": "Just Fight API",
-    "version": "0.1.0",
-    "description": "REST API for Just Fight, an italian eSports app",
-    "apidoc": {
-      "title": "Just Fight API",
-      "url": "https://just-fight.herokuapp.com"
-    },
-    "template": {
-      "forceLanguage": "en"
-    }
   },
   "prettier": {
     "tabWidth": 2,

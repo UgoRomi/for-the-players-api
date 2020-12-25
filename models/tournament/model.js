@@ -21,7 +21,9 @@ const tournamentSchema = new Schema(
 		teams: [
 			{
 				name: { type: String, required: true },
-				elo: { type: Number, required: true, default: 1500 },
+				// elo is user for ladders, points for tournaments
+				elo: { type: Number },
+				points: { type: Number },
 				invites: [{}],
 				members: [
 					{

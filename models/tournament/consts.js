@@ -42,6 +42,8 @@ module.exports = {
 	teamRoleMember,
 	teamRoleLeader,
 	teamRoles,
+	tournamentType,
+	ladderType,
 	types,
 	matchStatusPending,
 	matchStatusTie,

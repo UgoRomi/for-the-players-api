@@ -35,12 +35,19 @@ const { checkIfRulesetExists } = require("../models/ruleset/utils")
 const { checkIfPlatformExists } = require("../models/platform/utils")
 const { checkIfGameExists } = require("../models/game/utils")
 const { formatISO } = require("date-fns")
+const eloRank = require("elo-rank")
+const { matchStatusTie } = require("../models/tournament/consts")
+const { ladderType } = require("../models/tournament/consts")
+const { matchStatusTeamOne } = require("../models/tournament/consts")
+const { matchStatusTeamTwo } = require("../models/tournament/consts")
 
 const Tournament = mongoose.model("Tournaments")
 const Ruleset = mongoose.model("Rulesets")
 const Game = mongoose.model("Games")
 const Invite = mongoose.model("Invites")
 const Users = mongoose.model("Users")
+
+const elo = new eloRank()
 
 router.post(
 	"/",
@@ -186,6 +193,8 @@ router.post(
 				name: req.body.name,
 				members: [{ role: teamRoleLeader, userId: req.user.id }],
 			}
+			if (tournament.type === ladderType) newTeam.elo = 1500
+			else newTeam.points = 0
 			await Tournament.findByIdAndUpdate(req.params.tournamentId, {
 				$push: { teams: newTeam },
 			})
@@ -526,6 +535,71 @@ router.patch(
 				return res.status(404).json({
 					errorMessage: "This team isn't in this match",
 				})
+
+			if (match.teamOneResult && match.teamTwoResult) {
+				const matchesStatus = await calculateMatchStatus([match])
+				const matchStatus = matchesStatus[0].status
+
+				// Only update elo or points if both teams have posted results and there's no dispute
+				if (
+					matchStatus === matchStatusTeamOne ||
+					matchStatus === matchStatusTeamTwo ||
+					matchStatus === matchStatusTie
+				) {
+					const teams = tournament.teams.filter(
+						(team) =>
+							team._id.toString() === match.teamOne.toString() ||
+							team._id.toString() === match.teamTwo.toString()
+					)
+					const teamOne = teams.find(
+						(team) => team._id.toString() === match.teamOne.toString()
+					)
+					const teamTwo = teams.find(
+						(team) => team._id.toString() === match.teamTwo.toString()
+					)
+					// Elo doesn't update in case of a tie
+					if (
+						tournament.type === ladderType &&
+						matchStatus !== matchStatusTie
+					) {
+						const expectedScoreTeamOne = elo.getExpected(
+							teamOne.elo,
+							teamTwo.elo
+						)
+						const expectedScoreTeamTwo = elo.getExpected(
+							teamTwo.elo,
+							teamOne.elo
+						)
+
+						// +true equals 1
+						// +false equals 0
+						teamOne.elo = elo.updateRating(
+							expectedScoreTeamOne,
+							+(matchStatus === matchStatusTeamOne),
+							teamOne.elo
+						)
+						teamTwo.elo = elo.updateRating(
+							expectedScoreTeamTwo,
+							+(matchStatus === matchStatusTeamOne),
+							teamTwo.elo
+						)
+					} else {
+						switch (matchStatus) {
+							case matchStatusTie:
+								teamOne.points += 1
+								teamOne.points += 1
+								break
+							case matchStatusTeamOne:
+								teamOne.points += 3
+								break
+							case matchStatusTeamTwo:
+								teamTwo.points += 3
+								break
+						}
+					}
+				}
+			}
+
 			await Tournament.replaceOne({ _id: tournament._id }, tournament)
 			return res.status(200).json({})
 		} catch (e) {
