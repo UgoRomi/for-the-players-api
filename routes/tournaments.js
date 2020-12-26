@@ -580,7 +580,7 @@ router.patch(
 						)
 						teamTwo.elo = elo.updateRating(
 							expectedScoreTeamTwo,
-							+(matchStatus === matchStatusTeamOne),
+							+(matchStatus === matchStatusTeamTwo),
 							teamTwo.elo
 						)
 					} else {
