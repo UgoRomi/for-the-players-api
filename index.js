@@ -64,6 +64,10 @@ app.use("/rulesets", rulesetRoutes)
 app.use("/invites", invitesRoutes)
 app.use("/users", userRoutes)
 
+app.use("/test", (_req, res, _next) => {
+	res.send("Welcome to 4TP APIs!")
+})
+
 // Error handling
 //404
 app.use("*", (req, res, _next) => {
