@@ -140,9 +140,6 @@ const calculateMatchStatus = async (matches, teams) => {
 		const teamOneName = teams.find(
 			(team) => team._id.toString() === match.teamOne.toString()
 		).name
-		const teamTwoName = teams.find(
-			(team) => team._id.toString() === match.teamTwo?.toString()
-		).name
 		const formattedMatch = {
 			_id: match._id,
 			teamOne: {
@@ -150,13 +147,20 @@ const calculateMatchStatus = async (matches, teams) => {
 				result: match.teamOneResult,
 				name: teamOneName,
 			},
-			teamTwo: {
+			createdAt: match.createdAt,
+		}
+
+		if (match.teamTwo) {
+			const teamTwoName = teams.find(
+				(team) => team._id.toString() === match.teamTwo?.toString()
+			).name
+			formattedMatch.teamTwo = {
 				_id: match.teamTwo,
 				result: match.teamTwoResult,
 				name: teamTwoName,
-			},
-			createdAt: match.createdAt,
+			}
 		}
+
 		if (!match.teamTwo || !match.teamOneResult || !match.teamTwoResult)
 			formattedMatch.status = matchStatusPending
 		else if (
