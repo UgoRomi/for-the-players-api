@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const { error403 } = require("../../utils/error-consts")
 const { CustomError, error404 } = require("../../utils/error-consts")
 const { userStatusVerified, userStatusBanned } = require("./consts")
 const User = mongoose.model("Users")
@@ -30,6 +31,14 @@ const userExistsById = async (userId) => {
 	if (!user) throw new CustomError(error404, "User does not exist")
 }
 
+const isLoggedInUser = async (userId, { req }) => {
+	if (userId !== req.user.id)
+		throw new CustomError(
+			error403,
+			"You are trying to access a resource of another user"
+		)
+}
+
 const multipleUsersExistById = async (usersIds) => {
 	usersIds.forEach((userId) => userExistsById(userId))
 }
@@ -40,4 +49,5 @@ module.exports = {
 	checkUserNotVerified,
 	userExistsById,
 	multipleUsersExistById,
+	isLoggedInUser,
 }

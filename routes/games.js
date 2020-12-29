@@ -2,7 +2,7 @@ const { body } = require("express-validator")
 const { checkImgInput } = require("../utils/helpers")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
-const { userPermissionCreateGame } = require("../models/user/consts")
+const { userPermissionGame } = require("../models/user/consts")
 const mongoose = require("mongoose")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
 const { checkUniqueName } = require("../models/game/utils")
@@ -26,7 +26,7 @@ router.get("/", checkJWT(), async (req, res, _next) => {
 
 router.post(
 	"/",
-	checkJWT([userPermissionCreateGame]),
+	checkJWT([userPermissionGame]),
 	[
 		body("name")
 			.notEmpty({ ignore_whitespace: true })

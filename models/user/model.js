@@ -32,6 +32,8 @@ const userSchema = new Schema(
 				username: { type: String, required: true },
 			},
 		],
+		coins: { type: Number, default: 0 },
+		firebaseToken: { type: String },
 	},
 	{ timestamps: true }
 )

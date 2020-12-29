@@ -2,6 +2,9 @@ const router = require("express").Router()
 const { query, param } = require("express-validator")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const mongoose = require("mongoose")
+const bcrypt = require("bcrypt")
+const { body } = require("express-validator")
+const { isLoggedInUser } = require("../models/user/utils")
 const { teamStatusOk, teamStatusNotOk } = require("../models/tournament/consts")
 const { userExistsById } = require("../models/user/utils")
 const { isBefore, startOfToday } = require("date-fns")
@@ -115,6 +118,28 @@ router.get(
 			)
 
 			return res.status(200).json({ user })
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.patch(
+	"/:userId/password",
+	checkJWT(),
+	[
+		param("userId").custom(userExistsById).bail().custom(isLoggedInUser),
+		body("oldPassword").notEmpty({ ignore_whitespace: true }),
+		body("newPassword").notEmpty({ ignore_whitespace: true }),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const userOnDB = await Users.findById(req.params.userId).lean()
+
+			// If the password is wrong
+			if (!bcrypt.compareSync(req.body.oldPassword, userOnDB.password))
+				return res.status(400).json({ error: "Password does not match" })
 		} catch (e) {
 			next(e)
 		}

@@ -33,6 +33,7 @@ const tournamentSchema = new Schema(
 							required: true,
 							default: teamRoleMember,
 						},
+						dateJoined: { type: Date, required: true, default: Date.now() },
 						userId: { type: ObjectId, ref: "Users", required: true },
 					},
 				],

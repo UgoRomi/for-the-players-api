@@ -1,4 +1,5 @@
 const error404 = "NotFoundError"
+const error403 = "ForbiddenError"
 
 class CustomError {
 	name
@@ -12,5 +13,6 @@ class CustomError {
 
 module.exports = {
 	error404,
+	error403,
 	CustomError,
 }

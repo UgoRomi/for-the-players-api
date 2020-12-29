@@ -8,6 +8,7 @@ const { matchStatusDispute } = require("./consts")
 const { matchStatusTie } = require("./consts")
 const { teamSubmittedMatchResultTie } = require("./consts")
 const { matchStatusPending } = require("./consts")
+const { isAfter } = require("date-fns")
 
 const Tournament = mongoose.model("Tournaments")
 
@@ -36,6 +37,12 @@ const checkTeamNameInTournament = async (name, { req }) => {
 const checkTournamentExists = async (tournamentId) => {
 	const tournament = await Tournament.findById(tournamentId).lean()
 	if (!tournament) throw new CustomError(error404, "Tournament not found")
+}
+
+const checkTournamentHasNotStarted = async (tournamentId) => {
+	const tournament = await Tournament.findById(tournamentId).lean()
+	if (isAfter(new Date(), tournament.startsOn))
+		throw Error("Tournament already started")
 }
 
 const checkTeamExists = async (teamId, { req }) => {
@@ -128,12 +135,26 @@ const userIsLeader = async (teamId, tournamentId, userId) => {
 	)
 }
 
-const calculateMatchStatus = async (matches) => {
+const calculateMatchStatus = async (matches, teams) => {
 	return matches.map((match) => {
+		const teamOneName = teams.find(
+			(team) => team._id.toString() === match.teamOne.toString()
+		).name
+		const teamTwoName = teams.find(
+			(team) => team._id.toString() === match.teamTwo.toString()
+		).name
 		const formattedMatch = {
 			_id: match._id,
-			teamOne: match.teamOne,
-			teamTwo: match.teamTwo,
+			teamOne: {
+				_id: match.teamOne,
+				result: match.teamOneResult,
+				name: teamOneName,
+			},
+			teamTwo: {
+				_id: match.teamTwo,
+				result: match.teamTwoResult,
+				name: teamTwoName,
+			},
 			createdAt: match.createdAt,
 		}
 		if (!match.teamTwo || !match.teamOneResult || !match.teamTwoResult)
@@ -165,4 +186,5 @@ module.exports = {
 	checkMatchExists,
 	userIsLeaderMiddleware,
 	calculateMatchStatus,
+	checkTournamentHasNotStarted,
 }

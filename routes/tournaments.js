@@ -36,6 +36,7 @@ const { checkIfPlatformExists } = require("../models/platform/utils")
 const { checkIfGameExists } = require("../models/game/utils")
 const { formatISO } = require("date-fns")
 const eloRank = require("elo-rank")
+const { checkTournamentHasNotStarted } = require("../models/tournament/utils")
 const { matchStatusTie } = require("../models/tournament/consts")
 const { ladderType } = require("../models/tournament/consts")
 const { matchStatusTeamOne } = require("../models/tournament/consts")
@@ -161,11 +162,18 @@ router.get(
 	}
 )
 
+/*
+	Register a new team to the tournament
+ */
 router.post(
 	"/:tournamentId/teams",
 	checkJWT(),
 	[
-		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("tournamentId")
+			.custom(checkTournamentExists)
+			.bail()
+			.custom(checkTournamentHasNotStarted)
+			.bail(),
 		body("name")
 			.notEmpty({ ignore_whitespace: true })
 			.custom(checkTeamNameInTournament),
@@ -241,48 +249,10 @@ router.get(
 						: teamStatusNotOk
 			}
 
-			const teams = tournament.teams
-				.filter(
-					(team) =>
-						!team.members.some(
-							(member) => member.userId.toString() === req.user.id
-						)
-				)
-				.map((team) => {
-					return {
-						...team,
-						teamStatus:
-							team.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
-							team.members.length >= ruleset.minNumberOfPlayersPerTeam
-								? teamStatusOk
-								: teamStatusNotOk,
-					}
-				})
-
-			const teamsToReturn = await Promise.all(
-				teams.map(async (team) => {
-					let members = await Promise.all(
-						team.members.map(async (member) => {
-							const user = await Users.findById(
-								member.userId,
-								"username"
-							).lean()
-							if (!user) return
-							return {
-								...member,
-								username: user.username,
-							}
-						})
-					)
-					members = members.filter((member) => !!member)
-					return {
-						...team,
-						members,
-					}
-				})
+			const matches = await calculateMatchStatus(
+				tournament.matches,
+				tournament.teams
 			)
-
-			const matches = await calculateMatchStatus(tournament.matches)
 
 			return res.status(200).json({
 				name: tournament.name,
@@ -298,7 +268,7 @@ router.get(
 				},
 				type: tournament.type,
 				// Remove the team the user is a part of, if present
-				teams: teamsToReturn,
+				teams: tournament.teams,
 				userTeam,
 				imgUrl: tournament.imgUrl,
 				game: tournament.game,
@@ -369,7 +339,11 @@ router.delete(
 	"/:tournamentId/teams/:teamId",
 	checkJWT(),
 	[
-		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("tournamentId")
+			.custom(checkTournamentExists)
+			.bail()
+			.custom(checkTournamentHasNotStarted)
+			.bail(),
 		param("teamId").custom(checkTeamExists),
 	],
 	checkValidation,
@@ -537,7 +511,10 @@ router.patch(
 				})
 
 			if (match.teamOneResult && match.teamTwoResult) {
-				const matchesStatus = await calculateMatchStatus([match])
+				const matchesStatus = await calculateMatchStatus(
+					[match],
+					tournament.teams
+				)
 				const matchStatus = matchesStatus[0].status
 
 				// Only update elo or points if both teams have posted results and there's no dispute
@@ -619,7 +596,10 @@ router.get(
 				req.params.tournamentId
 			).lean()
 
-			const matches = await calculateMatchStatus(tournament.matches)
+			const matches = await calculateMatchStatus(
+				tournament.matches,
+				tournament.teams
+			)
 
 			return res.status(200).json(matches)
 		} catch (e) {
@@ -645,7 +625,7 @@ router.get(
 				(match) => match._id.toString() === req.params.matchId
 			)
 
-			const newMatch = await calculateMatchStatus([match])
+			const newMatch = await calculateMatchStatus([match], tournament.teams)
 
 			return res.status(200).json(newMatch[0])
 		} catch (e) {

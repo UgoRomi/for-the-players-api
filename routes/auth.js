@@ -63,7 +63,7 @@ router.post(
 	async (req, res, next) => {
 		try {
 			const { email, password } = req.body
-			const userOnDB = await User.findOne({ email }).exec()
+			const userOnDB = await User.findOne({ email }).lean()
 
 			// If the password is wrong
 			if (!bcrypt.compareSync(password, userOnDB.password))

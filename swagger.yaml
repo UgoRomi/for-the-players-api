@@ -446,7 +446,7 @@ paths:
       - name: userId
         in: path
         required: true
-        description: The MongoDB ID of the user
+        description: The ID of the user
         schema:
           $ref: "#/components/schemas/MongoID"
     get:
@@ -549,6 +549,62 @@ paths:
                           description: The name of the team the user got invited to
                         status:
                           $ref: "#/components/schemas/TeamInvites"
+  /users/{userId}/password:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: The ID of the user
+        schema:
+          $ref: "#/components/schemas/MongoID"
+    patch:
+      summary: Updats the user password
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - oldPassword
+                - newPassword
+              type: object
+              properties:
+                oldPassword:
+                  description: Old password
+                  type: string
+                newPassword:
+                  description: New password
+                  type: string
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "200":
+          description: "Password updated"
   /tournaments:
     post:
       summary: Create a new tournament
@@ -861,6 +917,8 @@ paths:
                             $ref: "#/components/schemas/MongoID"
                           name:
                             type: string
+                          result:
+                            $ref: "#/components/schemas/TeamSubmittedMatchResults"
                       teamTwo:
                         type: object
                         description: If present is the team that accepted the match
@@ -869,6 +927,8 @@ paths:
                             $ref: "#/components/schemas/MongoID"
                           name:
                             type: string
+                          result:
+                            $ref: "#/components/schemas/TeamSubmittedMatchResults"
                       status:
                         $ref: "#/components/schemas/MatchStatuses"
                       createdAt:
@@ -1241,6 +1301,8 @@ paths:
                           $ref: "#/components/schemas/MongoID"
                         name:
                           type: string
+                        result:
+                          $ref: "#/components/schemas/TeamSubmittedMatchResults"
                     teamTwo:
                       type: object
                       description: If present is the team that accepted the match
@@ -1249,6 +1311,8 @@ paths:
                           $ref: "#/components/schemas/MongoID"
                         name:
                           type: string
+                        result:
+                          $ref: "#/components/schemas/TeamSubmittedMatchResults"
                     state:
                       $ref: "#/components/schemas/MatchStatuses"
                     createdAt:
