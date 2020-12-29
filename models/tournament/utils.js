@@ -141,7 +141,7 @@ const calculateMatchStatus = async (matches, teams) => {
 			(team) => team._id.toString() === match.teamOne.toString()
 		).name
 		const teamTwoName = teams.find(
-			(team) => team._id.toString() === match.teamTwo.toString()
+			(team) => team._id.toString() === match.teamTwo?.toString()
 		).name
 		const formattedMatch = {
 			_id: match._id,

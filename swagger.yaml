@@ -549,16 +549,8 @@ paths:
                           description: The name of the team the user got invited to
                         status:
                           $ref: "#/components/schemas/TeamInvites"
-  /users/{userId}/password:
-    parameters:
-      - name: userId
-        in: path
-        required: true
-        description: The ID of the user
-        schema:
-          $ref: "#/components/schemas/MongoID"
     patch:
-      summary: Updats the user password
+      summary: Updats the user profile
       security:
         - BearerAuth: [ ]
       tags:
@@ -605,6 +597,7 @@ paths:
                 $ref: "#/components/schemas/ErrorMessageResponse"
         "200":
           description: "Password updated"
+
   /tournaments:
     post:
       summary: Create a new tournament
