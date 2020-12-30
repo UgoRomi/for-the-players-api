@@ -49,6 +49,7 @@ const tournamentSchema = new Schema(
 				teamTwoResult: { type: String, enum: teamSubmittedResults },
 			},
 		],
+		open: { type: Boolean, required: true, default: true },
 	},
 	{ timestamps: true }
 )

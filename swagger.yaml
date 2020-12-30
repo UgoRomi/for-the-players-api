@@ -637,6 +637,9 @@ paths:
                 show:
                   description: If the tournament should appear in the list of upcoming tournaments in the app
                   type: boolean
+                open:
+                  description: If teams can join the tournament, defaults to true
+                  type: boolean
                 startsOn:
                   description: The date and time on which the tournament will start
                   type: string
@@ -751,6 +754,9 @@ paths:
                     game:
                       type: string
                       description: The name of the game this tournament is on
+                    open:
+                      type: boolean
+                      description: If new teams can join the tournament
   /tournaments/{tournamentId}:
     parameters:
       - name: tournamentId
@@ -928,6 +934,9 @@ paths:
                         type: string
                         format: date-time
                         description: "When the match was first created"
+                  open:
+                    type: boolean
+                    description: If new teams can join the tournament
   /tournaments/{tournamentId}/teams:
     parameters:
       - name: tournamentId

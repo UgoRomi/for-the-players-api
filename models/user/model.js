@@ -29,6 +29,7 @@ const userSchema = new Schema(
 		platforms: [
 			{
 				id: { type: ObjectId, required: true, ref: "Platforms" },
+				name: { type: String, required: true },
 				username: { type: String, required: true },
 			},
 		],

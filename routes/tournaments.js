@@ -79,6 +79,7 @@ router.post(
 		body("type").isIn(types),
 		body("imgUrl").optional().isURL(),
 		body("imgBase64").isBase64().custom(checkIfValidaImageData),
+		body("open").isBoolean(),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -92,6 +93,7 @@ router.post(
 				endsOn,
 				ruleset,
 				type,
+				open,
 			} = req.body
 
 			const imageURL = await checkImgInput(req.body)
@@ -107,6 +109,7 @@ router.post(
 				type,
 				imgUrl: imageURL,
 				createdBy: req.user.id,
+				open,
 			})
 			return res.status(201).json()
 		} catch (e) {
@@ -152,6 +155,7 @@ router.get(
 						numberOfTeams: tournament.teams.length,
 						imgUrl,
 						game: gameDoc.name,
+						open: tournament.open,
 					}
 				})
 			)
@@ -273,6 +277,7 @@ router.get(
 				imgUrl: tournament.imgUrl,
 				game: tournament.game,
 				matches,
+				open: tournament.open,
 			})
 		} catch (e) {
 			next(e)
