@@ -12,8 +12,6 @@ tags:
     description: Endpoints about platforms
   - name: game
     description: Endpoints about games
-  - name: team
-    description: Endpoints about teams
   - name: user
     description: Endpoints about user and user profile
   - name: tournaments
@@ -134,6 +132,72 @@ paths:
                 $ref: "#/components/schemas/ErrorMessageResponse"
         "200":
           description: "Email sent"
+  /auth/password:
+    post:
+      summary: Sends to the user an email with a link to rest their password
+      tags:
+        - auth
+      operationId: sendForgottenPasswordEmail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email
+              type: object
+              properties:
+                email:
+                  description: The user's email
+                  type: string
+                  format: email
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "200":
+          description: "Email sent"
+    patch:
+      summary: Resets the user's password
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - auth
+      operationId: resetUserPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newPassword
+              properties:
+                newPassword:
+                  type: string
+                  description: The user's new password
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        200:
+          description: "success"
   /platforms:
     post:
       summary: Create a new platform
@@ -611,7 +675,6 @@ paths:
                 $ref: "#/components/schemas/ErrorMessageResponse"
         "200":
           description: "User updated"
-
   /tournaments:
     post:
       summary: Create a new tournament
