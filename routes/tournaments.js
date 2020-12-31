@@ -54,7 +54,11 @@ router.post(
 	"/",
 	checkJWT(userPermissionTournament),
 	[
-		body("name").notEmpty({ ignore_whitespace: true }).custom(checkUniqueName),
+		body("name")
+			.notEmpty({ ignore_whitespace: true })
+			.trim()
+			.escape()
+			.custom(checkUniqueName),
 		body("game")
 			.notEmpty({ ignore_whitespace: true })
 			.customSanitizer(convertToMongoId)
@@ -180,6 +184,8 @@ router.post(
 			.bail(),
 		body("name")
 			.notEmpty({ ignore_whitespace: true })
+			.trim()
+			.escape()
 			.custom(checkTeamNameInTournament),
 	],
 	checkValidation,
@@ -291,7 +297,7 @@ router.patch(
 	[
 		param("tournamentId").custom(checkTournamentExists).bail(),
 		param("teamId").custom(checkTeamExists),
-		body("name").optional().custom(checkTeamNameInTournament),
+		body("name").optional().custom(checkTeamNameInTournament).trim().escape(),
 		body("membersToRemove").optional().custom(multipleUsersExistById),
 	],
 	checkValidation,

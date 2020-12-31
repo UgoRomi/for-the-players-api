@@ -3,6 +3,7 @@ const { query, param } = require("express-validator")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const mongoose = require("mongoose")
 const bcrypt = require("bcrypt")
+const { checkUniqueUsername } = require("../models/user/utils")
 const { body } = require("express-validator")
 const { isLoggedInUser } = require("../models/user/utils")
 const { teamStatusOk, teamStatusNotOk } = require("../models/tournament/consts")
@@ -124,13 +125,34 @@ router.get(
 	}
 )
 
+/**
+ * @param req.body
+ * @param req.body.oldPassword
+ * @param req.body.newPassword
+ * @param req.body.username
+ * @param req.body.platforms[]._id
+ * @param req.body.platforms[].username
+ */
 router.patch(
-	"/:userId/password",
+	"/:userId",
 	checkJWT(),
+	// TODO: Don't replace platforms but just update the usernames
 	[
 		param("userId").custom(userExistsById).bail().custom(isLoggedInUser),
 		body("oldPassword").notEmpty({ ignore_whitespace: true }),
-		body("newPassword").notEmpty({ ignore_whitespace: true }),
+		body("newPassword")
+			.optional()
+			.notEmpty({ ignore_whitespace: true })
+			.trim()
+			.escape(),
+		body("username")
+			.optional()
+			.notEmpty({ ignore_whitespace: true })
+			.trim()
+			.escape()
+			.custom(checkUniqueUsername),
+		body("platforms.*._id").isMongoId(),
+		body("platforms.*.username").isString().trim().escape(),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -139,7 +161,23 @@ router.patch(
 
 			// If the password is wrong
 			if (!bcrypt.compareSync(req.body.oldPassword, userOnDB.password))
-				return res.status(400).json({ error: "Password does not match" })
+				return res.status(400).json({ error: "Old password does not match" })
+
+			const updateObj = {}
+
+			if (req.body.platforms) updateObj.platforms = req.body.platforms
+
+			if (req.body.username) updateObj.username = req.body.username
+
+			if (req.body.newPassword)
+				updateObj.password = bcrypt.hashSync(
+					req.body.newPassword,
+					parseInt(process.env.PASSWORD_SALT_ROUNDS)
+				)
+
+			await Users.updateOne({ _id: req.params.userId }, { $set: updateObj })
+
+			return res.status(200).json()
 		} catch (e) {
 			next(e)
 		}

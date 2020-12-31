@@ -11,6 +11,19 @@ const checkUniqueEmail = async (email) => {
 	if (userAlreadyExists) throw Error("Email already in use")
 }
 
+const checkUniqueUsername = async (username, { req }) => {
+	const userAlreadyExists = await User.findOne({
+		username,
+	}).lean()
+
+	// If this validator is called on an endpoint that does not require authentication (sign up)
+	if (!req.user) if (userAlreadyExists) throw Error("Username already in use")
+
+	// If the validator is called on an endpoint that requires authentication check that the user im checking on is not the same as the logged one
+	if (userAlreadyExists && userAlreadyExists._id.toString() !== req.user.id)
+		if (userAlreadyExists) throw Error("Username already in use")
+}
+
 const checkUserEmailInUse = async (email) => {
 	const userAlreadyExists = await User.findOne({
 		email,
@@ -45,6 +58,7 @@ const multipleUsersExistById = async (usersIds) => {
 
 module.exports = {
 	checkUniqueEmail,
+	checkUniqueUsername,
 	checkUserEmailInUse,
 	checkUserNotVerified,
 	userExistsById,

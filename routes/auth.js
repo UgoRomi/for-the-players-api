@@ -11,6 +11,7 @@ const {
 	checkUserEmailInUse,
 	checkUniqueEmail,
 	checkUserNotVerified,
+	checkUniqueUsername
 } = require("../models/user/utils")
 const mongoose = require("mongoose")
 const transporter = require("../email")
@@ -20,7 +21,7 @@ const User = mongoose.model("Users")
 router.post(
 	"/signup",
 	[
-		body("username").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
+		body("username").not().isEmpty({ ignore_whitespace: true }).trim().escape().custom(checkUniqueUsername),
 		body("password").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
 		body("email").isEmail().normalizeEmail().custom(checkUniqueEmail),
 	],

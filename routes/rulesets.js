@@ -13,7 +13,7 @@ router.post(
 	[
 		body("game")
 			.notEmpty({ ignore_whitespace: true })
-			.customSanitizer(convertToMongoId)
+			.isMongoId()
 			.custom(checkIfGameExists),
 		body("maxNumberOfPlayersPerTeam")
 			.notEmpty({ ignore_whitespace: true })
@@ -21,8 +21,8 @@ router.post(
 		body("minNumberOfPlayersPerTeam")
 			.notEmpty({ ignore_whitespace: true })
 			.isInt(),
-		body("description").notEmpty({ ignore_whitespace: true }),
-		body("name").notEmpty({ ignore_whitespace: true }),
+		body("description").notEmpty({ ignore_whitespace: true }).trim().escape(),
+		body("name").notEmpty({ ignore_whitespace: true }).trim().escape(),
 	],
 	checkJWT(userPermissionRuleset),
 	checkValidation,
