@@ -159,21 +159,21 @@ router.patch(
 		try {
 			const userOnDB = await Users.findById(req.params.userId).lean()
 
-			// If the password is wrong
-			if (!bcrypt.compareSync(req.body.oldPassword, userOnDB.password))
-				return res.status(400).json({ error: "Old password does not match" })
-
 			const updateObj = {}
 
-			if (req.body.platforms) updateObj.platforms = req.body.platforms
-
-			if (req.body.username) updateObj.username = req.body.username
-
-			if (req.body.newPassword)
+			if (req.body.newPassword) {
+				// If the password is wrong
+				if (!bcrypt.compareSync(req.body.oldPassword, userOnDB.password))
+					return res.status(400).json({ error: "Old password does not match" })
 				updateObj.password = bcrypt.hashSync(
 					req.body.newPassword,
 					parseInt(process.env.PASSWORD_SALT_ROUNDS)
 				)
+			}
+
+			if (req.body.platforms) updateObj.platforms = req.body.platforms
+
+			if (req.body.username) updateObj.username = req.body.username
 
 			await Users.updateOne({ _id: req.params.userId }, { $set: updateObj })
 
