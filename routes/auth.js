@@ -123,4 +123,48 @@ router.get(
 	}
 )
 
+router.post(
+	"/password",
+	[body("email").isEmail()],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const userExists = await User.findOne({ email: req.body.email }).lean()
+
+			if (!userExists) return res.status(200).json()
+
+			await transporter.sendMail({
+				from: process.env.EMAIL_USERNAME, // sender address
+				to: req.body.email, // list of receivers
+				subject: "Reset password 4ThePlayers", // Subject line
+				text: `Per reimpostare la password del tuo account copia e incolla il seguente link in una finestra del tuo browser ${req.headers.host}/auth/${req.user.id}/verify`, // plain text body
+				html: `Clicca sul seguente link per reimpostare la password del tuo account <a href='${req.headers.host}/auth/${req.user.id}/verify'>${req.headers.host}/auth/${req.user.id}/verify</a><br>Se il link non funziona prova a copiarlo e incollarlo in un'altra finestra del tuo browser`, // html body
+			})
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.patch(
+	"/password",
+	checkJWT(),
+	[body("newPassword").isString()],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const newPassword = bcrypt.hashSync(
+				req.body.newPassword,
+				parseInt(process.env.PASSWORD_SALT_ROUNDS)
+			)
+
+			await User.updateOne({ _id: req.user.id }, { password: newPassword })
+
+			return res.status(200).js
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
 module.exports = router
