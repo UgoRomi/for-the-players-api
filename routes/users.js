@@ -139,15 +139,15 @@ router.patch(
 	// TODO: Don't replace platforms but just update the usernames
 	[
 		param("userId").custom(userExistsById).bail().custom(isLoggedInUser),
-		body("oldPassword").notEmpty({ ignore_whitespace: true }),
+		body("oldPassword").optional(),
 		body("newPassword")
 			.optional()
-			.notEmpty({ ignore_whitespace: true })
+			.notEmpty({ignore_whitespace: true})
 			.trim()
 			.escape(),
 		body("username")
 			.optional()
-			.notEmpty({ ignore_whitespace: true })
+			.notEmpty({ignore_whitespace: true})
 			.trim()
 			.escape()
 			.custom(checkUniqueUsername),
