@@ -24,6 +24,8 @@ const userPermissions = [
 	userPermissionRuleset,
 ]
 
+const resetPasswordPage = "https://app.theplayers.tech/reset-password"
+
 module.exports = {
 	// Status
 	userStatuses,
@@ -37,4 +39,6 @@ module.exports = {
 	userPermissionTournament,
 	userPermissionRuleset,
 	userPermissions,
+
+	resetPasswordPage,
 }

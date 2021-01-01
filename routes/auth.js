@@ -11,17 +11,23 @@ const {
 	checkUserEmailInUse,
 	checkUniqueEmail,
 	checkUserNotVerified,
-	checkUniqueUsername
+	checkUniqueUsername,
 } = require("../models/user/utils")
 const mongoose = require("mongoose")
 const transporter = require("../email")
+const { resetPasswordPage } = require("../models/user/consts")
 
 const User = mongoose.model("Users")
 
 router.post(
 	"/signup",
 	[
-		body("username").not().isEmpty({ ignore_whitespace: true }).trim().escape().custom(checkUniqueUsername),
+		body("username")
+			.not()
+			.isEmpty({ ignore_whitespace: true })
+			.trim()
+			.escape()
+			.custom(checkUniqueUsername),
 		body("password").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
 		body("email").isEmail().normalizeEmail().custom(checkUniqueEmail),
 	],
@@ -129,17 +135,29 @@ router.post(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const userExists = await User.findOne({ email: req.body.email }).lean()
+			const { email } = req.body
+
+			const userExists = await User.findOne({ email }).lean()
 
 			if (!userExists) return res.status(200).json()
 
+			const token = jwt.sign(
+				{
+					email,
+					id: userExists._id,
+				},
+				process.env.JWT_SECRET
+			)
+
 			await transporter.sendMail({
 				from: process.env.EMAIL_USERNAME, // sender address
-				to: req.body.email, // list of receivers
+				to: email, // list of receivers
 				subject: "Reset password 4ThePlayers", // Subject line
-				text: `Per reimpostare la password del tuo account copia e incolla il seguente link in una finestra del tuo browser ${req.headers.host}/auth/${req.user.id}/verify`, // plain text body
-				html: `Clicca sul seguente link per reimpostare la password del tuo account <a href='${req.headers.host}/auth/${req.user.id}/verify'>${req.headers.host}/auth/${req.user.id}/verify</a><br>Se il link non funziona prova a copiarlo e incollarlo in un'altra finestra del tuo browser`, // html body
+				text: `Per reimpostare la password del tuo account copia e incolla il seguente link in una finestra del tuo browser ${resetPasswordPage}?jwt=${token}`, // plain text body
+				html: `Clicca <a href='${resetPasswordPage}?jwt=${token}'>qui</a> per reimpostare la password del tuo account`, // html body
 			})
+
+			return res.status(200).json()
 		} catch (e) {
 			next(e)
 		}
@@ -160,7 +178,7 @@ router.patch(
 
 			await User.updateOne({ _id: req.user.id }, { password: newPassword })
 
-			return res.status(200).js
+			return res.status(200).json()
 		} catch (e) {
 			next(e)
 		}
