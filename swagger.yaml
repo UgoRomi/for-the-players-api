@@ -1481,6 +1481,11 @@ paths:
                     type: string
                     format: date-time
                     description: "When the match was accepted"
+                  maps:
+                    type: array
+                    description: The maps that will be played in this match
+                    items:
+                      type: string
     delete:
       security:
         - BearerAuth: [ ]
@@ -1694,6 +1699,14 @@ paths:
                     description:
                       type: string
                       description: The description of the ruleset
+                    maps:
+                      type: array
+                      description: The maps that can be played in this tournament
+                      items:
+                        type: string
+                    bestOf:
+                      description: If the value is "3" indicates that when this ruleset is used matches are played in a best of 3
+                      type: integer
                     maxNumberOfPlayersPerTeam:
                       type: integer
                       description: The maximum number of players that can be in a team when using this ruleset
@@ -1718,6 +1731,7 @@ paths:
                 - minNumberOfPlayersPerTeam
                 - description
                 - name
+                - maps
               properties:
                 name:
                   description: The ruleset's name, must be unique
@@ -1736,6 +1750,14 @@ paths:
                   type: string
                   minLength: 24
                   maxLength: 24
+                maps:
+                  type: array
+                  description: The maps that can be played in tournaments using this ruleset
+                  items:
+                    type: string
+                bestOf:
+                  description: If the value is "3" indicates that when this ruleset is used matches are played in a best of 3
+                  type: integer
       responses:
         "400":
           description: "The input data was wrongly formatted"

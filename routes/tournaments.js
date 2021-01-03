@@ -41,6 +41,7 @@ const { matchStatusTie } = require("../models/tournament/consts")
 const { ladderType } = require("../models/tournament/consts")
 const { matchStatusTeamOne } = require("../models/tournament/consts")
 const { matchStatusTeamTwo } = require("../models/tournament/consts")
+const _ = require("lodash")
 
 const Tournament = mongoose.model("Tournaments")
 const Ruleset = mongoose.model("Rulesets")
@@ -154,7 +155,7 @@ router.get(
 						id: tournament._id,
 						startsOn,
 						endsOn,
-						ruleset: rulesetDoc.name,
+						ruleset: rulesetDoc?.name,
 						type,
 						numberOfTeams: tournament.teams.length,
 						imgUrl,
@@ -465,10 +466,14 @@ router.post(
 				const matchToUpdate = matches.find((match) => !match.teamTwo)
 				matchToUpdate.teamTwo = req.body.teamId
 				matchToUpdate.acceptedAt = formatISO(Date.now())
-				tournament.matches = matches.map((match) => {
-					if (match._id === matchToUpdate._id) return matchToUpdate
+				tournament.matches = await Promise.all(matches.map( async (match) => {
+					if (match._id === matchToUpdate._id){
+						const ruleset = await Ruleset.findById(tournament.ruleset, 'bestOf maps').lean()
+						matchToUpdate.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
+						return matchToUpdate
+					}
 					return match
-				})
+				}))
 				await Tournament.replaceOne({ _id: tournament._id }, tournament)
 				return res.status(200).json({ matchId: matchToUpdate._id.toString() })
 			}

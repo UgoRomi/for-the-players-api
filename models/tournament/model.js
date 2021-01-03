@@ -47,6 +47,11 @@ const tournamentSchema = new Schema(
 				acceptedAt: { type: Date },
 				teamOneResult: { type: String, enum: teamSubmittedResults },
 				teamTwoResult: { type: String, enum: teamSubmittedResults },
+				maps: [
+					{
+						type: String,
+					},
+				],
 			},
 		],
 		open: { type: Boolean, required: true, default: true },

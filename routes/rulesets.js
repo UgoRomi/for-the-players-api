@@ -15,25 +15,43 @@ router.post(
 			.notEmpty({ ignore_whitespace: true })
 			.isMongoId()
 			.custom(checkIfGameExists),
-		body("maxNumberOfPlayersPerTeam")
+		body("maxNumberOfPlayersPerTeam").isInt(),
+		body("minNumberOfPlayersPerTeam").isInt(),
+		body("description")
+			.isString()
 			.notEmpty({ ignore_whitespace: true })
-			.isInt(),
-		body("minNumberOfPlayersPerTeam")
+			.trim()
+			.escape(),
+		body("name")
+			.isString()
 			.notEmpty({ ignore_whitespace: true })
-			.isInt(),
-		body("description").notEmpty({ ignore_whitespace: true }).trim().escape(),
-		body("name").notEmpty({ ignore_whitespace: true }).trim().escape(),
+			.isString()
+			.trim()
+			.escape(),
+		body("maps").isArray(),
+		body("bestOf").isInt(),
 	],
 	checkJWT(userPermissionRuleset),
 	checkValidation,
 	async (req, res, next) => {
 		try {
+			if (req.body.bestOf > req.body.maps.length)
+				return res.status(400).json([
+					{
+						msg: `"bestOf" cannot be bigger than the number of maps`,
+						param: "bestOf",
+						location: "body",
+					},
+				])
+
 			const {
 				game,
 				maxNumberOfPlayersPerTeam,
 				minNumberOfPlayersPerTeam,
 				description,
 				name,
+				maps,
+				bestOf,
 			} = req.body
 			await Ruleset.create({
 				game,
@@ -41,6 +59,8 @@ router.post(
 				minNumberOfPlayersPerTeam,
 				description,
 				name,
+				maps,
+				bestOf,
 			})
 			return res.status(201).json()
 		} catch (e) {
@@ -61,6 +81,8 @@ router.get("/", checkJWT(), async (req, res, next) => {
 					description: ruleset.description,
 					maxNumberOfPlayersPerTeam: ruleset.maxNumberOfPlayersPerTeam,
 					minNumberOfPlayersPerTeam: ruleset.minNumberOfPlayersPerTeam,
+					maps: ruleset.maps,
+					bestOf: ruleset.bestOf,
 				}
 			})
 		)
