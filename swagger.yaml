@@ -948,6 +948,15 @@ paths:
                                 description: The Mongo ID of the user that's a part of this team
                         teamStatus:
                           $ref: "#/components/schemas/TeamStatuses"
+                        wins:
+                          type: integer
+                          description: The total wins for this team in this tournament
+                        losses:
+                          type: integer
+                          description: The total losses for this team in this tournament
+                        ties:
+                          type: integer
+                          description: The total ties for this team in this tournament
                   userTeam:
                     description: The team of the user, if present
                     type: object
