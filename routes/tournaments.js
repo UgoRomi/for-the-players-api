@@ -466,14 +466,19 @@ router.post(
 				const matchToUpdate = matches.find((match) => !match.teamTwo)
 				matchToUpdate.teamTwo = req.body.teamId
 				matchToUpdate.acceptedAt = formatISO(Date.now())
-				tournament.matches = await Promise.all(matches.map( async (match) => {
-					if (match._id === matchToUpdate._id){
-						const ruleset = await Ruleset.findById(tournament.ruleset, 'bestOf maps').lean()
-						matchToUpdate.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
-						return matchToUpdate
-					}
-					return match
-				}))
+				tournament.matches = await Promise.all(
+					matches.map(async (match) => {
+						if (match._id === matchToUpdate._id) {
+							const ruleset = await Ruleset.findById(
+								tournament.ruleset,
+								"bestOf maps"
+							).lean()
+							matchToUpdate.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
+							return matchToUpdate
+						}
+						return match
+					})
+				)
 				await Tournament.replaceOne({ _id: tournament._id }, tournament)
 				return res.status(200).json({ matchId: matchToUpdate._id.toString() })
 			}
@@ -644,6 +649,44 @@ router.get(
 			const newMatch = await calculateMatchStatus([match], tournament.teams)
 
 			return res.status(200).json(newMatch[0])
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.get(
+	"/:tournamentId/teams/:teamId",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("teamId").custom(checkTeamExists).bail(),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+			const team = tournament.teams.find(
+				(team) => team._id.toString() === req.params.teamId
+			)
+
+			const ruleset = await Ruleset.findById(
+				tournament.ruleset,
+				"maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam"
+			).lean()
+
+			return res.status(200).json({
+				name: team.name,
+				members: team.members,
+				invites: team.invites,
+				status:
+					team.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
+					team.members.length >= ruleset.minNumberOfPlayersPerTeam
+						? teamStatusOk
+						: teamStatusNotOk,
+			})
 		} catch (e) {
 			next(e)
 		}
