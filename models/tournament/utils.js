@@ -195,7 +195,7 @@ const calculateTeamResults = (matches, teams) => {
 		const teamMatches = matches.filter(
 			(match) =>
 				match.teamOne._id.toString() === team._id.toString() ||
-				match.teamTwo._id.toString() === team._id.toString()
+				match.teamTwo?._id.toString() === team._id.toString()
 		)
 		team.ties = teamMatches.filter(
 			(match) => match.status === matchStatusTie
@@ -204,14 +204,14 @@ const calculateTeamResults = (matches, teams) => {
 			(match) =>
 				(match.teamOne._id.toString() === team._id.toString() &&
 					match.status === matchStatusTeamOne) ||
-				(match.teamTwo._id.toString() === team._id.toString() &&
+				(match.teamTwo?._id.toString() === team._id.toString() &&
 					match.status === matchStatusTeamTwo)
 		).length
 		team.losses = teamMatches.filter(
 			(match) =>
 				(match.teamOne._id.toString() === team._id.toString() &&
 					match.status === matchStatusTeamTwo) ||
-				(match.teamTwo._id.toString() === team._id.toString() &&
+				(match.teamTwo?._id.toString() === team._id.toString() &&
 					match.status === matchStatusTeamOne)
 		).length
 
