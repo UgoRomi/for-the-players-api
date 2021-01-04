@@ -135,6 +135,12 @@ const userIsLeader = async (teamId, tournamentId, userId) => {
 	)
 }
 
+/**
+ * Calculates and adds the "status" property to every match
+ * @param matches
+ * @param teams
+ * @returns {Promise<*>}
+ */
 const calculateMatchStatus = async (matches, teams) => {
 	return matches.map((match) => {
 		const teamOneName = teams.find(
@@ -148,7 +154,7 @@ const calculateMatchStatus = async (matches, teams) => {
 				name: teamOneName,
 			},
 			createdAt: match.createdAt,
-			maps: match.maps
+			maps: match.maps,
 		}
 
 		if (match.teamTwo) {
@@ -178,6 +184,41 @@ const calculateMatchStatus = async (matches, teams) => {
 	})
 }
 
+/**
+ * Calculates the wins, losses and ties for each team
+ * @param matches
+ * @param teams
+ * @returns {*}
+ */
+const calculateTeamResults = (matches, teams) => {
+	return teams.map((team) => {
+		const teamMatches = matches.filter(
+			(match) =>
+				match.teamOne._id.toString() === team._id.toString() ||
+				match.teamTwo._id.toString() === team._id.toString()
+		)
+		team.ties = teamMatches.filter(
+			(match) => match.status === matchStatusTie
+		).length
+		team.wins = teamMatches.filter(
+			(match) =>
+				(match.teamOne._id.toString() === team._id.toString() &&
+					match.status === matchStatusTeamOne) ||
+				(match.teamTwo._id.toString() === team._id.toString() &&
+					match.status === matchStatusTeamTwo)
+		).length
+		team.losses = teamMatches.filter(
+			(match) =>
+				(match.teamOne._id.toString() === team._id.toString() &&
+					match.status === matchStatusTeamTwo) ||
+				(match.teamTwo._id.toString() === team._id.toString() &&
+					match.status === matchStatusTeamOne)
+		).length
+
+		return team
+	})
+}
+
 module.exports = {
 	checkUniqueName,
 	checkTeamNameInTournament,
@@ -191,5 +232,6 @@ module.exports = {
 	checkMatchExists,
 	userIsLeaderMiddleware,
 	calculateMatchStatus,
+	calculateTeamResults,
 	checkTournamentHasNotStarted,
 }

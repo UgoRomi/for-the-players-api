@@ -42,6 +42,7 @@ const { ladderType } = require("../models/tournament/consts")
 const { matchStatusTeamOne } = require("../models/tournament/consts")
 const { matchStatusTeamTwo } = require("../models/tournament/consts")
 const _ = require("lodash")
+const { calculateTeamResults } = require("../models/tournament/utils")
 
 const Tournament = mongoose.model("Tournaments")
 const Ruleset = mongoose.model("Rulesets")
@@ -238,6 +239,15 @@ router.get(
 			).lean()
 			const ruleset = await Ruleset.findById(tournament.ruleset).lean()
 
+			// Add "status" to the matches
+			const matches = await calculateMatchStatus(
+				tournament.matches,
+				tournament.teams
+			)
+
+			// Count wins, losses and ties for each team
+			const teams = await calculateTeamResults(matches, tournament.teams)
+
 			// Get the team the user is a part of, if it exists
 			const userTeam = tournament.teams.find((team) =>
 				team.members.some((member) => member.userId.toString() === req.user.id)
@@ -259,12 +269,6 @@ router.get(
 						? teamStatusOk
 						: teamStatusNotOk
 			}
-
-			const matches = await calculateMatchStatus(
-				tournament.matches,
-				tournament.teams
-			)
-
 			return res.status(200).json({
 				name: tournament.name,
 				id: tournament._id,
@@ -279,7 +283,7 @@ router.get(
 				},
 				type: tournament.type,
 				// Remove the team the user is a part of, if present
-				teams: tournament.teams,
+				teams: teams,
 				userTeam,
 				imgUrl: tournament.imgUrl,
 				game: tournament.game,
@@ -668,14 +672,24 @@ router.get(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
-			const team = tournament.teams.find(
-				(team) => team._id.toString() === req.params.teamId
-			)
 
 			const ruleset = await Ruleset.findById(
 				tournament.ruleset,
 				"maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam"
 			).lean()
+
+			// Add "status" to the matches
+			const matches = await calculateMatchStatus(
+				tournament.matches,
+				tournament.teams
+			)
+
+			// Count wins, losses and ties for each team
+			const team = await calculateTeamResults(matches, [
+				tournament.teams.find(
+					(team) => team._id.toString() === req.params.teamId
+				),
+			])[0]
 
 			return res.status(200).json({
 				name: team.name,
@@ -686,6 +700,9 @@ router.get(
 					team.members.length >= ruleset.minNumberOfPlayersPerTeam
 						? teamStatusOk
 						: teamStatusNotOk,
+				wins: team.wins,
+				ties: team.ties,
+				losses: team.losses,
 			})
 		} catch (e) {
 			next(e)
