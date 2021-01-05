@@ -11,6 +11,7 @@ const {
 	updateMatchActions,
 	teamSubmittedResults,
 } = require("../models/tournament/consts")
+const { teamInvitePending } = require("../models/invite/consts")
 const { body, query, param } = require("express-validator")
 const { convertToMongoId, toISO } = require("../utils/custom-sanitizers")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
@@ -433,6 +434,17 @@ router.post(
 					.json({ errorMessage: "The user is not a leader of this team" })
 			}
 
+			// Check if invited user already has an invite pending
+			if (
+				await Invite.find({
+					userId: req.body.userId,
+					teamId: userTeam._id.toString(),
+					status: teamInvitePending,
+				})
+			)
+				return res
+					.status(403)
+					.json({ errorMessage: "The user has already been invited" })
 			await Invite.create({
 				userId: req.body.userId,
 				tournamentId: tournament._id.toString(),
