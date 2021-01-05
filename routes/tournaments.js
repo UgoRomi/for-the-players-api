@@ -778,6 +778,19 @@ router.get(
 				),
 			])[0]
 
+			team.members = await Promise.all(
+				team.members.map(async (member) => {
+					const user = await Users.findById(
+						member.userId.toString(),
+						"username"
+					).lean()
+					return {
+						...member,
+						username: user.username,
+					}
+				})
+			)
+
 			return res.status(200).json({
 				name: team.name,
 				members: team.members,
