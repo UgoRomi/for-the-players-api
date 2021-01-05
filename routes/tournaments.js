@@ -1,4 +1,4 @@
-const {userPermissionTournament} = require("../models/user/consts")
+const { userPermissionTournament } = require("../models/user/consts")
 const {
 	userExistsById,
 	multipleUsersExistById,
@@ -11,10 +11,10 @@ const {
 	updateMatchActions,
 	teamSubmittedResults,
 } = require("../models/tournament/consts")
-const {teamInvitePending} = require("../models/invite/consts")
-const {body, query, param} = require("express-validator")
-const {convertToMongoId, toISO} = require("../utils/custom-sanitizers")
-const {checkJWT, checkValidation} = require("../utils/custom-middlewares")
+const { teamInvitePending } = require("../models/invite/consts")
+const { body, query, param } = require("express-validator")
+const { convertToMongoId, toISO } = require("../utils/custom-sanitizers")
+const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
 const {
 	checkUniqueName,
@@ -29,21 +29,21 @@ const {
 	userIsLeaderMiddleware,
 } = require("../models/tournament/utils")
 const mongoose = require("mongoose")
-const {calculateMatchStatus} = require("../models/tournament/utils")
-const {checkIfValidaImageData} = require("../utils/custom-validators")
-const {checkImgInput} = require("../utils/helpers")
-const {checkIfRulesetExists} = require("../models/ruleset/utils")
-const {checkIfPlatformExists} = require("../models/platform/utils")
-const {checkIfGameExists} = require("../models/game/utils")
-const {formatISO} = require("date-fns")
+const { calculateMatchStatus } = require("../models/tournament/utils")
+const { checkIfValidaImageData } = require("../utils/custom-validators")
+const { checkImgInput } = require("../utils/helpers")
+const { checkIfRulesetExists } = require("../models/ruleset/utils")
+const { checkIfPlatformExists } = require("../models/platform/utils")
+const { checkIfGameExists } = require("../models/game/utils")
+const { formatISO } = require("date-fns")
 const eloRank = require("elo-rank")
-const {checkTournamentHasNotStarted} = require("../models/tournament/utils")
-const {matchStatusTie} = require("../models/tournament/consts")
-const {ladderType} = require("../models/tournament/consts")
-const {matchStatusTeamOne} = require("../models/tournament/consts")
-const {matchStatusTeamTwo} = require("../models/tournament/consts")
+const { checkTournamentHasNotStarted } = require("../models/tournament/utils")
+const { matchStatusTie } = require("../models/tournament/consts")
+const { ladderType } = require("../models/tournament/consts")
+const { matchStatusTeamOne } = require("../models/tournament/consts")
+const { matchStatusTeamTwo } = require("../models/tournament/consts")
 const _ = require("lodash")
-const {calculateTeamResults} = require("../models/tournament/utils")
+const { calculateTeamResults } = require("../models/tournament/utils")
 
 const Tournament = mongoose.model("Tournaments")
 const Ruleset = mongoose.model("Rulesets")
@@ -58,29 +58,29 @@ router.post(
 	checkJWT(userPermissionTournament),
 	[
 		body("name")
-			.notEmpty({ignore_whitespace: true})
+			.notEmpty({ ignore_whitespace: true })
 			.trim()
 			.escape()
 			.custom(checkUniqueName),
 		body("game")
-			.notEmpty({ignore_whitespace: true})
+			.notEmpty({ ignore_whitespace: true })
 			.customSanitizer(convertToMongoId)
 			.custom(checkIfGameExists),
 		body("platform")
-			.notEmpty({ignore_whitespace: true})
+			.notEmpty({ ignore_whitespace: true })
 			.customSanitizer(convertToMongoId)
 			.custom(checkIfPlatformExists),
 		body("show").isBoolean(),
 		body("startsOn")
-			.notEmpty({ignore_whitespace: true})
+			.notEmpty({ ignore_whitespace: true })
 			.isDate()
 			.customSanitizer(toISO),
 		body("endsOn")
-			.notEmpty({ignore_whitespace: true})
+			.notEmpty({ ignore_whitespace: true })
 			.isDate()
 			.customSanitizer(toISO),
 		body("ruleset")
-			.notEmpty({ignore_whitespace: true})
+			.notEmpty({ ignore_whitespace: true })
 			.customSanitizer(convertToMongoId)
 			.custom(checkIfRulesetExists),
 		body("type").isIn(types),
@@ -139,7 +139,7 @@ router.get(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const findQuery = {show: true}
+			const findQuery = { show: true }
 
 			if (req.query.gameId) findQuery.game = req.query.gameId
 			if (req.query.type) findQuery.type = req.query.type
@@ -147,7 +147,7 @@ router.get(
 			const tournaments = await Tournament.find(findQuery).lean()
 			const result = await Promise.all(
 				tournaments.map(async (tournament) => {
-					const {name, startsOn, endsOn, type, imgUrl} = tournament
+					const { name, startsOn, endsOn, type, imgUrl } = tournament
 					const rulesetDoc = await Ruleset.findById(
 						tournament.ruleset.toString()
 					).lean()
@@ -186,7 +186,7 @@ router.post(
 			.custom(checkTournamentHasNotStarted)
 			.bail(),
 		body("name")
-			.notEmpty({ignore_whitespace: true})
+			.notEmpty({ ignore_whitespace: true })
 			.trim()
 			.escape()
 			.custom(checkTeamNameInTournament),
@@ -212,16 +212,16 @@ router.post(
 				})
 			const newTeam = {
 				name: req.body.name,
-				members: [{role: teamRoleLeader, userId: req.user.id}],
+				members: [{ role: teamRoleLeader, userId: req.user.id }],
 			}
 			if (tournament.type === ladderType) newTeam.elo = 1500
 			else newTeam.points = 0
 			await Tournament.findByIdAndUpdate(req.params.tournamentId, {
-				$push: {teams: newTeam},
+				$push: { teams: newTeam },
 			})
 			return res
 				.status(201)
-				.json({msg: `${req.body.name} added to tournament`})
+				.json({ msg: `${req.body.name} added to tournament` })
 		} catch (e) {
 			next(e)
 		}
@@ -254,7 +254,7 @@ router.get(
 					team.members = await Promise.all(
 						team.members.map(async (member) => {
 							const user = await Users.findById(
-								member.userId,
+								member.userId.toString(),
 								"username"
 							).lean()
 							return {
@@ -263,6 +263,7 @@ router.get(
 							}
 						})
 					)
+					return team
 				})
 			)
 
@@ -342,15 +343,15 @@ router.patch(
 
 			const updateObject = {}
 
-			if (req.body.name) updateObject.$set = {"teams.$.name": req.body.name}
+			if (req.body.name) updateObject.$set = { "teams.$.name": req.body.name }
 			if (req.body.membersToRemove)
 				if (req.body.membersToRemove.length === 1) {
 					updateObject.$pull = {
-						"teams.$.members": {userId: req.body.membersToRemove},
+						"teams.$.members": { userId: req.body.membersToRemove },
 					}
 				} else {
 					updateObject.$pullAll = {
-						"teams.$.members": {userId: req.body.membersToRemove},
+						"teams.$.members": { userId: req.body.membersToRemove },
 					}
 				}
 
@@ -395,8 +396,8 @@ router.delete(
 				})
 
 			await Tournament.findOneAndUpdate(
-				{_id: req.params.tournamentId},
-				{$pull: {teams: {_id: req.params.teamId}}}
+				{ _id: req.params.tournamentId },
+				{ $pull: { teams: { _id: req.params.teamId } } }
 			)
 
 			return res.status(200).json()
@@ -427,12 +428,12 @@ router.post(
 			if (req.body.userId.toUpperCase() === req.user.id.toUpperCase())
 				return res
 					.status(422)
-					.json({errorMessage: "The user tried to invite himself"})
+					.json({ errorMessage: "The user tried to invite himself" })
 
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
-			const {teams} = tournament
+			const { teams } = tournament
 
 			const userTeam = teams.find(
 				(team) => team._id.toString() === req.params.teamId.toString()
@@ -448,7 +449,7 @@ router.post(
 			) {
 				return res
 					.status(403)
-					.json({errorMessage: "The user is not a leader of this team"})
+					.json({ errorMessage: "The user is not a leader of this team" })
 			}
 
 			// Check if invited user already has an invite pending
@@ -461,7 +462,7 @@ router.post(
 			)
 				return res
 					.status(403)
-					.json({errorMessage: "The user has already been invited"})
+					.json({ errorMessage: "The user has already been invited" })
 			await Invite.create({
 				userId: req.body.userId,
 				tournamentId: tournament._id.toString(),
@@ -492,7 +493,7 @@ router.post(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
-			const {matches} = tournament
+			const { matches } = tournament
 
 			// TODO: Fix race condition
 			if (matches.some((match) => !match.teamTwo)) {
@@ -512,8 +513,8 @@ router.post(
 						return match
 					})
 				)
-				await Tournament.replaceOne({_id: tournament._id}, tournament)
-				return res.status(200).json({matchId: matchToUpdate._id.toString()})
+				await Tournament.replaceOne({ _id: tournament._id }, tournament)
+				return res.status(200).json({ matchId: matchToUpdate._id.toString() })
 			}
 
 			const newMatch = {
@@ -521,8 +522,8 @@ router.post(
 				acceptedAt: formatISO(Date.now()),
 			}
 			await Tournament.updateOne(
-				{_id: req.params.tournamentId},
-				{$push: {matches: newMatch}}
+				{ _id: req.params.tournamentId },
+				{ $push: { matches: newMatch } }
 			)
 			return res.status(201).json()
 		} catch (e) {
@@ -566,8 +567,8 @@ router.delete(
 				})
 
 			await Tournament.findOneAndUpdate(
-				{_id: req.params.tournamentId},
-				{$pull: {matches: {_id: req.params.matchId}}}
+				{ _id: req.params.tournamentId },
+				{ $pull: { matches: { _id: req.params.matchId } } }
 			)
 
 			return res.status(200).json()
