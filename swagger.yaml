@@ -220,12 +220,12 @@ paths:
                   type: boolean
                 imgUrl:
                   description: >
-                    The imgurl link of the new game's image.
+                    The imgurl link of the new platform's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
-                    The base64 of the new game's image.
+                    The base64 of the new platform's image.
                     If `imgUrl` is present this will be ignored
                   type: string
       responses:
@@ -1049,6 +1049,16 @@ paths:
                 name:
                   description: The new team's name
                   type: string
+                imgUrl:
+                  description: >
+                    The imgurl link of the new team's image.
+                    If this is present `imgBase64` will be ignored
+                  type: string
+                imgBase64:
+                  description: >
+                    The base64 of the new team's image.
+                    If `imgUrl` is present this will be ignored
+                  type: string
       responses:
         "400":
           description: "The input data was wrongly formatted"
@@ -1107,6 +1117,16 @@ paths:
                     description: user ID
                     minLength: 24
                     maxLength: 24
+                imgUrl:
+                  description: >
+                    The imgurl link of the new team's image.
+                    If this is present `imgBase64` will be ignored
+                  type: string
+                imgBase64:
+                  description: >
+                    The base64 of the new team's image.
+                    If `imgUrl` is present this will be ignored
+                  type: string
       responses:
         "400":
           description: "The input data was wrongly formatted"
@@ -1189,7 +1209,7 @@ paths:
         "404":
           description: "Resource not found"
         "200":
-          description: "Team deleted"
+          description: "Team detail"
           content:
             application/json:
               schema:
@@ -1234,6 +1254,11 @@ paths:
                   ties:
                     type: integer
                     description: The total ties for this team in this tournament
+                  imgUrl:
+                    description: >
+                      The imgurl link of the new team's image.
+                      If this is present `imgBase64` will be ignored
+                    type: string
   /tournaments/{tournamentId}/teams/{teamId}/invites:
     parameters:
       - name: tournamentId

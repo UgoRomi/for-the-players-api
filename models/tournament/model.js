@@ -24,6 +24,7 @@ const tournamentSchema = new Schema(
 				// elo is user for ladders, points for tournaments
 				elo: { type: Number },
 				points: { type: Number },
+				imgUrl: { type: String },
 				invites: [{}],
 				members: [
 					{

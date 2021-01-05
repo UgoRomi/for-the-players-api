@@ -190,6 +190,8 @@ router.post(
 			.trim()
 			.escape()
 			.custom(checkTeamNameInTournament),
+		body("imgUrl").optional().isURL(),
+		body("imgBase64").isBase64().custom(checkIfValidaImageData),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -210,9 +212,14 @@ router.post(
 					param: "userId",
 					location: "JWT",
 				})
+
+			const imageURL = await checkImgInput(req.body)
+
 			const newTeam = {
 				name: req.body.name,
 				members: [{ role: teamRoleLeader, userId: req.user.id }],
+				imgUrl: imageURL,
+				imgBase64: req.body.imgBase64,
 			}
 			if (tournament.type === ladderType) newTeam.elo = 1500
 			else newTeam.points = 0
@@ -323,6 +330,8 @@ router.patch(
 		param("teamId").custom(checkTeamExists),
 		body("name").optional().custom(checkTeamNameInTournament).trim().escape(),
 		body("membersToRemove").optional().custom(multipleUsersExistById),
+		body("imgUrl").optional().isURL(),
+		body("imgBase64").isBase64().custom(checkIfValidaImageData),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -341,9 +350,11 @@ router.patch(
 					errorMessage: "You need to be a leader to update a team's details",
 				})
 
-			const updateObject = {}
+			const imageURL = await checkImgInput(req.body)
+			const updateObject = { $set: {} }
 
-			if (req.body.name) updateObject.$set = { "teams.$.name": req.body.name }
+			if (imageURL) updateObject.$set["teams.$.imgUrl"] = req.body.imgUrl
+			if (req.body.name) updateObject.$set["teams.$.name"] = req.body.name
 			if (req.body.membersToRemove)
 				if (req.body.membersToRemove.length === 1) {
 					updateObject.$pull = {
@@ -678,7 +689,7 @@ router.patch(
 				}
 			}
 
-			await Tournament.replaceOne({_id: tournament._id}, tournament)
+			await Tournament.replaceOne({ _id: tournament._id }, tournament)
 			return res.status(200).json({})
 		} catch (e) {
 			next(e)
@@ -779,6 +790,7 @@ router.get(
 				wins: team.wins,
 				ties: team.ties,
 				losses: team.losses,
+				imgUrl: team.imgUrl,
 			})
 		} catch (e) {
 			next(e)
