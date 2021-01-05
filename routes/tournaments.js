@@ -502,6 +502,52 @@ router.post(
 	}
 )
 
+router.delete(
+	"/:tournamentId/matches/:matchId",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("matchId").custom(checkMatchExists),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+
+			const match = tournament.matches.find(
+				(match) => match._id.toString() === req.params.matchId
+			)
+
+			if (match.teamTwo)
+				return res.status(403).json({
+					errorMessage: "Match already accepted",
+				})
+
+			if (
+				!(await userIsLeader(
+					match.teamOne._id.toString(),
+					req.params.tournamentId,
+					req.user.id
+				))
+			)
+				return res.status(403).json({
+					errorMessage: "You need to be a leader to delete a match",
+				})
+
+			await Tournament.findOneAndUpdate(
+				{ _id: req.params.tournamentId },
+				{ $pull: { matches: { _id: req.params.matchId } } }
+			)
+
+			return res.status(200).json()
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
 router.patch(
 	"/:tournamentId/matches/:matchId",
 	checkJWT(),
