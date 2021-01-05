@@ -7,6 +7,7 @@ const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
 
 const Ruleset = mongoose.model("Rulesets")
+const Game = mongoose.model("Games")
 
 router.post(
 	"/",
@@ -71,13 +72,21 @@ router.post(
 
 router.get("/", checkJWT(), async (req, res, next) => {
 	try {
-		const rulesets = await Ruleset.find({})
+    const rulesets = await Ruleset.find({}).lean()
+    const games = await Game.find({}).lean()
+
 		return res.status(200).json(
 			rulesets.map((ruleset) => {
+        
+        const name = games.find(game => ruleset.game.toString() === game._id.toString()).name
+
 				return {
 					name: ruleset.name,
 					id: ruleset._id,
-					game: ruleset.game,
+          game: {
+            name,
+            id: ruleset.game,
+          },
 					description: ruleset.description,
 					maxNumberOfPlayersPerTeam: ruleset.maxNumberOfPlayersPerTeam,
 					minNumberOfPlayersPerTeam: ruleset.minNumberOfPlayersPerTeam,
