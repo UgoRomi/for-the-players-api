@@ -249,8 +249,25 @@ router.get(
 			// Count wins, losses and ties for each team
 			const teams = await calculateTeamResults(matches, tournament.teams)
 
+			teams = await Promise.all(
+				teams.map(async (team) => {
+					team.members = await Promise.all(
+						team.members.map(async (member) => {
+							const user = await Users.findById(
+								member.userId,
+								"username"
+							).lean()
+							return {
+								...member,
+								username: user.username,
+							}
+						})
+					)
+				})
+			)
+
 			// Get the team the user is a part of, if it exists
-			const userTeam = tournament.teams.find((team) =>
+			const userTeam = teams.find((team) =>
 				team.members.some((member) => member.userId.toString() === req.user.id)
 			)
 			// Check if the team the user is a part of can play in the tournament
