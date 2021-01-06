@@ -245,17 +245,12 @@ router.get(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
-			console.log("###")
-			console.log(tournament.ruleset)
-			console.log("###")
 			const ruleset = await Promise.all(
 				tournament.ruleset.map(async (ruleset) => {
 					console.log(ruleset)
 					return await Ruleset.findById(ruleset).lean()
 				})
 			)
-			console.log("###")
-			console.log(ruleset)
 			// Add "status" to the matches
 			const matches = await calculateMatchStatus(
 				tournament.matches,

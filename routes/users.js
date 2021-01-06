@@ -92,11 +92,16 @@ router.get(
 							(member) => member.userId.toString() === req.params.userId
 						)
 					)
-					const ruleset = await Rulesets.findById(
-						tournament.ruleset.toString(),
-						"maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam"
-					)
 
+					const ruleset = await Promise.all(
+						tournament.ruleset.map(async (ruleset) => {
+							console.log(ruleset)
+							return await Ruleset.findById(
+								ruleset,
+								"maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam"
+							).lean()
+						})
+					)
 					const teamStatus =
 						userTeam.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
 						userTeam.members.length >= ruleset.minNumberOfPlayersPerTeam
@@ -142,12 +147,12 @@ router.patch(
 		body("oldPassword").optional(),
 		body("newPassword")
 			.optional()
-			.notEmpty({ignore_whitespace: true})
+			.notEmpty({ ignore_whitespace: true })
 			.trim()
 			.escape(),
 		body("username")
 			.optional()
-			.notEmpty({ignore_whitespace: true})
+			.notEmpty({ ignore_whitespace: true })
 			.trim()
 			.escape()
 			.custom(checkUniqueUsername),
