@@ -95,8 +95,7 @@ router.get(
 
 					const ruleset = await Promise.all(
 						tournament.ruleset.map(async (ruleset) => {
-							console.log(ruleset)
-							return await Ruleset.findById(
+							return await Rulesets.findById(
 								ruleset,
 								"maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam"
 							).lean()

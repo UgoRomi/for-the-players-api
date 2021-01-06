@@ -245,9 +245,9 @@ router.get(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
+
 			const ruleset = await Promise.all(
 				tournament.ruleset.map(async (ruleset) => {
-					console.log(ruleset)
 					return await Ruleset.findById(ruleset).lean()
 				})
 			)
