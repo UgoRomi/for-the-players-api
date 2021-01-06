@@ -261,6 +261,7 @@ router.get(
 			// Count wins, losses and ties for each team
 			let teams = await calculateTeamResults(matches, tournament.teams)
 
+			//TODO: It does a shit ton of queries
 			teams = await Promise.all(
 				teams.map(async (team) => {
 					team.members = await Promise.all(
@@ -470,11 +471,11 @@ router.post(
 
 			// Check if invited user already has an invite pending
 			if (
-				await Invite.find({
+				await Invite.findOne({
 					userId: req.body.userId,
 					teamId: userTeam._id.toString(),
 					status: teamInvitePending,
-				})
+				}).lean()
 			)
 				return res
 					.status(403)
