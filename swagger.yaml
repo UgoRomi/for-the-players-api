@@ -1400,6 +1400,12 @@ paths:
               properties:
                 teamId:
                   $ref: "#/components/schemas/MongoID"
+                rulesetId:
+                  type: string
+                  description: The mongo ID for the ruleset
+                numberOfPlayers:
+                  type: integer
+                  description: The number of players that is gonna play
       responses:
         "400":
           description: "The input data was wrongly formatted"
@@ -1473,6 +1479,12 @@ paths:
                 items:
                   type: object
                   properties:
+                    rulesetId:
+                      type: string
+                      description: The mongo ID for the ruleset
+                    numberOfPlayers:
+                      type: integer
+                      description: The number of players that is gonna play
                     teamOne:
                       type: object
                       description: The team that created the match
@@ -1552,6 +1564,12 @@ paths:
               schema:
                 type: object
                 properties:
+                  rulesetId:
+                    type: string
+                    description: The mongo ID for the ruleset
+                  numberOfPlayers:
+                    type: integer
+                    description: The number of players that is gonna play
                   teamOne:
                     type: object
                     description: The team that created the match

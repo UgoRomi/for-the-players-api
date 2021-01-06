@@ -499,6 +499,8 @@ router.post(
 			.bail()
 			.custom(checkUserIsLeaderInTeam)
 			.custom(checkTeamHasOngoingMatches),
+		body("rulesetId").isString().bail(),
+		body("numberOfPlayers").isInt().bail(),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -509,15 +511,27 @@ router.post(
 			const { matches } = tournament
 
 			// TODO: Fix race condition
-			if (matches.some((match) => !match.teamTwo)) {
-				const matchToUpdate = matches.find((match) => !match.teamTwo)
+			if (
+				matches.some(
+					(match) =>
+						!match.teamTwo &&
+						match.numberOfPlayers == req.body.numberOfPlayers &&
+						match.rulesetId == req.body.rulesetId
+				)
+			) {
+				const matchToUpdate = matches.find(
+					(match) =>
+						!match.teamTwo &&
+						match.numberOfPlayers == req.body.numberOfPlayers &&
+						match.rulesetId == req.body.rulesetId
+				)
 				matchToUpdate.teamTwo = req.body.teamId
 				matchToUpdate.acceptedAt = formatISO(Date.now())
 				tournament.matches = await Promise.all(
 					matches.map(async (match) => {
 						if (match._id === matchToUpdate._id) {
 							const ruleset = await Ruleset.findById(
-								tournament.ruleset,
+								req.body.rulesetId,
 								"bestOf maps"
 							).lean()
 							matchToUpdate.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
@@ -533,6 +547,8 @@ router.post(
 			const newMatch = {
 				teamOne: req.body.teamId,
 				acceptedAt: formatISO(Date.now()),
+				numberOfPlayers: req.body.numberOfPlayers,
+				rulesetId: req.body.rulesetId,
 			}
 			await Tournament.updateOne(
 				{ _id: req.params.tournamentId },

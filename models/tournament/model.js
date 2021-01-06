@@ -46,6 +46,8 @@ const tournamentSchema = new Schema(
 				teamTwo: ObjectId,
 				createdAt: { type: Date, required: true, default: Date.now() },
 				acceptedAt: { type: Date },
+				numberOfPlayers: { type: Number },
+				rulesetId: { type: String },
 				teamOneResult: { type: String, enum: teamSubmittedResults },
 				teamTwoResult: { type: String, enum: teamSubmittedResults },
 				maps: [
