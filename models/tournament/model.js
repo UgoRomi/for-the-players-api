@@ -14,7 +14,7 @@ const tournamentSchema = new Schema(
 		endsOn: { type: Date, required: true },
 		game: { type: ObjectId, required: true, ref: "Games" },
 		platform: { type: ObjectId, required: true, ref: "Platforms" },
-		ruleset: { type: ObjectId, required: true, ref: "Rulesets" },
+		ruleset: { type: Array, required: true, ref: "Rulesets" },
 		type: { type: String, required: true, enum: types },
 		createdBy: { type: ObjectId, required: true, ref: "Users" },
 		imgUrl: { type: String, required: true },
