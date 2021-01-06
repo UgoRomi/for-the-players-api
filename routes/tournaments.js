@@ -148,9 +148,12 @@ router.get(
 			const result = await Promise.all(
 				tournaments.map(async (tournament) => {
 					const { name, startsOn, endsOn, type, imgUrl } = tournament
-					const rulesetDoc = await Ruleset.findById(
-						tournament.ruleset.toString()
-					).lean()
+
+					const rulesetDoc = await Promise.all(
+						tournament.ruleset.map(async (ruleset) => {
+							return await Ruleset.findById(ruleset).lean()
+						})
+					)
 					const gameDoc = await Game.findById(tournament.game.toString()).lean()
 					return {
 						name,
