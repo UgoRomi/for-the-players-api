@@ -714,6 +714,56 @@ router.patch(
 	}
 )
 
+router.post(
+	"/:tournamentId/matches/:matchId",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("matchId").custom(checkMatchExists).bail(),
+		body("teamId")
+			.custom(checkTeamExists)
+			.custom(userIsLeaderMiddleware)
+			.bail(),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+			const match = tournament.matches.find(
+				(match) => match._id.toString() === req.params.matchId
+			)
+
+			//TODO: Fix race condition
+			if (match.teamTwo)
+				return res.status(404).json({
+					errorMessage: "The match has already been accepted",
+				})
+			match.teamTwo = req.body.teamId
+			match.acceptedAt = formatISO(Date.now())
+			tournament.matches = await Promise.all(
+				matches.map(async (match) => {
+					if (match._id === match._id) {
+						const ruleset = await Ruleset.findById(
+							req.body.rulesetId,
+							"bestOf maps"
+						).lean()
+						match.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
+						return matchToUpdate
+					}
+					return match
+				})
+			)
+
+			await Tournament.replaceOne({ _id: tournament._id }, tournament)
+			return res.status(200).json({})
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
 router.get(
 	"/:tournamentId/matches",
 	checkJWT(),
