@@ -154,6 +154,8 @@ const calculateMatchStatus = async (matches, teams) => {
 				name: teamOneName,
 			},
 			createdAt: match.createdAt,
+			numberOfPlayers: match.numberOfPlayers,
+			rulesetId: match.rulesetId,
 			maps: match.maps,
 		}
 
