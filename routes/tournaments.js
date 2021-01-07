@@ -743,14 +743,14 @@ router.post(
 			match.teamTwo = req.body.teamId
 			match.acceptedAt = formatISO(Date.now())
 			tournament.matches = await Promise.all(
-				matches.map(async (match) => {
-					if (match._id === match._id) {
+				tournament.matches.map(async (matchObj) => {
+					if (matchObj._id === match._id) {
 						const ruleset = await Ruleset.findById(
-							req.body.rulesetId,
+							matchObj.rulesetId,
 							"bestOf maps"
 						).lean()
 						match.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
-						return matchToUpdate
+						return matchObj
 					}
 					return match
 				})
