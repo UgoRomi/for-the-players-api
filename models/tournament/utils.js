@@ -143,7 +143,7 @@ const userIsLeader = async (teamId, tournamentId, userId) => {
  */
 const calculateMatchStatus = async (matches, teams) => {
 	return matches.map((match) => {
-		const teamOne = teams.find(
+		const teamOneObj = teams.find(
 			(team) => team._id.toString() === match.teamOne.toString()
 		)
 		const formattedMatch = {
@@ -151,8 +151,8 @@ const calculateMatchStatus = async (matches, teams) => {
 			teamOne: {
 				_id: match.teamOne,
 				result: match.teamOneResult,
-				name: teamOne.name,
-				elo: teamOne.elo,
+				name: teamOneObj.name,
+				elo: teamOneObj.elo,
 			},
 			createdAt: match.createdAt,
 			numberOfPlayers: match.numberOfPlayers,
@@ -161,14 +161,14 @@ const calculateMatchStatus = async (matches, teams) => {
 		}
 
 		if (match.teamTwo) {
-			const teamTwo = teams.find(
+			const teamTwoObj = teams.find(
 				(team) => team._id.toString() === match.teamTwo.toString()
 			)
 			formattedMatch.teamTwo = {
 				_id: match.teamTwo,
 				result: match.teamTwoResult,
-				name: teamTwo.name,
-				elo: teamTwo.elo,
+				name: teamTwoObj.name,
+				elo: teamTwoObj.elo,
 			}
 		}
 
