@@ -332,7 +332,7 @@ router.patch(
 		body("name").optional().custom(checkTeamNameInTournament).trim().escape(),
 		body("membersToRemove").optional().custom(multipleUsersExistById),
 		body("imgUrl").optional().isURL(),
-		body("imgBase64").isBase64().custom(checkIfValidaImageData),
+		body("imgBase64").optional().isBase64(),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -350,8 +350,10 @@ router.patch(
 				return res.status(403).json({
 					errorMessage: "You need to be a leader to update a team's details",
 				})
-
-			const imageURL = await checkImgInput(req.body)
+			let imageURL = null
+			if (req.body.imgBase64) {
+				imageURL = await checkImgInput(req.body)
+			}
 			const updateObject = { $set: {} }
 
 			if (imageURL) updateObject.$set["teams.$.imgUrl"] = req.body.imgUrl
