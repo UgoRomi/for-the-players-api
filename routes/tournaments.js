@@ -535,14 +535,14 @@ router.post(
 				matches.some(
 					(match) =>
 						!match.teamTwo &&
-						match.numberOfPlayers === req.body.numberOfPlayers &&
+						match.numberOfPlayers === parseInt(req.body.numberOfPlayers) &&
 						match.rulesetId.toString() === req.body.rulesetId
 				)
 			) {
 				const matchToUpdate = matches.find(
 					(match) =>
 						!match.teamTwo &&
-						match.numberOfPlayers === req.body.numberOfPlayers &&
+						match.numberOfPlayers === parseInt(req.body.numberOfPlayers) &&
 						match.rulesetId.toString() === req.body.rulesetId
 				)
 				matchToUpdate.teamTwo = req.body.teamId
@@ -767,13 +767,13 @@ router.post(
 				tournament.matches.map(async (matchObj) => {
 					if (matchObj._id.toString() === match._id.toString()) {
 						const ruleset = await Ruleset.findById(
-							matchObj.rulesetId,
+							matchObj.rulesetId.toString(),
 							"bestOf maps"
 						).lean()
-						match.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
+						matchObj.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
 						return matchObj
 					}
-					return match
+					return matchObj
 				})
 			)
 
