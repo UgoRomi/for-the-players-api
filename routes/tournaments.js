@@ -351,7 +351,7 @@ router.patch(
 					errorMessage: "You need to be a leader to update a team's details",
 				})
 			let imageURL = null
-			if (req.body.imgBase64) {
+			if (req.body.imgBase64 || req.body.imgUrl) {
 				imageURL = await checkImgInput(req.body)
 			}
 			const updateObject = { $set: {} }
