@@ -20,6 +20,7 @@ require("./models/ruleset/model")
 require("./models/game/model")
 require("./models/imgurToken/model")
 require("./models/invite/model")
+require("./models/ticket/model")
 
 // Docs
 const swaggerUi = require("swagger-ui-express")
@@ -47,6 +48,7 @@ const tournamentRoutes = require("./routes/tournaments")
 const rulesetRoutes = require("./routes/rulesets")
 const invitesRoutes = require("./routes/invites")
 const userRoutes = require("./routes/users")
+const ticketRoutes = require("./routes/tickets")
 
 const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutes
@@ -63,6 +65,7 @@ app.use("/tournaments", tournamentRoutes)
 app.use("/rulesets", rulesetRoutes)
 app.use("/invites", invitesRoutes)
 app.use("/users", userRoutes)
+app.use("/tickets", ticketRoutes)
 
 app.use("/test", (_req, res, _next) => {
 	res.send("Welcome to 4TP APIs!")

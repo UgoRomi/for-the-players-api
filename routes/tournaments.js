@@ -746,7 +746,7 @@ router.post(
 			match.acceptedAt = formatISO(Date.now())
 			tournament.matches = await Promise.all(
 				tournament.matches.map(async (matchObj) => {
-					if (matchObj._id === match._id) {
+					if (matchObj._id.toString() === match._id.toString()) {
 						const ruleset = await Ruleset.findById(
 							matchObj.rulesetId,
 							"bestOf maps"

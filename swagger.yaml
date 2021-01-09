@@ -1956,6 +1956,8 @@ paths:
                     matchId:
                       type: string
                       description: The Mongo ID of the linked match (optional)
+                    status:
+                      $ref: "#/components/schemas/TicketStatuses"
                     tournamentId:
                       type: string
                       description: The Mongo ID of the linked tournament (optional)
@@ -1964,6 +1966,25 @@ paths:
                       items:
                         type: string
                         description: The url of the attachment
+                    messages:
+                      type: object
+                      properties:
+                        authorId: 
+                          type: string
+                          description: The url of the attachment
+                        message: 
+                          type: string
+                          description: The message
+                        date: 
+                          type: string
+                          format: date-time
+                          description: The date of the message
+                        isAdmin: 
+                          type: boolean
+                          description: If the message has been sent by an admin
+                        id: 
+                          type: string
+                          description: The Id of the message
     post:
       summary: Create a new ticket
       security:
@@ -1984,6 +2005,9 @@ paths:
               properties:
                 subject:
                   description: The ticket's subject
+                  type: string
+                description:
+                  description: The ticket's description (this is going to be the first message)
                   type: string
                 category:
                   $ref: "#/components/schemas/TicketCategories"

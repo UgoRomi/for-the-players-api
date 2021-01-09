@@ -35,8 +35,12 @@ const checkTeamNameInTournament = async (name, { req }) => {
 }
 
 const checkTournamentExists = async (tournamentId) => {
-	const tournament = await Tournament.findById(tournamentId).lean()
-	if (!tournament) throw new CustomError(error404, "Tournament not found")
+	console.log(tournamentId)
+	if (tournamentId) {
+		console.log("im here")
+		const tournament = await Tournament.findById(tournamentId).lean()
+		if (!tournament) throw new CustomError(error404, "Tournament not found")
+	}
 }
 
 const checkTournamentHasNotStarted = async (tournamentId) => {
@@ -54,7 +58,10 @@ const checkTeamExists = async (teamId, { req }) => {
 }
 
 const checkMatchExists = async (matchId, { req }) => {
-	const tournament = await Tournament.findById(req.params.tournamentId).lean()
+	let tournamentId = null
+	if (req.params.tournamentId) tournamentId = req.params.tournamentId
+	else if (req.body.tournamentId) tournamentId = req.body.tournamentId
+	const tournament = await Tournament.findById(tournamentId).lean()
 	if (
 		!tournament.matches.some(
 			(match) => match._id.toString() === matchId.toString()
