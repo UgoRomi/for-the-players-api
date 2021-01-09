@@ -43,6 +43,7 @@ const { ladderType } = require("../models/tournament/consts")
 const { matchStatusTeamOne } = require("../models/tournament/consts")
 const { matchStatusTeamTwo } = require("../models/tournament/consts")
 const _ = require("lodash")
+const { teamRoleMember } = require("../models/tournament/consts")
 const { calculateTeamResults } = require("../models/tournament/utils")
 
 const Tournament = mongoose.model("Tournaments")
@@ -333,13 +334,11 @@ router.patch(
 		body("membersToRemove").optional().custom(multipleUsersExistById),
 		body("imgUrl").optional().isURL(),
 		body("imgBase64").optional().isBase64(),
+		body("newLeader").optional().isMongoId(),
 	],
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			if (!req.body.name && !req.body.membersToRemove)
-				return res.status(200).json()
-
 			if (
 				!(await userIsLeader(
 					req.params.teamId,
@@ -350,31 +349,51 @@ router.patch(
 				return res.status(403).json({
 					errorMessage: "You need to be a leader to update a team's details",
 				})
-			let imageURL = null
-			if (req.body.imgBase64 || req.body.imgUrl) {
-				imageURL = await checkImgInput(req.body)
-			}
-			const updateObject = { $set: {} }
 
-			if (imageURL) updateObject.$set["teams.$.imgUrl"] = req.body.imgUrl
-			if (req.body.name) updateObject.$set["teams.$.name"] = req.body.name
+			// TODO: Fix race condition
+			const tournament = await Tournament.findById(
+				req.params.tournamentId
+			).lean()
+			const teamToUpdate = tournament.teams.find(
+				(team) => team._id.toString() === req.params.teamId
+			)
+			// Update team image
+			if (req.body.imgBase64 || req.body.imgUrl)
+				teamToUpdate.imgUrl = await checkImgInput(req.body)
+			// Update team name
+			if (req.body.name) teamToUpdate.name = req.body.name
+			// Remove members
 			if (req.body.membersToRemove)
-				if (req.body.membersToRemove.length === 1) {
-					updateObject.$pull = {
-						"teams.$.members": { userId: req.body.membersToRemove },
+				_.remove(teamToUpdate.members, (member) =>
+					req.body.membersToRemove.includes(member._id.toString())
+				)
+			// Update leader
+			if (req.body.newLeader) {
+				teamToUpdate.members = teamToUpdate.members.map((member) => {
+					// Set the role to LEADER for the new leader
+					if (member.userId.toString() === req.body.newLeader) {
+						member.role = teamRoleLeader
+						return member
 					}
-				} else {
-					updateObject.$pullAll = {
-						"teams.$.members": { userId: req.body.membersToRemove },
-					}
-				}
+					// Remove old leader
+					if (member.role !== teamRoleLeader) return member
+					// Leave everyone else the same
+					member.role = teamRoleMember
+					return member
+				})
+			}
 
-			await Tournament.findOneAndUpdate(
+			tournament.teams = tournament.teams.map((team) => {
+				if (team._id.toString() === teamToUpdate._id.toString())
+					return teamToUpdate
+				return team
+			})
+
+			await Tournament.findOneAndReplace(
 				{
-					"_id": req.params.tournamentId,
-					"teams._id": req.params.teamId,
+					_id: req.params.tournamentId,
 				},
-				updateObject
+				tournament
 			)
 
 			return res.status(200).json()
@@ -516,15 +535,15 @@ router.post(
 				matches.some(
 					(match) =>
 						!match.teamTwo &&
-						match.numberOfPlayers == req.body.numberOfPlayers &&
-						match.rulesetId == req.body.rulesetId
+						match.numberOfPlayers === req.body.numberOfPlayers &&
+						match.rulesetId === req.body.rulesetId
 				)
 			) {
 				const matchToUpdate = matches.find(
 					(match) =>
 						!match.teamTwo &&
-						match.numberOfPlayers == req.body.numberOfPlayers &&
-						match.rulesetId == req.body.rulesetId
+						match.numberOfPlayers === req.body.numberOfPlayers &&
+						match.rulesetId === req.body.rulesetId
 				)
 				matchToUpdate.teamTwo = req.body.teamId
 				matchToUpdate.acceptedAt = formatISO(Date.now())
