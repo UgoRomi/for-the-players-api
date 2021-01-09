@@ -35,9 +35,7 @@ const checkTeamNameInTournament = async (name, { req }) => {
 }
 
 const checkTournamentExists = async (tournamentId) => {
-	console.log(tournamentId)
 	if (tournamentId) {
-		console.log("im here")
 		const tournament = await Tournament.findById(tournamentId).lean()
 		if (!tournament) throw new CustomError(error404, "Tournament not found")
 	}

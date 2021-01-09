@@ -536,14 +536,14 @@ router.post(
 					(match) =>
 						!match.teamTwo &&
 						match.numberOfPlayers === req.body.numberOfPlayers &&
-						match.rulesetId === req.body.rulesetId
+						match.rulesetId.toString() === req.body.rulesetId
 				)
 			) {
 				const matchToUpdate = matches.find(
 					(match) =>
 						!match.teamTwo &&
 						match.numberOfPlayers === req.body.numberOfPlayers &&
-						match.rulesetId === req.body.rulesetId
+						match.rulesetId.toString() === req.body.rulesetId
 				)
 				matchToUpdate.teamTwo = req.body.teamId
 				matchToUpdate.acceptedAt = formatISO(Date.now())
