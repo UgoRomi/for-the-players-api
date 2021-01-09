@@ -1129,6 +1129,9 @@ paths:
                     The base64 of the new team's image.
                     If `imgUrl` is present this will be ignored
                   type: string
+                newLeader:
+                  description: The ID of the new Leader
+                  type: string
       responses:
         "400":
           description: "The input data was wrongly formatted"
