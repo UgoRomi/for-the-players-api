@@ -51,6 +51,7 @@ const Ruleset = mongoose.model("Rulesets")
 const Game = mongoose.model("Games")
 const Invite = mongoose.model("Invites")
 const Users = mongoose.model("Users")
+const Tickets = mongoose.model("Tickets")
 
 const elo = new eloRank()
 
@@ -724,6 +725,18 @@ router.patch(
 								break
 						}
 					}
+				}else{
+					// Disputa
+					await Tickets.create({
+						subject: `DISPUTA MATCH ${match._id.toString()}`,
+						date: new Date(),
+						tournamentId: req.params.tournamentId,
+						matchId: req.params.matchId,
+						category: 'DISPUTE',
+						userId: req.user.id,
+						messages: [],
+						status: "NEW",
+					})
 				}
 			}
 
