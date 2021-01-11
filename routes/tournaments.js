@@ -738,7 +738,6 @@ router.patch(
 					else
 					subject = `Disputa match vs ${match.teamOne.name}`
 
-					let userId = match.teamOne.toString()
 					await Tickets.create({
 						subject,
 						date: new Date(),
