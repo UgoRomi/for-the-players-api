@@ -20,6 +20,7 @@ const ticketsSchema = new Schema(
 		attachments: { type: Array, required: true },
 		status: { type: String, required: true, default: "NEW" },
 		userId: { type: ObjectId, required: true, ref: "Users" },
+		userIdTwo: { type: ObjectId, required: false, ref: "Users" }, //Only in case of disputes
 		messages: [messagesSchema],
 	},
 	{ timestamps: true }

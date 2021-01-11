@@ -651,9 +651,12 @@ router.patch(
 				(match) => match._id.toString() === req.params.matchId
 			)
 
-			//TODO: Fix race condition
-			if (match.teamOne.toString() === req.body.teamId)
-				match.teamOneResult = req.body.result
+			//TODO: Fix race 
+			let isTeamOne = false;
+			if (match.teamOne.toString() === req.body.teamId){
+				match.teamOneResult = req.body.result;
+				isTeamOne = true;
+			}
 			else if (match.teamTwo.toString() === req.body.teamId)
 				match.teamTwoResult = req.body.result
 			else
@@ -727,13 +730,23 @@ router.patch(
 					}
 				}else{
 					// Disputa
+					let subject = "",
+					userId = match.teamOne.toString(),
+					userIdTwo = match.teamTwo.toString();
+					if(isTeamOne)
+					subject = `Disputa match vs ${match.teamTwo.name}`
+					else
+					subject = `Disputa match vs ${match.teamOne.name}`
+
+					let userId = match.teamOne.toString()
 					await Tickets.create({
-						subject: `DISPUTA MATCH ${match._id.toString()}`,
+						subject,
 						date: new Date(),
 						tournamentId: req.params.tournamentId,
 						matchId: req.params.matchId,
 						category: 'DISPUTE',
-						userId: req.user.id,
+						userId,
+						userIdTwo,
 						messages: [],
 						status: "NEW",
 					})
