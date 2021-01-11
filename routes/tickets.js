@@ -77,7 +77,7 @@ router.post(
 
 router.get("/", checkJWT(), checkValidation, async (req, res, next) => {
 	if (req.user.id) {
-		const tickets = await Tickets.find({ userId: req.user.id }).lean()
+		const tickets = await Tickets.find({ $or: [ { userId: req.user.id }, { userIdTwo: req.user.id } ] }).lean()
 
 		return res.status(200).json(tickets)
 	}
