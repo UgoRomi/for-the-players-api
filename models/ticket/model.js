@@ -1,3 +1,5 @@
+const { ticketStatuses } = require("./consts")
+const { ticketStatusNew } = require("./consts")
 const { Schema, model, ObjectId } = require("mongoose")
 
 const messagesSchema = new Schema(
@@ -13,12 +15,16 @@ const messagesSchema = new Schema(
 const ticketsSchema = new Schema(
 	{
 		subject: { type: String, unique: false, required: true },
-		date: { type: Date, required: true, default: Date.now() },
 		category: { type: String, required: true },
 		matchId: { type: ObjectId, required: false, ref: "Matches" },
 		tournamentId: { type: ObjectId, required: false, ref: "Tournaments" },
 		attachments: { type: Array, required: true },
-		status: { type: String, required: true, default: "NEW" },
+		status: {
+			type: String,
+			required: true,
+			default: ticketStatusNew,
+			enum: ticketStatuses,
+		},
 		userId: { type: ObjectId, required: true, ref: "Users" },
 		userIdTwo: { type: ObjectId, required: false, ref: "Users" }, //Only in case of disputes
 		messages: [messagesSchema],

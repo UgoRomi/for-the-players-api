@@ -2130,17 +2130,9 @@ paths:
               type: object
               required:
                 - newStatus
-                - date
-                - assignee
               properties:
                 newStatus:
                   $ref:  "#/components/schemas/TicketStatuses"
-                date: 
-                  type: string
-                  format: date-time
-                assignee:
-                  type: string
-                  description: The admin ID
       responses:
         "400":
           description: "The input data was wrongly formatted"
