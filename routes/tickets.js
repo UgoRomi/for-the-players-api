@@ -131,6 +131,7 @@ router.get("/:ticketId", checkJWT(),[
 		return res.status(200).json(tickets)
 	}
 })
+
 router.patch(
 	"/:ticketId",
 	checkJWT(userPermissionTicket),
@@ -150,5 +151,20 @@ router.patch(
 		}
 	}
 )
+
+router.post("/:ticketId", checkJWT(),[
+	param("ticketId").custom(checkIfTicketExists).bail(),
+	body("message").bail()
+], checkValidation, async (req, res, next) => {
+	if (req.user.id && req.body.message) {
+		const tickets = await Tickets.findOne({_id: req.params.ticketId}).lean()
+		if(tickets.status != 'SOLVED' && tickets.status != 'DELETED' ){
+			tickets.messages = tickets.messages.push(req.body.message)
+		}
+
+		await Tickets.updateOne({_id: req.params.ticketId}, {messages: tickets.messages})
+		return res.status(200).json(tickets)
+	}
+})
 
 module.exports = router
