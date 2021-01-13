@@ -6,10 +6,6 @@ const {
 	checkTournamentExists,
 	checkMatchExists,
 } = require("../models/tournament/utils")
-
-const { 
-	checkIfTicketExists
-} = require("../models/ticket/utils")
 const mongoose = require("mongoose")
 const { ticketStatuses } = require("../models/ticket/consts")
 const { checkIfTicketExists } = require("../models/ticket/utils")
