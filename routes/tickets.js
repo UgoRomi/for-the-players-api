@@ -14,6 +14,7 @@ const { ticketStatusNew } = require("../models/ticket/consts")
 
 const Tickets = mongoose.model("Tickets")
 const Tournament = mongoose.model("Tournaments")
+const Users = mongoose.model("Users")
 
 router.post(
 	"/",
@@ -90,8 +91,7 @@ router.get("/:ticketId", checkJWT(),[
 	param("ticketId").custom(checkIfTicketExists).bail()
 ], checkValidation, async (req, res, next) => {
 	if (req.user.id) {
-		const tickets = await Tickets.findOne({ $or: [ { userId: req.user.id }, { userIdTwo: req.user.id } ] }).lean()
-
+		const tickets = await Tickets.findOne({_id: req.params.ticketId}).lean()
 		if(tickets.category == 'DISPUTE'){
 			if(tickets.matchId && tickets.tournamentId){
 				const tournament = await Tournament.findById(
@@ -118,6 +118,15 @@ router.get("/:ticketId", checkJWT(),[
 	
 			}
 		}
+
+		tickets.messages = await Promise.all(
+			tickets.messages.map(async (message) => {
+				const user = await Users.findById(message.userId).lean()
+				message.username = user.username;
+
+				return message;
+			})
+		)
 
 		return res.status(200).json(tickets)
 	}
