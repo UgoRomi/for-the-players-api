@@ -8,7 +8,7 @@ const {
 } = require("../models/tournament/utils")
 
 const { 
-	checkTicketExists
+	checkIfTicketExists
 } = require("../models/ticket/utils")
 const mongoose = require("mongoose")
 const { ticketStatuses } = require("../models/ticket/consts")
@@ -91,7 +91,7 @@ router.get("/", checkJWT(), checkValidation, async (req, res, next) => {
 })
 
 router.get("/:ticketId", checkJWT(),[
-	param("ticketId").custom(checkTicketExists).bail()
+	param("ticketId").custom(checkIfTicketExists).bail()
 ], checkValidation, async (req, res, next) => {
 	if (req.user.id) {
 		const tickets = await Tickets.findOne({ $or: [ { userId: req.user.id }, { userIdTwo: req.user.id } ] }).lean()
