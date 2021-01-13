@@ -6,8 +6,7 @@ const messagesSchema = new Schema(
 	{
 		message: { type: String, required: true },
 		userId: { type: ObjectId, required: true, ref: "Users" },
-		date: { type: Date, required: true, default: Date.now() },
-		isAdmin: { type: Boolean, required: true, default: false },
+		fromAdminPanel: { type: Boolean, required: true, default: false },
 	},
 	{ timestamps: true }
 )

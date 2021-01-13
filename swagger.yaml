@@ -2168,65 +2168,57 @@ paths:
                 $ref: "#/components/schemas/ErrorMessageResponse"
         200:
           description: "success"
+  /tickets/{ticketId}/messages:
+    parameters:
+      - name: ticketId
+        in: path
+        required: true
+        description: The ID of the ticket
+        schema:
+          $ref: "#/components/schemas/MongoID"
     post:
-        summary: Add message to ticket
-        security:
-          - BearerAuth: []
-        tags:
-          - tickets
-        operationId: updateTicketMessage
-        requestBody:
+      summary: Add message to ticket
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - tickets
+      operationId: updateTicketMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+                - fromAdminPanel
+              properties:
+                message:
+                  type: string
+                  description: The message body
+                fromAdminPanel:
+                  type: boolean
+                  description: Indicates if the message is sent from the admin panel
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - message
-                properties:
-                  message:
-                      type: object
-                      properties:
-                        userId: 
-                          type: string
-                          description: The url of the user
-                        username: 
-                          type: string
-                        message: 
-                          type: string
-                          description: The message
-                        date: 
-                          type: string
-                          format: date-time
-                          description: The date of the message
-                        isAdmin: 
-                          type: boolean
-                          description: If the message has been sent by an admin
-                        id: 
-                          type: string
-                          description: The Id of the message
-        responses:
-          "400":
-            description: "The input data was wrongly formatted"
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/SchemaValidationError"
-          "401":
-            description: "Missing bearer token"
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ErrorMessageResponse"
-          "403":
-            description: "Forbidden"
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/ErrorMessageResponse"
-          "201":
-            description: "Ticket's message added"
-  
-
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "201":
+          description: "Ticket's message added"
 components:
   securitySchemes:
     BearerAuth:
