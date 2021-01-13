@@ -2,7 +2,6 @@ const { body, param } = require("express-validator")
 const { toISO } = require("../utils/custom-sanitizers")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
-<<<<<<< HEAD
 const {
 	checkTournamentExists,
 	checkMatchExists,
@@ -11,8 +10,6 @@ const {
 const { 
 	checkTicketExists
 } = require("../models/ticket/utils")
-=======
->>>>>>> 5e1227f96beba7ffc491ec9e89be862fa6bdd5f6
 const mongoose = require("mongoose")
 const { ticketStatuses } = require("../models/ticket/consts")
 const { checkIfTicketExists } = require("../models/ticket/utils")
