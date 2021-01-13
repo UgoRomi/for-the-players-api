@@ -20,8 +20,13 @@ const {
 	checkTournamentExists,
 	checkMatchExists,
 } = require("../models/tournament/utils")
+
+const { 
+	checkTicketExists
+} = require("../models/ticket/utils")
 const mongoose = require("mongoose")
 const Tickets = mongoose.model("Tickets")
+const Tournament = mongoose.model("Tournaments")
 
 router.post(
 	"/",
@@ -58,13 +63,18 @@ router.post(
 					isAdmin: req.body.isAdmin ? req.body.isAdmin : false,
 				},
 			]
+
+			const user = await Users.findById(
+				req.user.id.toString()
+			).lean()
+
 			await Tickets.create({
 				subject,
 				date,
 				tournamentId,
 				matchId,
 				category,
-				userId: req.user.id,
+				userId: user._id,
 				messages: messages,
 				status: "NEW",
 			})
@@ -78,6 +88,43 @@ router.post(
 router.get("/", checkJWT(), checkValidation, async (req, res, next) => {
 	if (req.user.id) {
 		const tickets = await Tickets.find({ $or: [ { userId: req.user.id }, { userIdTwo: req.user.id } ] }).lean()
+
+		return res.status(200).json(tickets)
+	}
+})
+
+router.get("/:ticketId", checkJWT(),[
+	param("ticketId").custom(checkTicketExists).bail()
+], checkValidation, async (req, res, next) => {
+	if (req.user.id) {
+		const tickets = await Tickets.findOne({ $or: [ { userId: req.user.id }, { userIdTwo: req.user.id } ] }).lean()
+
+		if(tickets.category == 'DISPUTE'){
+			if(tickets.matchId && tickets.tournamentId){
+				const tournament = await Tournament.findById(
+					tickets.tournamentId.toString()
+				).lean()
+				const match = tournament.matches.find(
+					(match) => match._id.toString() === tickets.matchId.toString()
+				)
+				if(match){
+					const teamOneName = tournament.teams.find(
+						(team) => team._id.toString() === match.teamOne.toString()
+					).name,
+					teamTwoName = tournament.teams.find(
+						(team) => team._id.toString() === match.teamTwo.toString()
+					).name,
+					acceptedDate = match.acceptedAt;
+					tickets.tournamentName = tournament.name;
+					tickets.matchObj = {
+						teamOneName,
+						teamTwoName,
+						acceptedDate
+					}
+				}
+	
+			}
+		}
 
 		return res.status(200).json(tickets)
 	}

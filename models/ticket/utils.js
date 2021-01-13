@@ -5,10 +5,12 @@ const { isAfter } = require("date-fns")
 
 const Tickets = mongoose.model("Tickets")
 
-const checkUniqueName = async (name) => {
-	await _checkUniqueField("name", name)
+const checkTicketExists = async (ticketId) => {
+	if (ticketId) {
+		const ticket = await Tickets.findById(ticketId).lean()
+		if (!ticket) throw new CustomError(error404, "Ticket not found")
+	}
 }
-
 module.exports = {
-	checkUniqueName,
+	checkTicketExists,
 }

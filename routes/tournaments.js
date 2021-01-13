@@ -730,22 +730,19 @@ router.patch(
 					}
 				}else{
 					// Disputa
-					let subject = "",
-					userId = match.teamOne.toString(),
-					userIdTwo = match.teamTwo.toString();
-					if(isTeamOne)
-					subject = `Disputa match vs ${match.teamTwo.name}`
-					else
-					subject = `Disputa match vs ${match.teamOne.name}`
+					const teamOneMembers =  await tournament.teams.find((team) => team._id.toString() === match.teamOne.toString()).members
+					const teamTwoMembers =  await tournament.teams.find((team) => team._id.toString() === match.teamTwo.toString()).members
 
+					const teamOneLeader = await teamOneMembers.find((member) => member.role === teamRoleLeader).userId
+					const teamTwoLeader = await teamTwoMembers.find((member) => member.role === teamRoleLeader).userId
 					await Tickets.create({
-						subject,
+						subject: `Disputa match`,
 						date: new Date(),
 						tournamentId: req.params.tournamentId,
 						matchId: req.params.matchId,
 						category: 'DISPUTE',
-						userId,
-						userIdTwo,
+						userId: teamOneLeader,
+						userIdTwo: teamTwoLeader,
 						messages: [],
 						status: "NEW",
 					})
