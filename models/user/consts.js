@@ -11,17 +11,20 @@ const userStatuses = [
 // Permissions
 // Games
 const userPermissionGame = "GAME"
-//Platforms
+// Platforms
 const userPermissionPlatform = "PLATFORM"
-//Tournaments
+// Tournaments
 const userPermissionTournament = "TOURNAMENT"
-//Ruleset
+// Ruleset
 const userPermissionRuleset = "RULESET"
+// Tickets
+const userPermissionTicket = "TICKET"
 const userPermissions = [
 	userPermissionGame,
 	userPermissionPlatform,
 	userPermissionTournament,
 	userPermissionRuleset,
+	userPermissionTicket,
 ]
 
 const resetPasswordPage = "https://app.theplayers.tech/reset-password"
@@ -38,6 +41,7 @@ module.exports = {
 	userPermissionGame,
 	userPermissionTournament,
 	userPermissionRuleset,
+	userPermissionTicket,
 	userPermissions,
 
 	resetPasswordPage,
