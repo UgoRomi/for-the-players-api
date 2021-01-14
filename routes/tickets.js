@@ -192,6 +192,7 @@ router.post(
 					$push: {
 						messages: {
 							message,
+							userId: req.user.id,
 							fromAdminPanel,
 						},
 					},
