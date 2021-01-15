@@ -1,5 +1,6 @@
 const { userPermissionTournament, 
-	userStatusVerified, userStatusNotVerified } = require("../models/user/consts")
+	userStatusVerified, userStatusNotVerified, 
+	userStatusBanned, } = require("../models/user/consts")
 const { checkUniqueUsername, userExistsById,checkUserEmailInUse } = require("../models/user/utils")
 const {
 	teamRoleLeader,
@@ -22,9 +23,12 @@ const { ladderType } = require("../models/tournament/consts")
 const { matchStatusTeamOne } = require("../models/tournament/consts")
 const { matchStatusTeamTwo } = require("../models/tournament/consts")
 const _ = require("lodash")
+const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
 
 const Tournament = mongoose.model("Tournaments")
 const Tickets = mongoose.model("Tickets")
+const User = mongoose.model("Users")
 
 const elo = new eloRank()
 
@@ -54,7 +58,7 @@ router.post(
 			if (userOnDB.status === userStatusBanned)
 				return res.status(400).json({ error: "User is banned" })
 
-            if(userOnDB.role.length === 0)
+            if(userOnDB.permissions.length === 0)
                 return res.status(400).json({ error: "User is not an admin" })
 
 			const token = jwt.sign(
