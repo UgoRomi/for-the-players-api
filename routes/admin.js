@@ -240,4 +240,16 @@ router.patch(
 	}
 )
 
+
+// Tickets
+router.get("tickets/", checkJWT(), checkValidation, async (req, res, next) => {
+	try {
+			const tickets = await Tickets.find({}).lean()
+
+			return res.status(200).json(tickets)
+	} catch (e) {
+		next(e)
+	}
+})
+
 module.exports = router
