@@ -1,6 +1,6 @@
 const { userPermissionTournament, 
 	userStatusVerified, userStatusNotVerified } = require("../models/user/consts")
-const { checkUniqueUsername, userExistsById } = require("../models/user/utils")
+const { checkUniqueUsername, userExistsById,checkUserEmailInUse } = require("../models/user/utils")
 const {
 	teamRoleLeader,
 	teamSubmittedMatchResultWin,

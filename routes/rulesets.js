@@ -1,7 +1,7 @@
 const { checkIfGameExists } = require("../models/game/utils")
 const { userPermissionRuleset } = require("../models/user/consts")
 const router = require("express").Router()
-const { body } = require("express-validator")
+const { body, param } = require("express-validator")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
@@ -103,33 +103,33 @@ router.get("/", checkJWT(), async (req, res, next) => {
 
 // Add to swagger
 router.patch(
-	"/:rulesetId",
+	"/:rulesetId/",
 	checkJWT(),
 	[
 		param("rulesetId")
 			.customSanitizer(convertToMongoId)
 			.bail()
 			.custom(checkIfRulesetExists),
-		param("minNumberOfPlayer").bail(),
-		param("maxNumberOfPlayer").bail(),
-		param("name").bail(),
-		param("description").bail(),
-		param("bestOf").bail(),
-		param("mapset").bail(),
-		param("gameId").bail(),
+		body("minNumberOfPlayer").bail(),
+		body("maxNumberOfPlayer").bail(),
+		body("name").bail(),
+		body("description").bail(),
+		body("bestOf").bail(),
+		body("mapset").bail(),
+		body("gameId").bail(),
 	],
 	checkValidation,
 	async (req, res, next) => {
 		try {
 			let patchRuleset = {}
 
-			if(req.params.minNumberOfPlayer) patchRuleset.minNumberOfPlayer = req.params.minNumberOfPlayer;
-			if(req.params.maxNumberOfPlayer) patchRuleset.maxNumberOfPlayer = req.params.maxNumberOfPlayer;
-			if(req.params.name) patchRuleset.name = req.params.name;
-			if(req.params.description) patchRuleset.description = req.params.description;
-			if(req.params.bestOf) patchRuleset.bestOf = req.params.bestOf;
-			if(req.params.mapset) patchRuleset.mapset = req.params.mapset;
-			if(req.params.gameId) patchRuleset.gameId = req.params.gameId;
+			if(req.body.minNumberOfPlayer) patchRuleset.minNumberOfPlayer = req.body.minNumberOfPlayer;
+			if(req.body.maxNumberOfPlayer) patchRuleset.maxNumberOfPlayer = req.body.maxNumberOfPlayer;
+			if(req.body.name) patchRuleset.name = req.body.name;
+			if(req.body.description) patchRuleset.description = req.body.description;
+			if(req.body.bestOf) patchRuleset.bestOf = req.body.bestOf;
+			if(req.body.mapset) patchRuleset.mapset = req.body.mapset;
+			if(req.body.gameId) patchRuleset.gameId = req.body.gameId;
 
 			await Ruleset.findByIdAndUpdate(req.params.rulesetId, {
 				$set: patchRuleset,
