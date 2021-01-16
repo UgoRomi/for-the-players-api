@@ -20,18 +20,20 @@ const Rulesets = mongoose.model("Rulesets")
 router.get(
 	"/",
 	checkJWT(),
-	[query("username"), query("email")],
+	[query("username"), query("email"), query("status")],
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const { username, email } = req.query
+			const { username, email, status } = req.query
 
 			const findObject = {}
 
 			if (username) findObject.username = { $regex: username, $options: "i" }
 			if (email) findObject.email = { $regex: email, $options: "i" }
+			if (status) findObject.status = { $regex: status, $options: "i" }
 
 			const users = await Users.find(findObject, {
+				status: 1,
 				username: 1,
 				email: 1,
 				_id: 1,

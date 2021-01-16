@@ -77,7 +77,7 @@ router.post(
 
 // Tournament's match
 router.patch(
-	"tournaments/:tournamentId/matches/:matchId",
+	"/tournaments/:tournamentId/matches/:matchId",
 	checkJWT(userPermissionTournament),
 	[
 		param("tournamentId").custom(checkTournamentExists).bail(),
@@ -205,7 +205,7 @@ router.patch(
 
 // Users patch
 router.patch(
-	"users/:userId",
+	"/users/:userId",
 	checkJWT(),
 	// TODO: Don't replace platforms but just update the usernames
 	[
