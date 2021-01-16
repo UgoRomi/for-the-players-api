@@ -217,19 +217,16 @@ router.patch(
 			.notEmpty({ ignore_whitespace: true })
 			.trim()
 			.escape(),
-		body("platforms.*._id").isMongoId(),
-		body("platforms.*.username").isString().trim().escape(),
+		body("platforms.*._id")
+		.optional().isMongoId(),
+		body("platforms.*.username")
+		.optional().isString().trim().escape(),
 		body("status"),
 	],
 	checkValidation,
 	async (req, res, next) => {
 		try {
 			const updateObj = {}
-
-			if (req.body.username) updateObj.username = req.body.username
-
-			if (req.body.platforms) updateObj.platforms = req.body.platforms
-
 			if (req.body.status) updateObj.status = req.body.status
 			await Users.updateOne({ _id: req.params.userId }, { $set: updateObj })
 
