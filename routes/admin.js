@@ -50,7 +50,7 @@ router.post(
 	async (req, res, next) => {
 		try {
 			const { email, password } = req.body
-			const userOnDB = await User.findOne({ email }).lean()
+			const userOnDB = await Users.findOne({ email }).lean()
 
 			// If the password is wrong
 			if (!bcrypt.compareSync(password, userOnDB.password))
@@ -211,16 +211,6 @@ router.patch(
 	// TODO: Don't replace platforms but just update the usernames
 	[
 		param("userId").custom(userExistsById).customSanitizer(convertToMongoId).bail(),
-		body("username")
-			.optional()
-			.custom(checkUniqueUsernamePatch)
-			.notEmpty({ ignore_whitespace: true })
-			.trim()
-			.escape(),
-		body("platforms.*._id")
-		.optional().isMongoId(),
-		body("platforms.*.username")
-		.optional().isString().trim().escape(),
 		body("status"),
 	],
 	checkValidation,
