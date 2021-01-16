@@ -219,7 +219,7 @@ router.patch(
 			.escape(),
 		body("platforms.*._id").isMongoId(),
 		body("platforms.*.username").isString().trim().escape(),
-		body("isVerified"),
+		body("status"),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -230,7 +230,7 @@ router.patch(
 
 			if (req.body.platforms) updateObj.platforms = req.body.platforms
 
-			if (req.body.isVerified !== null) updateObj.status = req.body.isVerified ? userStatusVerified : userStatusNotVerified
+			if (req.body.status) updateObj.status = req.body.status
 			await Users.updateOne({ _id: req.params.userId }, { $set: updateObj })
 
 			return res.status(200).json()
