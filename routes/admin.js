@@ -1,7 +1,7 @@
 const { userPermissionTournament, 
 	userStatusVerified, userStatusNotVerified, 
 	userStatusBanned, } = require("../models/user/consts")
-const { checkUniqueUsername, userExistsById,checkUserEmailInUse } = require("../models/user/utils")
+const { checkUniqueUsername, userExistsById,checkUserEmailInUse,checkUniqueUsernamePatch } = require("../models/user/utils")
 const {
 	teamRoleLeader,
 	teamSubmittedMatchResultWin,
@@ -15,6 +15,7 @@ const {
 	checkTeamExists,
 	checkMatchExists,
 } = require("../models/tournament/utils")
+const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
 const { calculateMatchStatus } = require("../models/tournament/utils")
 const eloRank = require("elo-rank")
@@ -28,7 +29,7 @@ const bcrypt = require("bcrypt")
 
 const Tournament = mongoose.model("Tournaments")
 const Tickets = mongoose.model("Tickets")
-const User = mongoose.model("Users")
+const Users = mongoose.model("Users")
 
 const elo = new eloRank()
 
@@ -209,28 +210,27 @@ router.patch(
 	checkJWT(),
 	// TODO: Don't replace platforms but just update the usernames
 	[
-		param("userId").custom(userExistsById).bail(),
+		param("userId").custom(userExistsById).customSanitizer(convertToMongoId).bail(),
 		body("username")
 			.optional()
+			.custom(checkUniqueUsernamePatch)
 			.notEmpty({ ignore_whitespace: true })
 			.trim()
-			.escape()
-			.custom(checkUniqueUsername),
+			.escape(),
 		body("platforms.*._id").isMongoId(),
 		body("platforms.*.username").isString().trim().escape(),
-		body("isVerified").bail(),
+		body("isVerified"),
 	],
 	checkValidation,
 	async (req, res, next) => {
 		try {
 			const updateObj = {}
 
-			if (req.body.username) updateObj.username = req.body.username;
+			if (req.body.username) updateObj.username = req.body.username
 
 			if (req.body.platforms) updateObj.platforms = req.body.platforms
 
-			if (req.body.isVerified) updateObj.status = req.body.isVerified ? userStatusVerified : userStatusNotVerified
-
+			if (req.body.isVerified !== null) updateObj.status = req.body.isVerified ? userStatusVerified : userStatusNotVerified
 			await Users.updateOne({ _id: req.params.userId }, { $set: updateObj })
 
 			return res.status(200).json()
