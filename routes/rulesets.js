@@ -115,7 +115,7 @@ router.patch(
 		body("name").bail(),
 		body("description").bail(),
 		body("bestOf").bail(),
-		body("mapset").bail(),
+		body("maps").bail(),
 		body("gameId").bail(),
 	],
 	checkValidation,
@@ -128,7 +128,7 @@ router.patch(
 			if(req.body.name) patchRuleset.name = req.body.name;
 			if(req.body.description) patchRuleset.description = req.body.description;
 			if(req.body.bestOf) patchRuleset.bestOf = req.body.bestOf;
-			if(req.body.mapset) patchRuleset.mapset = req.body.mapset;
+			if(req.body.maps) patchRuleset.maps = req.body.maps;
 			if(req.body.gameId) patchRuleset.gameId = req.body.gameId;
 
 			await Ruleset.findByIdAndUpdate(req.params.rulesetId, {
