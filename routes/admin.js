@@ -239,4 +239,58 @@ router.get("/tickets", checkJWT(), checkValidation, async (req, res, next) => {
 	}
 })
 
+// router.get(
+// 	"/tickets/:ticketId",
+// 	checkJWT(),
+// 	[param("ticketId").custom(checkIfTicketExists).bail()],
+// 	checkValidation,
+// 	async (req, res, next) => {
+// 		try {
+// 			if (req.user.id) {
+// 				const tickets = await Tickets.findOne({
+// 					_id: req.params.ticketId,
+// 				}).lean()
+// 				if (tickets.category === "DISPUTE") {
+// 					if (tickets.matchId && tickets.tournamentId) {
+// 						const tournament = await Tournament.findById(
+// 							tickets.tournamentId.toString()
+// 						).lean()
+// 						const match = tournament.matches.find(
+// 							(match) => match._id.toString() === tickets.matchId.toString()
+// 						)
+// 						if (match) {
+// 							const teamOneName = tournament.teams.find(
+// 									(team) => team._id.toString() === match.teamOne.toString()
+// 								).name,
+// 								teamTwoName = tournament.teams.find(
+// 									(team) => team._id.toString() === match.teamTwo.toString()
+// 								).name,
+// 								acceptedDate = match.acceptedAt
+// 							tickets.tournamentName = tournament.name
+// 							tickets.matchObj = {
+// 								teamOneName,
+// 								teamTwoName,
+// 								acceptedDate,
+// 							}
+// 						}
+// 					}
+// 				}
+
+// 				tickets.messages = await Promise.all(
+// 					tickets.messages.map(async (message) => {
+// 						const user = await Users.findById(message.userId).lean()
+// 						message.username = user.username
+
+// 						return message
+// 					})
+// 				)
+
+// 				return res.status(200).json(tickets)
+// 			}
+// 		} catch (e) {
+// 			next(e)
+// 		}
+// 	}
+// )
+
 module.exports = router

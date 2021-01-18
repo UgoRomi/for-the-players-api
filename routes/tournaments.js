@@ -366,7 +366,7 @@ router.patch(
 			// Remove members
 			if (req.body.membersToRemove)
 				_.remove(teamToUpdate.members, (member) =>
-					req.body.membersToRemove.includes(member._id.toString())
+					req.body.membersToRemove.includes(member.userId.toString())
 				)
 			// Update leader
 			if (req.body.newLeader) {
@@ -921,5 +921,26 @@ router.get(
 	}
 )
 
+
+// Bracket tournaments are identified by "bracket"
+router.get('/brackets',
+checkJWT(),
+[
+	query("gameId")
+		.optional()
+		.isAlphanumeric()
+		.customSanitizer(convertToMongoId)
+		.custom(checkIfGameExists),
+	query("type").optional().isString().isIn(types),
+],
+checkValidation,
+async (req, res, next) => {
+	try {
+		//
+	} catch (e) {
+		next(e)
+	}
+}
+)
 
 module.exports = router
