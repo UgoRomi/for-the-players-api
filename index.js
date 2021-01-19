@@ -49,6 +49,7 @@ const rulesetRoutes = require("./routes/rulesets")
 const invitesRoutes = require("./routes/invites")
 const userRoutes = require("./routes/users")
 const ticketRoutes = require("./routes/tickets")
+const adminRoutes = require("./routes/admin")
 
 const limiter = rateLimit({
 	windowMs: 1000, // 15 minutes
@@ -66,6 +67,7 @@ app.use("/rulesets", rulesetRoutes)
 app.use("/invites", invitesRoutes)
 app.use("/users", userRoutes)
 app.use("/tickets", ticketRoutes)
+app.use("/admin", adminRoutes)
 
 app.use("/test", (_req, res, _next) => {
 	res.send("Welcome to 4TP APIs!")

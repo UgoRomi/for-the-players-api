@@ -28,10 +28,6 @@ router.post(
 			.trim()
 			.escape()
 			.bail(),
-		body("date")
-			.notEmpty({ ignore_whitespace: true })
-			.isDate()
-			.customSanitizer(toISO),
 		body("tournamentId").optional().bail(),
 		body("matchId").optional().bail(),
 		body("category").optional(),
@@ -40,11 +36,10 @@ router.post(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const { subject, date, tournamentId, matchId, category } = req.body
+			const { subject, tournamentId, matchId, category } = req.body
 			const messages = [
 				{
 					message: req.body.description,
-					date: req.body.date,
 					userId: req.user.id,
 					isAdmin: req.body.isAdmin ? req.body.isAdmin : false,
 				},
@@ -54,7 +49,6 @@ router.post(
 
 			await Tickets.create({
 				subject,
-				date,
 				tournamentId,
 				matchId,
 				category,
@@ -192,6 +186,7 @@ router.post(
 					$push: {
 						messages: {
 							message,
+							userId: req.user.id,
 							fromAdminPanel,
 						},
 					},

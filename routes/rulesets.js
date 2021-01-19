@@ -1,10 +1,11 @@
 const { checkIfGameExists } = require("../models/game/utils")
 const { userPermissionRuleset } = require("../models/user/consts")
 const router = require("express").Router()
-const { body } = require("express-validator")
+const { body, param } = require("express-validator")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
+const { checkIfRulesetExists } = require("../models/ruleset/utils")
 
 const Ruleset = mongoose.model("Rulesets")
 const Game = mongoose.model("Games")
@@ -99,5 +100,46 @@ router.get("/", checkJWT(), async (req, res, next) => {
 		next(e)
 	}
 })
+
+// Add to swagger
+router.patch(
+	"/:rulesetId/",
+	checkJWT(),
+	[
+		param("rulesetId")
+			.customSanitizer(convertToMongoId)
+			.bail()
+			.custom(checkIfRulesetExists),
+		body("minNumberOfPlayer").bail(),
+		body("maxNumberOfPlayer").bail(),
+		body("name").bail(),
+		body("description").bail(),
+		body("bestOf").bail(),
+		body("maps").bail(),
+		body("gameId").bail(),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			let patchRuleset = {}
+
+			if(req.body.minNumberOfPlayer) patchRuleset.minNumberOfPlayer = req.body.minNumberOfPlayer;
+			if(req.body.maxNumberOfPlayer) patchRuleset.maxNumberOfPlayer = req.body.maxNumberOfPlayer;
+			if(req.body.name) patchRuleset.name = req.body.name;
+			if(req.body.description) patchRuleset.description = req.body.description;
+			if(req.body.bestOf) patchRuleset.bestOf = req.body.bestOf;
+			if(req.body.maps) patchRuleset.maps = req.body.maps;
+			if(req.body.gameId) patchRuleset.gameId = req.body.gameId;
+
+			await Ruleset.findByIdAndUpdate(req.params.rulesetId, {
+				$set: patchRuleset,
+			})
+
+			return res.status(200).json()
+		} catch (e) {
+			next(e)
+		}
+	}
+)
 
 module.exports = router
