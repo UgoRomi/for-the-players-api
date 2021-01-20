@@ -1,7 +1,8 @@
-const { userPermissionTournament, 
-	userStatusVerified, userStatusNotVerified, 
-	userStatusBanned, } = require("../models/user/consts")
-const { checkUniqueUsername, userExistsById,checkUserEmailInUse,checkUniqueUsernamePatch } = require("../models/user/utils")
+const {
+	userPermissionTournament,
+	userStatusBanned,
+} = require("../models/user/consts")
+const { userExistsById, checkUserEmailInUse } = require("../models/user/utils")
 const {
 	teamRoleLeader,
 	teamSubmittedMatchResultWin,
@@ -23,9 +24,10 @@ const { matchStatusTie } = require("../models/tournament/consts")
 const { ladderType } = require("../models/tournament/consts")
 const { matchStatusTeamOne } = require("../models/tournament/consts")
 const { matchStatusTeamTwo } = require("../models/tournament/consts")
-const _ = require("lodash")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
+const { ticketCategoryDispute } = require("../models/ticket/consts")
+const { ticketStatusNew } = require("../models/ticket/consts")
 
 const Tournament = mongoose.model("Tournaments")
 const Tickets = mongoose.model("Tickets")
@@ -59,8 +61,8 @@ router.post(
 			if (userOnDB.status === userStatusBanned)
 				return res.status(400).json({ error: "User is banned" })
 
-            if(userOnDB.permissions.length === 0)
-                return res.status(400).json({ error: "User is not an admin" })
+			if (userOnDB.permissions.length === 0)
+				return res.status(400).json({ error: "User is not an admin" })
 
 			const token = jwt.sign(
 				{
@@ -83,9 +85,7 @@ router.patch(
 	[
 		param("tournamentId").custom(checkTournamentExists).bail(),
 		param("matchId").custom(checkMatchExists).bail(),
-		body("winningTeamId")
-			.custom(checkTeamExists)
-			.bail(),
+		body("winningTeamId").custom(checkTeamExists).bail(),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -97,19 +97,18 @@ router.patch(
 				(match) => match._id.toString() === req.params.matchId
 			)
 
-			//TODO: Fix race 
-			if (match.teamOne.toString() === req.body.winningTeamId){
-                match.teamOneResult = teamSubmittedMatchResultWin;
-                match.teamTwoResult = teamSubmittedMatchResultLoss
+			//TODO: Fix race condition
+			if (match.teamOne.toString() === req.body.winningTeamId) {
+				match.teamOneResult = teamSubmittedMatchResultWin
+				match.teamTwoResult = teamSubmittedMatchResultLoss
+			} else if (match.teamTwo.toString() === req.body.winningTeamId) {
+				match.teamOneResult = teamSubmittedMatchResultLoss
+				match.teamTwoResult = teamSubmittedMatchResultWin
+			} else {
+				return res.status(404).json({
+					errorMessage: "This team isn't in this match",
+				})
 			}
-			else if (match.teamTwo.toString() === req.body.winningTeamId){
-                match.teamOneResult = teamSubmittedMatchResultLoss;
-                match.teamTwoResult = teamSubmittedMatchResultWin;
-            }else{
-                return res.status(404).json({
-                errorMessage: "This team isn't in this match",
-                })
-            }
 
 			if (match.teamOneResult && match.teamTwoResult) {
 				const matchesStatus = await calculateMatchStatus(
@@ -175,23 +174,31 @@ router.patch(
 								break
 						}
 					}
-				}else{
+				} else {
 					// Disputa
-					const teamOneMembers =  await tournament.teams.find((team) => team._id.toString() === match.teamOne.toString()).members
-					const teamTwoMembers =  await tournament.teams.find((team) => team._id.toString() === match.teamTwo.toString()).members
+					const teamOneMembers = await tournament.teams.find(
+						(team) => team._id.toString() === match.teamOne.toString()
+					).members
+					const teamTwoMembers = await tournament.teams.find(
+						(team) => team._id.toString() === match.teamTwo.toString()
+					).members
 
-					const teamOneLeader = await teamOneMembers.find((member) => member.role === teamRoleLeader).userId
-					const teamTwoLeader = await teamTwoMembers.find((member) => member.role === teamRoleLeader).userId
+					const teamOneLeader = await teamOneMembers.find(
+						(member) => member.role === teamRoleLeader
+					).userId
+					const teamTwoLeader = await teamTwoMembers.find(
+						(member) => member.role === teamRoleLeader
+					).userId
 					await Tickets.create({
 						subject: `Disputa match`,
 						date: new Date(),
 						tournamentId: req.params.tournamentId,
 						matchId: req.params.matchId,
-						category: 'DISPUTE',
+						category: ticketCategoryDispute,
 						userId: teamOneLeader,
 						userIdTwo: teamTwoLeader,
 						messages: [],
-						status: "NEW",
+						status: ticketStatusNew,
 					})
 				}
 			}
@@ -210,7 +217,10 @@ router.patch(
 	checkJWT(),
 	// TODO: Don't replace platforms but just update the usernames
 	[
-		param("userId").custom(userExistsById).customSanitizer(convertToMongoId).bail(),
+		param("userId")
+			.custom(userExistsById)
+			.customSanitizer(convertToMongoId)
+			.bail(),
 		body("status"),
 	],
 	checkValidation,
@@ -227,70 +237,15 @@ router.patch(
 	}
 )
 
-
 // Tickets
-router.get("/tickets", checkJWT(), checkValidation, async (req, res, next) => {
+router.get("/tickets", checkJWT(), async (req, res, next) => {
 	try {
-			const tickets = await Tickets.find({}).lean()
+		const tickets = await Tickets.find({}).lean()
 
-			return res.status(200).json(tickets)
+		return res.status(200).json(tickets)
 	} catch (e) {
 		next(e)
 	}
 })
-
-// router.get(
-// 	"/tickets/:ticketId",
-// 	checkJWT(),
-// 	[param("ticketId").custom(checkIfTicketExists).bail()],
-// 	checkValidation,
-// 	async (req, res, next) => {
-// 		try {
-// 			if (req.user.id) {
-// 				const tickets = await Tickets.findOne({
-// 					_id: req.params.ticketId,
-// 				}).lean()
-// 				if (tickets.category === "DISPUTE") {
-// 					if (tickets.matchId && tickets.tournamentId) {
-// 						const tournament = await Tournament.findById(
-// 							tickets.tournamentId.toString()
-// 						).lean()
-// 						const match = tournament.matches.find(
-// 							(match) => match._id.toString() === tickets.matchId.toString()
-// 						)
-// 						if (match) {
-// 							const teamOneName = tournament.teams.find(
-// 									(team) => team._id.toString() === match.teamOne.toString()
-// 								).name,
-// 								teamTwoName = tournament.teams.find(
-// 									(team) => team._id.toString() === match.teamTwo.toString()
-// 								).name,
-// 								acceptedDate = match.acceptedAt
-// 							tickets.tournamentName = tournament.name
-// 							tickets.matchObj = {
-// 								teamOneName,
-// 								teamTwoName,
-// 								acceptedDate,
-// 							}
-// 						}
-// 					}
-// 				}
-
-// 				tickets.messages = await Promise.all(
-// 					tickets.messages.map(async (message) => {
-// 						const user = await Users.findById(message.userId).lean()
-// 						message.username = user.username
-
-// 						return message
-// 					})
-// 				)
-
-// 				return res.status(200).json(tickets)
-// 			}
-// 		} catch (e) {
-// 			next(e)
-// 		}
-// 	}
-// )
 
 module.exports = router

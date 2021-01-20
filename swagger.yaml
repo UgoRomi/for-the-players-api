@@ -2096,35 +2096,66 @@ paths:
                     subject:
                       type: string
                       description: The subject of the ticket
-                    id:
-                      type: string
-                      description: The Mongo ID of the ticket
-                    date:
+                    _id:
+                      $ref: "#/components/schemas/MongoID"
+                    createdAt:
                       type: string
                       format: date-time
-                      description: The date of the ticket
+                      description: When the ticket was created
                     messages:
-                      type: object
-                      properties:
-                        userId: 
-                          type: string
-                        username: 
-                          type: string
-                        message:
-                          type: string
-                        date:
-                          type: string
-                          format: date-time
-                        isAdmin:
-                          type: boolean
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          user:
+                            type: object
+                            properties:
+                              username:
+                                type: string
+                              _id:
+                                $ref: "#/components/schemas/MongoID"
+                          message:
+                            type: string
+                          createdAt:
+                            type: string
+                            format: date-time
+                          fromAdminPanel:
+                            type: boolean
+                            description: Indicates if this message has been sent from the admin panel or from the app
                     category:
                       $ref: "#/components/schemas/TicketCategories"
-                    matchId:
-                      type: string
-                      description: The Mongo ID of the linked match (optional)
-                    tournamentId:
-                      type: string
-                      description: The Mongo ID of the linked tournament (optional)
+                    tournament:
+                      type: object
+                      description: Only present when the category is DISPUTE
+                      properties:
+                        _id:
+                          $ref: "#/components/schemas/MongoID"
+                        name:
+                          type: string
+                          description: The name of the linked tournament
+                    match:
+                      type: object
+                      description: Only present when the category is DISPUTE
+                      properties:
+                        _id:
+                          $ref: "#/components/schemas/MongoID"
+                        acceptedDate:
+                          type: string
+                          format: date-time
+                        teamOne:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            _id:
+                              $ref: "#/components/schemas/MongoID"
+                        teamTwo:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            _id:
+                              $ref: "#/components/schemas/MongoID"
                     attachments:
                       type: array
                       items:
@@ -2267,7 +2298,7 @@ components:
       type: string
       enum:
         - DISPUTE
-        - GENERAL INQUIRY
+        - GENERAL_INQUIRY
         - PAYMENT
     MatchStatuses:
       description: "The possible statuses of a match"

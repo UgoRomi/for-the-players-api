@@ -1,8 +1,8 @@
 const { body, param } = require("express-validator")
-const { toISO } = require("../utils/custom-sanitizers")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
 const mongoose = require("mongoose")
+const { ticketCategoryDispute } = require("../models/ticket/consts")
 const { ticketStatusDeleted } = require("../models/ticket/consts")
 const { ticketStatusSolved } = require("../models/ticket/consts")
 const { ticketStatuses } = require("../models/ticket/consts")
@@ -84,47 +84,69 @@ router.get(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			if (req.user.id) {
-				const tickets = await Tickets.findOne({
-					_id: req.params.ticketId,
-				}).lean()
-				if (tickets.category === "DISPUTE") {
-					if (tickets.matchId && tickets.tournamentId) {
-						const tournament = await Tournament.findById(
-							tickets.tournamentId.toString()
-						).lean()
-						const match = tournament.matches.find(
-							(match) => match._id.toString() === tickets.matchId.toString()
-						)
-						if (match) {
-							const teamOneName = tournament.teams.find(
-									(team) => team._id.toString() === match.teamOne.toString()
-								).name,
-								teamTwoName = tournament.teams.find(
-									(team) => team._id.toString() === match.teamTwo.toString()
-								).name,
-								acceptedDate = match.acceptedAt
-							tickets.tournamentName = tournament.name
-							tickets.matchObj = {
-								teamOneName,
-								teamTwoName,
-								acceptedDate,
-							}
+			// Get the ticket
+			const ticket = await Tickets.findById(
+				req.params.ticketId,
+				"subject createdAt messages category matchId tournamentId attachments"
+			).lean()
+
+			if (ticket.category === ticketCategoryDispute) {
+				if (ticket.matchId && ticket.tournamentId) {
+					// Getting the tournament teams and name
+					const tournament = await Tournament.findById(
+						ticket.tournamentId.toString(),
+						"teams name matches"
+					).lean()
+
+					// Find the match to which the ticket is referring
+					const match = tournament.matches.find(
+						(match) => match._id.toString() === ticket.matchId.toString()
+					)
+
+					if (match) {
+						const teamOneName = tournament.teams.find(
+							(team) => team._id.toString() === match.teamOne.toString()
+						).name
+						const teamTwoName = tournament.teams.find(
+							(team) => team._id.toString() === match.teamTwo.toString()
+						).name
+						const acceptedDate = match.acceptedAt
+						ticket.tournament = {
+							name: tournament.name,
+							_id: ticket.tournamentId,
 						}
+						delete ticket.tournamentId
+						ticket.match = {
+							_id: ticket.matchId,
+							teamOne: {
+								name: teamOneName,
+								_id: match.teamOne,
+							},
+							teamTwo: {
+								name: teamTwoName,
+								_id: match.teamTwo,
+							},
+							acceptedDate,
+						}
+						delete ticket.matchId
 					}
 				}
-
-				tickets.messages = await Promise.all(
-					tickets.messages.map(async (message) => {
-						const user = await Users.findById(message.userId).lean()
-						message.username = user.username
-
-						return message
-					})
-				)
-
-				return res.status(200).json(tickets)
 			}
+
+			ticket.messages = await Promise.all(
+				ticket.messages.map(async (message) => {
+					delete message.updatedAt
+					const user = await Users.findById(message.userId, "username").lean()
+					message.user = {
+						_id: message.userId,
+						username: user.username,
+					}
+					delete message.userId
+					return message
+				})
+			)
+
+			return res.status(200).json(ticket)
 		} catch (e) {
 			next(e)
 		}
