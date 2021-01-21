@@ -11,6 +11,7 @@ const { matchStatusPending } = require("./consts")
 const { isAfter } = require("date-fns")
 
 const Tournament = mongoose.model("Tournaments")
+const Matches = mongoose.model("Matches")
 
 const checkUniqueName = async (name) => {
 	await _checkUniqueField("name", name)
@@ -55,19 +56,6 @@ const checkTeamExists = async (teamId, { req }) => {
 		throw new CustomError(error404, `Team not found`)
 }
 
-const checkMatchExists = async (matchId, { req }) => {
-	let tournamentId = null
-	if (req.params.tournamentId) tournamentId = req.params.tournamentId
-	else if (req.body.tournamentId) tournamentId = req.body.tournamentId
-	const tournament = await Tournament.findById(tournamentId).lean()
-	if (
-		!tournament.matches.some(
-			(match) => match._id.toString() === matchId.toString()
-		)
-	)
-		throw new CustomError(error404, `Match not found`)
-}
-
 const checkUserInTeam = async (teamId, { req }) => {
 	const tournament = await Tournament.findById(req.params.tournamentId).lean()
 	const team = tournament.teams.find(
@@ -95,11 +83,14 @@ const checkUserIsLeaderInTeam = async (teamId, { req }) => {
 const checkTeamHasOngoingMatches = async (teamId, { req }) => {
 	const tournament = await Tournament.findById(
 		req.params.tournamentId,
-		"teams matches"
+		"teams"
 	).lean()
+	const matches = await Matches.find({
+		tournamentId: tournament._id.toString(),
+	}).lean()
 
 	if (
-		tournament.matches.find(
+		matches.find(
 			(match) =>
 				(match.teamOne?.toString() === teamId && !match.teamOneResult) ||
 				(match.teamTwo?.toString() === teamId && !match.teamTwoResult)

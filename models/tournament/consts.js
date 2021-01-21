@@ -20,15 +20,6 @@ const matchStates = [
 	matchStatusDispute,
 ]
 
-const teamSubmittedMatchResultWin = "WIN",
-	teamSubmittedMatchResultLoss = "LOSS",
-	teamSubmittedMatchResultTie = "TIE"
-const teamSubmittedResults = [
-	teamSubmittedMatchResultWin,
-	teamSubmittedMatchResultLoss,
-	teamSubmittedMatchResultTie,
-]
-
 const updateMatchPostResult = "POST_RESULT"
 const updateMatchActions = [updateMatchPostResult]
 
@@ -51,9 +42,6 @@ module.exports = {
 	matchStatusTeamTwo,
 	matchStatusDispute,
 	matchStates,
-	teamSubmittedMatchResultTie,
-	teamSubmittedMatchResultWin,
-	teamSubmittedResults,
 	secondsToAcceptLadderMatch,
 	teamStatusOk,
 	teamStatusNotOk,

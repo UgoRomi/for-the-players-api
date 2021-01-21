@@ -9,8 +9,8 @@ const {
 	teamStatusNotOk,
 	teamStatusOk,
 	updateMatchActions,
-	teamSubmittedResults,
 } = require("../models/tournament/consts")
+const { teamSubmittedResults } = require("../models/match/consts")
 const { teamInvitePending } = require("../models/invite/consts")
 const { body, query, param } = require("express-validator")
 const { convertToMongoId, toISO } = require("../utils/custom-sanitizers")
@@ -25,7 +25,6 @@ const {
 	userIsLeader,
 	checkTeamHasOngoingMatches,
 	checkUserIsLeaderInTeam,
-	checkMatchExists,
 	userIsLeaderMiddleware,
 } = require("../models/tournament/utils")
 const mongoose = require("mongoose")
@@ -43,6 +42,9 @@ const { ladderType } = require("../models/tournament/consts")
 const { matchStatusTeamOne } = require("../models/tournament/consts")
 const { matchStatusTeamTwo } = require("../models/tournament/consts")
 const _ = require("lodash")
+const { ticketStatusNew } = require("../models/ticket/consts")
+const { ticketCategoryDispute } = require("../models/ticket/consts")
+const { checkMatchExists } = require("../models/match/utils")
 const { teamRoleMember } = require("../models/tournament/consts")
 const { calculateTeamResults } = require("../models/tournament/utils")
 
@@ -52,6 +54,7 @@ const Game = mongoose.model("Games")
 const Invite = mongoose.model("Invites")
 const Users = mongoose.model("Users")
 const Tickets = mongoose.model("Tickets")
+const Matches = mongoose.model("Matches")
 
 const elo = new eloRank()
 
@@ -250,19 +253,26 @@ router.get(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
+			const matches = await Matches.find({
+				tournamentId: req.params.tournamentId,
+			}).lean()
+
 			const ruleset = await Promise.all(
 				tournament.ruleset.map(async (ruleset) => {
 					return await Ruleset.findById(ruleset).lean()
 				})
 			)
 			// Add "status" to the matches
-			const matches = await calculateMatchStatus(
-				tournament.matches,
+			const calculatedMatches = await calculateMatchStatus(
+				matches,
 				tournament.teams
 			)
 
 			// Count wins, losses and ties for each team
-			let teams = await calculateTeamResults(matches, tournament.teams)
+			let teams = await calculateTeamResults(
+				calculatedMatches,
+				tournament.teams
+			)
 
 			//TODO: It does a shit ton of queries
 			teams = await Promise.all(
@@ -316,7 +326,7 @@ router.get(
 				userTeam,
 				imgUrl: tournament.imgUrl,
 				game: tournament.game,
-				matches,
+				matches: calculatedMatches,
 				open: tournament.open,
 			})
 		} catch (e) {
@@ -529,7 +539,9 @@ router.post(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
-			const { matches } = tournament
+			const matches = await Matches.find({
+				tournamentId: req.params.tournamentId,
+			}).lean()
 
 			// TODO: Fix race condition
 			if (
@@ -548,33 +560,21 @@ router.post(
 				)
 				matchToUpdate.teamTwo = req.body.teamId
 				matchToUpdate.acceptedAt = formatISO(Date.now())
-				tournament.matches = await Promise.all(
-					matches.map(async (match) => {
-						if (match._id === matchToUpdate._id) {
-							const ruleset = await Ruleset.findById(
-								req.body.rulesetId,
-								"bestOf maps"
-							).lean()
-							matchToUpdate.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
-							return matchToUpdate
-						}
-						return match
-					})
-				)
-				await Tournament.replaceOne({ _id: tournament._id }, tournament)
+				const ruleset = await Ruleset.findById(
+					req.body.rulesetId,
+					"bestOf maps"
+				).lean()
+				matchToUpdate.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
+				await Matches.replaceOne({ _id: tournament._id }, tournament)
 				return res.status(200).json({ matchId: matchToUpdate._id.toString() })
 			}
 
-			const newMatch = {
+			await Matches.create({
 				teamOne: req.body.teamId,
 				acceptedAt: formatISO(Date.now()),
 				numberOfPlayers: req.body.numberOfPlayers,
 				rulesetId: req.body.rulesetId,
-			}
-			await Tournament.updateOne(
-				{ _id: req.params.tournamentId },
-				{ $push: { matches: newMatch } }
-			)
+			})
 			return res.status(201).json()
 		} catch (e) {
 			next(e)
@@ -585,20 +585,11 @@ router.post(
 router.delete(
 	"/:tournamentId/matches/:matchId",
 	checkJWT(),
-	[
-		param("tournamentId").custom(checkTournamentExists).bail(),
-		param("matchId").custom(checkMatchExists),
-	],
+	[param("matchId").custom(checkMatchExists)],
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
-				req.params.tournamentId
-			).lean()
-
-			const match = tournament.matches.find(
-				(match) => match._id.toString() === req.params.matchId
-			)
+			const match = await Matches.findById(req.params.matchId).lean()
 
 			if (match.teamTwo)
 				return res.status(403).json({
@@ -616,11 +607,7 @@ router.delete(
 					errorMessage: "You need to be a leader to delete a match",
 				})
 
-			await Tournament.findOneAndUpdate(
-				{ _id: req.params.tournamentId },
-				{ $pull: { matches: { _id: req.params.matchId } } }
-			)
-
+			await Matches.deleteOne({ _id: req.params.matchId })
 			return res.status(200).json()
 		} catch (e) {
 			next(e)
@@ -647,16 +634,11 @@ router.patch(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
-			const match = tournament.matches.find(
-				(match) => match._id.toString() === req.params.matchId
-			)
+			const match = await Matches.findById(req.params.matchId).lean()
 
-			//TODO: Fix race 
-			let isTeamOne = false;
-			if (match.teamOne.toString() === req.body.teamId){
-				match.teamOneResult = req.body.result;
-				isTeamOne = true;
-			}
+			//TODO: Fix race
+			if (match.teamOne.toString() === req.body.teamId)
+				match.teamOneResult = req.body.result
 			else if (match.teamTwo.toString() === req.body.teamId)
 				match.teamTwoResult = req.body.result
 			else
@@ -728,23 +710,31 @@ router.patch(
 								break
 						}
 					}
-				}else{
+				} else {
 					// Disputa
-					const teamOneMembers =  await tournament.teams.find((team) => team._id.toString() === match.teamOne.toString()).members
-					const teamTwoMembers =  await tournament.teams.find((team) => team._id.toString() === match.teamTwo.toString()).members
+					const teamOneMembers = await tournament.teams.find(
+						(team) => team._id.toString() === match.teamOne.toString()
+					).members
+					const teamTwoMembers = await tournament.teams.find(
+						(team) => team._id.toString() === match.teamTwo.toString()
+					).members
 
-					const teamOneLeader = await teamOneMembers.find((member) => member.role === teamRoleLeader).userId
-					const teamTwoLeader = await teamTwoMembers.find((member) => member.role === teamRoleLeader).userId
+					const teamOneLeader = await teamOneMembers.find(
+						(member) => member.role === teamRoleLeader
+					).userId
+					const teamTwoLeader = await teamTwoMembers.find(
+						(member) => member.role === teamRoleLeader
+					).userId
 					await Tickets.create({
 						subject: `Disputa match`,
 						date: new Date(),
 						tournamentId: req.params.tournamentId,
 						matchId: req.params.matchId,
-						category: 'DISPUTE',
+						category: ticketCategoryDispute,
 						userId: teamOneLeader,
 						userIdTwo: teamTwoLeader,
 						messages: [],
-						status: "NEW",
+						status: ticketStatusNew,
 					})
 				}
 			}
@@ -761,7 +751,6 @@ router.post(
 	"/:tournamentId/matches/:matchId",
 	checkJWT(),
 	[
-		param("tournamentId").custom(checkTournamentExists).bail(),
 		param("matchId").custom(checkMatchExists).bail(),
 		body("teamId")
 			.custom(checkTeamExists)
@@ -771,35 +760,23 @@ router.post(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
-				req.params.tournamentId
-			).lean()
-			const match = tournament.matches.find(
-				(match) => match._id.toString() === req.params.matchId
-			)
+			const match = await Matches.findById(req.params.matchId)
 
 			//TODO: Fix race condition
 			if (match.teamTwo)
 				return res.status(404).json({
 					errorMessage: "The match has already been accepted",
 				})
-			match.teamTwo = req.body.teamId
-			match.acceptedAt = formatISO(Date.now())
-			tournament.matches = await Promise.all(
-				tournament.matches.map(async (matchObj) => {
-					if (matchObj._id.toString() === match._id.toString()) {
-						const ruleset = await Ruleset.findById(
-							matchObj.rulesetId.toString(),
-							"bestOf maps"
-						).lean()
-						matchObj.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
-						return matchObj
-					}
-					return matchObj
-				})
-			)
+			const ruleset = await Ruleset.findById(
+				match.rulesetId.toString(),
+				"bestOf maps"
+			).lean()
+			const maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
 
-			await Tournament.replaceOne({ _id: tournament._id }, tournament)
+			await Matches.updateOne(
+				{ _id: req.params.matchId },
+				{ teamTwo: req.body.teamId, acceptedAt: formatISO(Date.now()), maps }
+			)
 			return res.status(200).json({})
 		} catch (e) {
 			next(e)
@@ -817,13 +794,16 @@ router.get(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
+			const matches = await Matches.find({
+				tournamentId: req.params.tournamentId,
+			}).lean()
 
-			const matches = await calculateMatchStatus(
-				tournament.matches,
+			const calculatedMatches = await calculateMatchStatus(
+				matches,
 				tournament.teams
 			)
 
-			return res.status(200).json(matches)
+			return res.status(200).json(calculatedMatches)
 		} catch (e) {
 			next(e)
 		}
@@ -843,9 +823,7 @@ router.get(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
-			const match = tournament.matches.find(
-				(match) => match._id.toString() === req.params.matchId
-			)
+			const match = await Matches.findById(req.params.matchId).lean()
 
 			const newMatch = await calculateMatchStatus([match], tournament.teams)
 
@@ -869,6 +847,9 @@ router.get(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
+			const matches = await Matches.find({
+				tournamentId: req.params.tournamentId,
+			}).lean()
 
 			const ruleset = await Ruleset.findById(
 				tournament.ruleset,
@@ -876,13 +857,13 @@ router.get(
 			).lean()
 
 			// Add "status" to the matches
-			const matches = await calculateMatchStatus(
-				tournament.matches,
+			const calculatedMatches = await calculateMatchStatus(
+				matches,
 				tournament.teams
 			)
 
 			// Count wins, losses and ties for each team
-			const team = await calculateTeamResults(matches, [
+			const team = await calculateTeamResults(calculatedMatches, [
 				tournament.teams.find(
 					(team) => team._id.toString() === req.params.teamId
 				),
@@ -921,26 +902,26 @@ router.get(
 	}
 )
 
-
 // Bracket tournaments are identified by "bracket"
-router.get('/brackets',
-checkJWT(),
-[
-	query("gameId")
-		.optional()
-		.isAlphanumeric()
-		.customSanitizer(convertToMongoId)
-		.custom(checkIfGameExists),
-	query("type").optional().isString().isIn(types),
-],
-checkValidation,
-async (req, res, next) => {
-	try {
-		//
-	} catch (e) {
-		next(e)
+router.get(
+	"/brackets",
+	checkJWT(),
+	[
+		query("gameId")
+			.optional()
+			.isAlphanumeric()
+			.customSanitizer(convertToMongoId)
+			.custom(checkIfGameExists),
+		query("type").optional().isString().isIn(types),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			//
+		} catch (e) {
+			next(e)
+		}
 	}
-}
 )
 
 module.exports = router

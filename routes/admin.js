@@ -14,7 +14,6 @@ const router = require("express").Router()
 const {
 	checkTournamentExists,
 	checkTeamExists,
-	checkMatchExists,
 } = require("../models/tournament/utils")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
@@ -26,12 +25,14 @@ const { matchStatusTeamOne } = require("../models/tournament/consts")
 const { matchStatusTeamTwo } = require("../models/tournament/consts")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
+const { checkMatchExists } = require("../models/match/utils")
 const { ticketCategoryDispute } = require("../models/ticket/consts")
 const { ticketStatusNew } = require("../models/ticket/consts")
 
 const Tournament = mongoose.model("Tournaments")
 const Tickets = mongoose.model("Tickets")
 const Users = mongoose.model("Users")
+const Matches = mongoose.model("Matches")
 
 const elo = new eloRank()
 
@@ -83,9 +84,13 @@ router.patch(
 	"/tournaments/:tournamentId/matches/:matchId",
 	checkJWT(userPermissionTournament),
 	[
-		param("tournamentId").custom(checkTournamentExists).bail(),
-		param("matchId").custom(checkMatchExists).bail(),
-		body("winningTeamId").custom(checkTeamExists).bail(),
+		param("tournamentId")
+			.isMongoId()
+			.bail()
+			.custom(checkTournamentExists)
+			.bail(),
+		param("matchId").isMongoId().bail().custom(checkMatchExists).bail(),
+		body("winningTeamId").isMongoId().bail().custom(checkTeamExists).bail(),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -93,9 +98,7 @@ router.patch(
 			const tournament = await Tournament.findById(
 				req.params.tournamentId
 			).lean()
-			const match = tournament.matches.find(
-				(match) => match._id.toString() === req.params.matchId
-			)
+			const match = await Matches.findById(req.params.matchId).lean()
 
 			//TODO: Fix race condition
 			if (match.teamOne.toString() === req.body.winningTeamId) {

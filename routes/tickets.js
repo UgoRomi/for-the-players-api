@@ -91,45 +91,46 @@ router.get(
 			).lean()
 
 			if (ticket.category === ticketCategoryDispute) {
-				if (ticket.matchId && ticket.tournamentId) {
-					// Getting the tournament teams and name
-					const tournament = await Tournament.findById(
-						ticket.tournamentId.toString(),
-						"teams name matches"
-					).lean()
+				// Getting the tournament teams and name
+				const tournament = await Tournament.findById(
+					ticket.tournamentId.toString(),
+					"teams name"
+				).lean()
+				const matches = await Matches.find({
+					tournamentId: ticket.tournamentId.toString(),
+				}).lean()
 
-					// Find the match to which the ticket is referring
-					const match = tournament.matches.find(
-						(match) => match._id.toString() === ticket.matchId.toString()
-					)
+				// Find the match to which the ticket is referring
+				const match = matches.find(
+					(match) => match._id.toString() === ticket.matchId.toString()
+				)
 
-					if (match) {
-						const teamOneName = tournament.teams.find(
-							(team) => team._id.toString() === match.teamOne.toString()
-						).name
-						const teamTwoName = tournament.teams.find(
-							(team) => team._id.toString() === match.teamTwo.toString()
-						).name
-						const acceptedDate = match.acceptedAt
-						ticket.tournament = {
-							name: tournament.name,
-							_id: ticket.tournamentId,
-						}
-						delete ticket.tournamentId
-						ticket.match = {
-							_id: ticket.matchId,
-							teamOne: {
-								name: teamOneName,
-								_id: match.teamOne,
-							},
-							teamTwo: {
-								name: teamTwoName,
-								_id: match.teamTwo,
-							},
-							acceptedDate,
-						}
-						delete ticket.matchId
+				if (match) {
+					const teamOneName = tournament.teams.find(
+						(team) => team._id.toString() === match.teamOne.toString()
+					).name
+					const teamTwoName = tournament.teams.find(
+						(team) => team._id.toString() === match.teamTwo.toString()
+					).name
+					const acceptedDate = match.acceptedAt
+					ticket.tournament = {
+						name: tournament.name,
+						_id: ticket.tournamentId,
 					}
+					delete ticket.tournamentId
+					ticket.match = {
+						_id: ticket.matchId,
+						teamOne: {
+							name: teamOneName,
+							_id: match.teamOne,
+						},
+						teamTwo: {
+							name: teamTwoName,
+							_id: match.teamTwo,
+						},
+						acceptedDate,
+					}
+					delete ticket.matchId
 				}
 			}
 

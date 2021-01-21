@@ -1,7 +1,6 @@
 const {
 	teamRoles,
 	types,
-	teamSubmittedResults,
 	teamRoleMember,
 } = require("./consts")
 const { Schema, model, ObjectId } = require("mongoose")
@@ -36,23 +35,6 @@ const tournamentSchema = new Schema(
 						},
 						dateJoined: { type: Date, required: true, default: Date.now() },
 						userId: { type: ObjectId, ref: "Users", required: true },
-					},
-				],
-			},
-		],
-		matches: [
-			{
-				teamOne: { type: ObjectId, required: true },
-				teamTwo: ObjectId,
-				createdAt: { type: Date, required: true, default: Date.now() },
-				acceptedAt: { type: Date },
-				numberOfPlayers: { type: Number },
-				rulesetId: { type: String },
-				teamOneResult: { type: String, enum: teamSubmittedResults },
-				teamTwoResult: { type: String, enum: teamSubmittedResults },
-				maps: [
-					{
-						type: String,
 					},
 				],
 			},
