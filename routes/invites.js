@@ -50,7 +50,16 @@ router.patch(
 						"_id": invite.tournamentId,
 						"teams._id": invite.teamId,
 					},
-					{ $push: { "teams.$.members": { userId: invite.userId } } }
+					{
+						$push: {
+							"teams.$.members": {
+								userId: invite.userId,
+								dateJoined: Date().toLocaleString("en-US", {
+									timeZone: "Europe/Rome",
+								}),
+							},
+						},
+					}
 				)
 			}
 

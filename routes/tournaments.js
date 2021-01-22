@@ -219,10 +219,17 @@ router.post(
 				})
 
 			const imageURL = await checkImgInput(req.body)
-
 			const newTeam = {
 				name: req.body.name,
-				members: [{ role: teamRoleLeader, userId: req.user.id }],
+				members: [
+					{
+						role: teamRoleLeader,
+						userId: req.user.id,
+						dateJoined: Date().toLocaleString("en-US", {
+							timeZone: "Europe/Rome",
+						}),
+					},
+				],
 				imgUrl: imageURL,
 				imgBase64: req.body.imgBase64,
 			}
@@ -651,13 +658,12 @@ router.patch(
 				(match) => match._id.toString() === req.params.matchId
 			)
 
-			//TODO: Fix race 
-			let isTeamOne = false;
-			if (match.teamOne.toString() === req.body.teamId){
-				match.teamOneResult = req.body.result;
-				isTeamOne = true;
-			}
-			else if (match.teamTwo.toString() === req.body.teamId)
+			//TODO: Fix race
+			let isTeamOne = false
+			if (match.teamOne.toString() === req.body.teamId) {
+				match.teamOneResult = req.body.result
+				isTeamOne = true
+			} else if (match.teamTwo.toString() === req.body.teamId)
 				match.teamTwoResult = req.body.result
 			else
 				return res.status(404).json({
@@ -728,19 +734,27 @@ router.patch(
 								break
 						}
 					}
-				}else{
+				} else {
 					// Disputa
-					const teamOneMembers =  await tournament.teams.find((team) => team._id.toString() === match.teamOne.toString()).members
-					const teamTwoMembers =  await tournament.teams.find((team) => team._id.toString() === match.teamTwo.toString()).members
+					const teamOneMembers = await tournament.teams.find(
+						(team) => team._id.toString() === match.teamOne.toString()
+					).members
+					const teamTwoMembers = await tournament.teams.find(
+						(team) => team._id.toString() === match.teamTwo.toString()
+					).members
 
-					const teamOneLeader = await teamOneMembers.find((member) => member.role === teamRoleLeader).userId
-					const teamTwoLeader = await teamTwoMembers.find((member) => member.role === teamRoleLeader).userId
+					const teamOneLeader = await teamOneMembers.find(
+						(member) => member.role === teamRoleLeader
+					).userId
+					const teamTwoLeader = await teamTwoMembers.find(
+						(member) => member.role === teamRoleLeader
+					).userId
 					await Tickets.create({
 						subject: `Disputa match`,
 						date: new Date(),
 						tournamentId: req.params.tournamentId,
 						matchId: req.params.matchId,
-						category: 'DISPUTE',
+						category: "DISPUTE",
 						userId: teamOneLeader,
 						userIdTwo: teamTwoLeader,
 						messages: [],
@@ -921,26 +935,26 @@ router.get(
 	}
 )
 
-
 // Bracket tournaments are identified by "bracket"
-router.get('/brackets',
-checkJWT(),
-[
-	query("gameId")
-		.optional()
-		.isAlphanumeric()
-		.customSanitizer(convertToMongoId)
-		.custom(checkIfGameExists),
-	query("type").optional().isString().isIn(types),
-],
-checkValidation,
-async (req, res, next) => {
-	try {
-		//
-	} catch (e) {
-		next(e)
+router.get(
+	"/brackets",
+	checkJWT(),
+	[
+		query("gameId")
+			.optional()
+			.isAlphanumeric()
+			.customSanitizer(convertToMongoId)
+			.custom(checkIfGameExists),
+		query("type").optional().isString().isIn(types),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			//
+		} catch (e) {
+			next(e)
+		}
 	}
-}
 )
 
 module.exports = router

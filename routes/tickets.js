@@ -46,7 +46,6 @@ router.post(
 			]
 
 			const user = await Users.findById(req.user.id.toString()).lean()
-
 			await Tickets.create({
 				subject,
 				tournamentId,
