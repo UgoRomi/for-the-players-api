@@ -1249,9 +1249,6 @@ paths:
                           maxLength: 24
                         username:
                           type: string
-                  status:
-                    type: boolean
-                    description: If the team can play the tournament in its current state
                   wins:
                     type: integer
                     description: The total wins for this team in this tournament

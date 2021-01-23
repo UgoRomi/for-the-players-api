@@ -5,8 +5,6 @@ const {
 } = require("../models/user/utils")
 const {
 	types,
-	teamStatusNotOk,
-	teamStatusOk,
 	updateMatchActions,
 } = require("../models/tournament/consts")
 const { teamRoleLeader } = require("../models/team/consts")
@@ -828,20 +826,12 @@ router.get(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournaments.findById(
-				req.params.tournamentId
-			).lean()
 			const matches = await Matches.find({
 				tournamentId: req.params.tournamentId,
 			}).lean()
 			const teams = await Teans.find({
 				tournamentId: req.params.tournamentId,
 			}).lean()
-
-			const ruleset = await Rulesets.findById(
-				tournament.ruleset,
-				"maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam"
-			).lean()
 
 			// Add "status" to the matches
 			const calculatedMatches = await calculateMatchStatus(matches, teams)
@@ -868,11 +858,6 @@ router.get(
 				name: calculatedTeam.name,
 				members: calculatedTeam.members,
 				invites: calculatedTeam.invites,
-				status:
-					calculatedTeam.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
-					calculatedTeam.members.length >= ruleset.minNumberOfPlayersPerTeam
-						? teamStatusOk
-						: teamStatusNotOk,
 				wins: calculatedTeam.wins,
 				ties: calculatedTeam.ties,
 				losses: calculatedTeam.losses,
