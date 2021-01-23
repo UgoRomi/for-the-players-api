@@ -6,7 +6,6 @@ const bcrypt = require("bcrypt")
 const { checkUniqueUsername } = require("../models/user/utils")
 const { body } = require("express-validator")
 const { isLoggedInUser } = require("../models/user/utils")
-const { teamStatusOk, teamStatusNotOk } = require("../models/tournament/consts")
 const { userExistsById } = require("../models/user/utils")
 const { isBefore, startOfToday } = require("date-fns")
 
@@ -15,7 +14,6 @@ const Tournaments = mongoose.model("Tournaments")
 const Invites = mongoose.model("Invites")
 const Games = mongoose.model("Games")
 const Platforms = mongoose.model("Platforms")
-const Rulesets = mongoose.model("Rulesets")
 const Teams = mongoose.model("Teams")
 
 router.get(
@@ -73,7 +71,7 @@ router.get(
 			).lean()
 
 			const userTeams = await Teams.find({
-				members: { userId: req.params.userId },
+				members: { $elemMatch: { userId: req.params.userId } },
 			}).lean()
 			const userTournaments = await Tournaments.find({
 				_id: { $in: userTeams.map((team) => team.tournamentId) },
@@ -93,25 +91,10 @@ router.get(
 					const finished = isBefore(startOfToday(), userTournament.endsOn)
 
 					// Get the team the user is a part of
-					const userTeam = userTournament.teams.find((team) =>
-						team.members.some(
-							(member) => member.userId.toString() === req.params.userId
-						)
+					const userTeam = userTeams.find(
+						(team) =>
+							team.tournamentId.toString() === userTournament._id.toString()
 					)
-
-					const ruleset = await Promise.all(
-						userTournament.ruleset.map(async (ruleset) => {
-							return await Rulesets.findById(
-								ruleset,
-								"maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam"
-							).lean()
-						})
-					)
-					const teamStatus =
-						userTeam.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
-						userTeam.members.length >= ruleset.minNumberOfPlayersPerTeam
-							? teamStatusOk
-							: teamStatusNotOk
 
 					return {
 						_id,
@@ -122,7 +105,6 @@ router.get(
 						type,
 						team: {
 							name: userTeam.name,
-							teamStatus,
 						},
 					}
 				})

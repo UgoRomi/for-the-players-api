@@ -597,8 +597,6 @@ paths:
                             name:
                               type: string
                               description: The team's name
-                            teamStatus:
-                              $ref: "#/components/schemas/TeamStatuses"
                   invites:
                     type: array
                     description: List of invites the user has received
