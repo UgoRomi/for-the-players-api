@@ -2,7 +2,7 @@ const { Schema, model, ObjectId } = require("mongoose")
 const { teamSubmittedResults } = require("./consts")
 
 const matchSchema = new Schema({
-	tournamentId: { type: ObjectId, ref: "Tournaments" },
+	tournamentId: { type: ObjectId, ref: "Tournaments", required: true },
 	teamOne: { type: ObjectId, required: true },
 	teamTwo: ObjectId,
 	createdAt: { type: Date, required: true, default: Date.now() },

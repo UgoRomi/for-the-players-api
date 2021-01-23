@@ -1,7 +1,3 @@
-const teamRoleMember = "MEMBER"
-const teamRoleLeader = "LEADER"
-const teamRoles = [teamRoleMember, teamRoleLeader]
-
 const tournamentType = "TOURNAMENT"
 const ladderType = "LADDER"
 const types = [tournamentType, ladderType]
@@ -30,9 +26,6 @@ const teamStatusNotOk = "NOT OK"
 const secondsToAcceptLadderMatch = 15 * 60
 
 module.exports = {
-	teamRoleMember,
-	teamRoleLeader,
-	teamRoles,
 	tournamentType,
 	ladderType,
 	types,

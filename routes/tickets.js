@@ -11,8 +11,9 @@ const { userPermissionTicket } = require("../models/user/consts")
 const { ticketStatusNew } = require("../models/ticket/consts")
 
 const Tickets = mongoose.model("Tickets")
-const Tournament = mongoose.model("Tournaments")
+const Tournaments = mongoose.model("Tournaments")
 const Users = mongoose.model("Users")
+const Teams = mongoose.model("Teams")
 
 router.post(
 	"/",
@@ -92,26 +93,21 @@ router.get(
 
 			if (ticket.category === ticketCategoryDispute) {
 				// Getting the tournament teams and name
-				const tournament = await Tournament.findById(
+				const tournament = await Tournaments.findById(
 					ticket.tournamentId.toString(),
-					"teams name"
+					"name"
 				).lean()
-				const matches = await Matches.find({
-					tournamentId: ticket.tournamentId.toString(),
-				}).lean()
-
-				// Find the match to which the ticket is referring
-				const match = matches.find(
-					(match) => match._id.toString() === ticket.matchId.toString()
-				)
+				const match = await Matches.findById(ticket.matchId.toString()).lean()
+				const teamOne = await Teams.findById(
+					match.teamOne.toString(),
+					"name"
+				).lean()
+				const teamTwo = await Teams.findById(
+					match.teamTwo.toString(),
+					"name"
+				).lean()
 
 				if (match) {
-					const teamOneName = tournament.teams.find(
-						(team) => team._id.toString() === match.teamOne.toString()
-					).name
-					const teamTwoName = tournament.teams.find(
-						(team) => team._id.toString() === match.teamTwo.toString()
-					).name
 					const acceptedDate = match.acceptedAt
 					ticket.tournament = {
 						name: tournament.name,
@@ -121,12 +117,12 @@ router.get(
 					ticket.match = {
 						_id: ticket.matchId,
 						teamOne: {
-							name: teamOneName,
-							_id: match.teamOne,
+							name: teamOne.name,
+							_id: teamOne._id,
 						},
 						teamTwo: {
-							name: teamTwoName,
-							_id: match.teamTwo,
+							name: teamTwo.name,
+							_id: teamTwo._id,
 						},
 						acceptedDate,
 					}

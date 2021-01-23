@@ -4,17 +4,14 @@ const {
 } = require("../models/user/consts")
 const { userExistsById, checkUserEmailInUse } = require("../models/user/utils")
 const {
-	teamRoleLeader,
 	teamSubmittedMatchResultWin,
 	teamSubmittedMatchResultLoss,
 } = require("../models/tournament/consts")
 const { body, param } = require("express-validator")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
-const {
-	checkTournamentExists,
-	checkTeamExists,
-} = require("../models/tournament/utils")
+const { checkTournamentExists } = require("../models/tournament/utils")
+const { checkTeamExists } = require("../models/team/utils")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
 const { calculateMatchStatus } = require("../models/tournament/utils")
@@ -25,14 +22,17 @@ const { matchStatusTeamOne } = require("../models/tournament/consts")
 const { matchStatusTeamTwo } = require("../models/tournament/consts")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
+const { disputeTicketDefaultSubject } = require("../models/ticket/consts")
+const { matchStatusDispute } = require("../models/tournament/consts")
 const { checkMatchExists } = require("../models/match/utils")
 const { ticketCategoryDispute } = require("../models/ticket/consts")
 const { ticketStatusNew } = require("../models/ticket/consts")
 
-const Tournament = mongoose.model("Tournaments")
+const Tournaments = mongoose.model("Tournaments")
 const Tickets = mongoose.model("Tickets")
 const Users = mongoose.model("Users")
 const Matches = mongoose.model("Matches")
+const Teams = mongoose.model("Teams")
 
 const elo = new eloRank()
 
@@ -95,118 +95,106 @@ router.patch(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
-				req.params.tournamentId
+			const tournament = await Tournaments.findById(
+				req.params.tournamentId,
+				"type"
 			).lean()
 			const match = await Matches.findById(req.params.matchId).lean()
+			const teamOne = await Teams.findById(match.teamOne.toString()).lean()
+			const teamTwo = await Teams.findById(match.teamTwo.toString()).lean()
+			const teams = [teamOne, teamTwo]
 
-			//TODO: Fix race condition
-			if (match.teamOne.toString() === req.body.winningTeamId) {
-				match.teamOneResult = teamSubmittedMatchResultWin
-				match.teamTwoResult = teamSubmittedMatchResultLoss
-			} else if (match.teamTwo.toString() === req.body.winningTeamId) {
-				match.teamOneResult = teamSubmittedMatchResultLoss
-				match.teamTwoResult = teamSubmittedMatchResultWin
-			} else {
+			if (
+				![match.teamOne.toString(), match.teamTwo.toString()].includes(
+					req.body.winningTeamId
+				)
+			)
 				return res.status(404).json({
 					errorMessage: "This team isn't in this match",
 				})
-			}
 
-			if (match.teamOneResult && match.teamTwoResult) {
-				const matchesStatus = await calculateMatchStatus(
-					[match],
-					tournament.teams
-				)
-				const matchStatus = matchesStatus[0].status
+			const teamOneWon = match.teamOne.toString() === req.body.winningTeamId
+			match.teamOneResult = teamOneWon
+				? teamSubmittedMatchResultWin
+				: teamSubmittedMatchResultLoss
+			match.teamTwoResult = teamOneWon
+				? teamSubmittedMatchResultLoss
+				: teamSubmittedMatchResultWin
 
-				// Only update elo or points if both teams have posted results and there's no dispute
-				if (
-					matchStatus === matchStatusTeamOne ||
-					matchStatus === matchStatusTeamTwo ||
-					matchStatus === matchStatusTie
-				) {
-					const teams = tournament.teams.filter(
-						(team) =>
-							team._id.toString() === match.teamOne.toString() ||
-							team._id.toString() === match.teamTwo.toString()
-					)
-					const teamOne = teams.find(
-						(team) => team._id.toString() === match.teamOne.toString()
-					)
-					const teamTwo = teams.find(
-						(team) => team._id.toString() === match.teamTwo.toString()
-					)
-					// Elo doesn't update in case of a tie
-					if (
-						tournament.type === ladderType &&
-						matchStatus !== matchStatusTie
-					) {
-						const expectedScoreTeamOne = elo.getExpected(
-							teamOne.elo,
-							teamTwo.elo
-						)
-						const expectedScoreTeamTwo = elo.getExpected(
-							teamTwo.elo,
-							teamOne.elo
-						)
+			const matchesStatus = await calculateMatchStatus([match], teams)
+			const matchStatus = matchesStatus[0].status
+			await Matches.replaceOne({ _id: match._id.toString() }, match)
 
-						// +true equals 1
-						// +false equals 0
-						teamOne.elo = elo.updateRating(
-							expectedScoreTeamOne,
-							+(matchStatus === matchStatusTeamOne),
-							teamOne.elo
-						)
-						teamTwo.elo = elo.updateRating(
-							expectedScoreTeamTwo,
-							+(matchStatus === matchStatusTeamTwo),
-							teamTwo.elo
-						)
-					} else {
-						switch (matchStatus) {
-							case matchStatusTie:
-								teamOne.points += 1
-								teamTwo.points += 1
-								break
-							case matchStatusTeamOne:
-								teamOne.points += 3
-								break
-							case matchStatusTeamTwo:
-								teamTwo.points += 3
-								break
-						}
-					}
+			// Only update elo or points if both teams have posted results and there's no dispute
+			if (matchStatus === matchStatusDispute) {
+				// Dispute
+				await Tickets.create({
+					subject: disputeTicketDefaultSubject,
+					date: new Date(),
+					tournamentId: req.params.tournamentId,
+					matchId: req.params.matchId,
+					category: ticketCategoryDispute,
+					messages: [],
+					status: ticketStatusNew,
+				})
+			} else {
+				// Elo doesn't update in case of a tie
+				if (tournament.type === ladderType && matchStatus !== matchStatusTie) {
+					// UPDATE ELO
+					const expectedScoreTeamOne = elo.getExpected(teamOne.elo, teamTwo.elo)
+					const expectedScoreTeamTwo = elo.getExpected(teamTwo.elo, teamOne.elo)
+
+					// +true equals 1
+					// +false equals 0
+
+					// Update teamOne
+					const teamOneNewElo = elo.updateRating(
+						expectedScoreTeamOne,
+						+(matchStatus === matchStatusTeamOne),
+						teamOne.elo
+					)
+					await Teams.updateOne(
+						{ _id: teamOne.toString() },
+						{ elo: teamOneNewElo }
+					)
+
+					// Update teamTwo
+					const teamTwoNewElo = elo.updateRating(
+						expectedScoreTeamTwo,
+						+(matchStatus === matchStatusTeamTwo),
+						teamTwo.elo
+					)
+					await Teams.updateOne(
+						{ _id: teamTwo.toString() },
+						{ elo: teamTwoNewElo }
+					)
 				} else {
-					// Disputa
-					const teamOneMembers = await tournament.teams.find(
-						(team) => team._id.toString() === match.teamOne.toString()
-					).members
-					const teamTwoMembers = await tournament.teams.find(
-						(team) => team._id.toString() === match.teamTwo.toString()
-					).members
-
-					const teamOneLeader = await teamOneMembers.find(
-						(member) => member.role === teamRoleLeader
-					).userId
-					const teamTwoLeader = await teamTwoMembers.find(
-						(member) => member.role === teamRoleLeader
-					).userId
-					await Tickets.create({
-						subject: `Disputa match`,
-						date: new Date(),
-						tournamentId: req.params.tournamentId,
-						matchId: req.params.matchId,
-						category: ticketCategoryDispute,
-						userId: teamOneLeader,
-						userIdTwo: teamTwoLeader,
-						messages: [],
-						status: ticketStatusNew,
-					})
+					// UPDATE POINTS
+					let teamOnePoints = teamOne.points
+					let teamTwoPoints = teamTwo.points
+					switch (matchStatus) {
+						case matchStatusTie:
+							teamOnePoints += 1
+							teamTwoPoints += 1
+							break
+						case matchStatusTeamOne:
+							teamOnePoints += 3
+							break
+						case matchStatusTeamTwo:
+							teamTwoPoints += 3
+							break
+					}
+					await Teams.updateOne(
+						{ _id: teamOne.toString() },
+						{ points: teamOnePoints }
+					)
+					await Teams.updateOne(
+						{ _id: teamTwo.toString() },
+						{ points: teamTwoPoints }
+					)
 				}
 			}
 
-			await Tournament.replaceOne({ _id: tournament._id }, tournament)
 			return res.status(200).json({})
 		} catch (e) {
 			next(e)

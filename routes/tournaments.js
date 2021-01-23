@@ -5,11 +5,11 @@ const {
 } = require("../models/user/utils")
 const {
 	types,
-	teamRoleLeader,
 	teamStatusNotOk,
 	teamStatusOk,
 	updateMatchActions,
 } = require("../models/tournament/consts")
+const { teamRoleLeader } = require("../models/team/consts")
 const { teamSubmittedResults } = require("../models/match/consts")
 const { teamInvitePending } = require("../models/invite/consts")
 const { body, query, param } = require("express-validator")
@@ -18,15 +18,17 @@ const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
 const {
 	checkUniqueName,
-	checkTeamNameInTournament,
 	checkTournamentExists,
+} = require("../models/tournament/utils")
+const { checkTeamHasOngoingMatches } = require("../models/match/utils")
+const {
+	checkTeamNameInTournament,
 	checkTeamExists,
+	checkUserIsLeaderInTeam,
 	userNotInATeam,
 	userIsLeader,
-	checkTeamHasOngoingMatches,
-	checkUserIsLeaderInTeam,
 	userIsLeaderMiddleware,
-} = require("../models/tournament/utils")
+} = require("../models/team/utils")
 const mongoose = require("mongoose")
 const { calculateMatchStatus } = require("../models/tournament/utils")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
@@ -42,19 +44,22 @@ const { ladderType } = require("../models/tournament/consts")
 const { matchStatusTeamOne } = require("../models/tournament/consts")
 const { matchStatusTeamTwo } = require("../models/tournament/consts")
 const _ = require("lodash")
+const { disputeTicketDefaultSubject } = require("../models/ticket/consts")
+const { matchStatusDispute } = require("../models/tournament/consts")
 const { ticketStatusNew } = require("../models/ticket/consts")
 const { ticketCategoryDispute } = require("../models/ticket/consts")
 const { checkMatchExists } = require("../models/match/utils")
-const { teamRoleMember } = require("../models/tournament/consts")
+const { teamRoleMember } = require("../models/team/consts")
 const { calculateTeamResults } = require("../models/tournament/utils")
 
-const Tournament = mongoose.model("Tournaments")
-const Ruleset = mongoose.model("Rulesets")
-const Game = mongoose.model("Games")
-const Invite = mongoose.model("Invites")
+const Tournaments = mongoose.model("Tournaments")
+const Rulesets = mongoose.model("Rulesets")
+const Games = mongoose.model("Games")
+const Invites = mongoose.model("Invites")
 const Users = mongoose.model("Users")
 const Tickets = mongoose.model("Tickets")
 const Matches = mongoose.model("Matches")
+const Teams = mongoose.model("Teams")
 
 const elo = new eloRank()
 
@@ -110,7 +115,7 @@ router.post(
 
 			const imageURL = await checkImgInput(req.body)
 
-			await Tournament.create({
+			await Tournaments.create({
 				name,
 				game,
 				platform,
@@ -149,17 +154,22 @@ router.get(
 			if (req.query.gameId) findQuery.game = req.query.gameId
 			if (req.query.type) findQuery.type = req.query.type
 
-			const tournaments = await Tournament.find(findQuery).lean()
+			const tournaments = await Tournaments.find(findQuery).lean()
 			const result = await Promise.all(
 				tournaments.map(async (tournament) => {
 					const { name, startsOn, endsOn, type, imgUrl } = tournament
 
+					const teams = await Teams.find({
+						tournamentId: tournament._id.toString(),
+					}).lean()
 					const rulesetDoc = await Promise.all(
 						tournament.ruleset.map(async (ruleset) => {
-							return await Ruleset.findById(ruleset).lean()
+							return await Rulesets.findById(ruleset).lean()
 						})
 					)
-					const gameDoc = await Game.findById(tournament.game.toString()).lean()
+					const gameDoc = await Games.findById(
+						tournament.game.toString()
+					).lean()
 					return {
 						name,
 						id: tournament._id,
@@ -167,7 +177,7 @@ router.get(
 						endsOn,
 						ruleset: rulesetDoc?.name,
 						type,
-						numberOfTeams: tournament.teams.length,
+						numberOfTeams: teams.length,
 						imgUrl,
 						game: gameDoc.name,
 						open: tournament.open,
@@ -204,15 +214,14 @@ router.post(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
+			const tournament = await Tournaments.findById(
 				req.params.tournamentId
 			).lean()
 			if (
-				tournament.teams.some((tournament) =>
-					tournament.members.some(
-						(member) => member.userId.toString() === req.user.id
-					)
-				)
+				await Teams.findOne({
+					tournamentId: req.params.tournamentId,
+					members: { userId: req.user.id },
+				}).lean()
 			)
 				return res.status(400).json({
 					value: "userId",
@@ -231,9 +240,7 @@ router.post(
 			}
 			if (tournament.type === ladderType) newTeam.elo = 1500
 			else newTeam.points = 0
-			await Tournament.findByIdAndUpdate(req.params.tournamentId, {
-				$push: { teams: newTeam },
-			})
+			await Teams.create(newTeam)
 			return res
 				.status(201)
 				.json({ msg: `${req.body.name} added to tournament` })
@@ -250,33 +257,30 @@ router.get(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
+			const tournament = await Tournaments.findById(
 				req.params.tournamentId
 			).lean()
 			const matches = await Matches.find({
 				tournamentId: req.params.tournamentId,
 			}).lean()
+			const teams = await Teams.find({
+				tournamentId: req.params.tournamentId,
+			}).lean()
 
 			const ruleset = await Promise.all(
 				tournament.ruleset.map(async (ruleset) => {
-					return await Ruleset.findById(ruleset).lean()
+					return await Rulesets.findById(ruleset).lean()
 				})
 			)
 			// Add "status" to the matches
-			const calculatedMatches = await calculateMatchStatus(
-				matches,
-				tournament.teams
-			)
+			const calculatedMatches = await calculateMatchStatus(matches, teams)
 
 			// Count wins, losses and ties for each team
-			let teams = await calculateTeamResults(
-				calculatedMatches,
-				tournament.teams
-			)
+			let calculatedTeams = await calculateTeamResults(calculatedMatches, teams)
 
 			//TODO: It does a shit ton of queries
-			teams = await Promise.all(
-				teams.map(async (team) => {
+			calculatedTeams = await Promise.all(
+				calculatedTeams.map(async (team) => {
 					team.members = await Promise.all(
 						team.members.map(async (member) => {
 							const user = await Users.findById(
@@ -294,7 +298,7 @@ router.get(
 			)
 
 			// Get the team the user is a part of, if it exists
-			const userTeam = teams.find((team) =>
+			const userTeam = calculatedTeams.find((team) =>
 				team.members.some((member) => member.userId.toString() === req.user.id)
 			)
 			// Check if the team the user is a part of can play in the tournament
@@ -322,7 +326,7 @@ router.get(
 				ruleset: ruleset,
 				type: tournament.type,
 				// Remove the team the user is a part of, if present
-				teams: teams,
+				teams: calculatedTeams,
 				userTeam,
 				imgUrl: tournament.imgUrl,
 				game: tournament.game,
@@ -335,6 +339,9 @@ router.get(
 	}
 )
 
+/**
+ * Update a single team
+ */
 router.patch(
 	"/:tournamentId/teams/:teamId",
 	checkJWT(),
@@ -362,12 +369,7 @@ router.patch(
 				})
 
 			// TODO: Fix race condition
-			const tournament = await Tournament.findById(
-				req.params.tournamentId
-			).lean()
-			const teamToUpdate = tournament.teams.find(
-				(team) => team._id.toString() === req.params.teamId
-			)
+			const teamToUpdate = await Teams.findById(req.params.teamId).lean()
 			// Update team image
 			if (req.body.imgBase64 || req.body.imgUrl)
 				teamToUpdate.imgUrl = await checkImgInput(req.body)
@@ -394,17 +396,11 @@ router.patch(
 				})
 			}
 
-			tournament.teams = tournament.teams.map((team) => {
-				if (team._id.toString() === teamToUpdate._id.toString())
-					return teamToUpdate
-				return team
-			})
-
-			await Tournament.findOneAndReplace(
+			await Teams.updateOne(
 				{
-					_id: req.params.tournamentId,
+					_id: req.params.teamId,
 				},
-				tournament
+				teamToUpdate
 			)
 
 			return res.status(200).json()
@@ -414,6 +410,9 @@ router.patch(
 	}
 )
 
+/**
+ * Remove a team from a tournament
+ */
 router.delete(
 	"/:tournamentId/teams/:teamId",
 	checkJWT(),
@@ -439,10 +438,7 @@ router.delete(
 					errorMessage: "You need to be a leader to delete a team",
 				})
 
-			await Tournament.findOneAndUpdate(
-				{ _id: req.params.tournamentId },
-				{ $pull: { teams: { _id: req.params.teamId } } }
-			)
+			await Teams.deleteOne({ _id: req.params.teamId })
 
 			return res.status(200).json()
 		} catch (e) {
@@ -451,20 +447,20 @@ router.delete(
 	}
 )
 
+/**
+ * Invite a user to a team
+ */
 router.post(
 	"/:tournamentId/teams/:teamId/invites",
 	checkJWT(),
 	[
 		param("tournamentId")
-			.customSanitizer(convertToMongoId)
+			.isMongoId()
 			.bail()
 			.custom(checkTournamentExists)
 			.bail(),
-		param("teamId")
-			.customSanitizer(convertToMongoId)
-			.bail()
-			.custom(checkTeamExists),
-		body("userId").bail().custom(userExistsById).custom(userNotInATeam),
+		param("teamId").isMongoId().bail().custom(checkTeamExists),
+		body("userId").isMongoId().custom(userExistsById).custom(userNotInATeam),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -474,22 +470,15 @@ router.post(
 					.status(422)
 					.json({ errorMessage: "The user tried to invite himself" })
 
-			const tournament = await Tournament.findById(
-				req.params.tournamentId
-			).lean()
-			const { teams } = tournament
-
-			const userTeam = teams.find(
-				(team) => team._id.toString() === req.params.teamId.toString()
-			)
+			const userTeam = await Teams.findById(req.params.teamId, "members").lean()
 
 			// Check that the user is in the team and is a leader
 			if (
-				!userTeam.members.some(
-					(member) =>
-						member.userId.toString() === req.user.id &&
-						member.role === teamRoleLeader
-				)
+				!(await userIsLeader(
+					userTeam._id,
+					req.params.tournamentId,
+					req.user.id
+				))
 			) {
 				return res
 					.status(403)
@@ -498,7 +487,7 @@ router.post(
 
 			// Check if invited user already has an invite pending
 			if (
-				await Invite.findOne({
+				await Invites.findOne({
 					userId: req.body.userId,
 					teamId: userTeam._id.toString(),
 					status: teamInvitePending,
@@ -507,7 +496,7 @@ router.post(
 				return res
 					.status(403)
 					.json({ errorMessage: "The user has already been invited" })
-			await Invite.create({
+			await Invites.create({
 				userId: req.body.userId,
 				tournamentId: tournament._id.toString(),
 				teamId: userTeam._id.toString(),
@@ -536,7 +525,7 @@ router.post(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
+			const tournament = await Tournaments.findById(
 				req.params.tournamentId
 			).lean()
 			const matches = await Matches.find({
@@ -560,7 +549,7 @@ router.post(
 				)
 				matchToUpdate.teamTwo = req.body.teamId
 				matchToUpdate.acceptedAt = formatISO(Date.now())
-				const ruleset = await Ruleset.findById(
+				const ruleset = await Rulesets.findById(
 					req.body.rulesetId,
 					"bestOf maps"
 				).lean()
@@ -631,10 +620,14 @@ router.patch(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
-				req.params.tournamentId
+			const tournament = await Tournaments.findById(
+				req.params.tournamentId,
+				"type"
 			).lean()
 			const match = await Matches.findById(req.params.matchId).lean()
+			const teamOne = await Teams.findById(match.teamOne.toString()).lean()
+			const teamTwo = await Teams.findById(match.teamTwo.toString()).lean()
+			const teams = [teamOne, teamTwo]
 
 			//TODO: Fix race
 			if (match.teamOne.toString() === req.body.teamId)
@@ -646,100 +639,86 @@ router.patch(
 					errorMessage: "This team isn't in this match",
 				})
 
-			if (match.teamOneResult && match.teamTwoResult) {
-				const matchesStatus = await calculateMatchStatus(
-					[match],
-					tournament.teams
-				)
-				const matchStatus = matchesStatus[0].status
+			// If only one team posted the result just insert it and return
+			if (!match.teamOneResult || !match.teamTwoResult) {
+				await Matches.replaceOne({ _id: match._id }, match)
+				return res.status(200).json({})
+			}
 
-				// Only update elo or points if both teams have posted results and there's no dispute
-				if (
-					matchStatus === matchStatusTeamOne ||
-					matchStatus === matchStatusTeamTwo ||
-					matchStatus === matchStatusTie
-				) {
-					const teams = tournament.teams.filter(
-						(team) =>
-							team._id.toString() === match.teamOne.toString() ||
-							team._id.toString() === match.teamTwo.toString()
-					)
-					const teamOne = teams.find(
-						(team) => team._id.toString() === match.teamOne.toString()
-					)
-					const teamTwo = teams.find(
-						(team) => team._id.toString() === match.teamTwo.toString()
-					)
-					// Elo doesn't update in case of a tie
-					if (
-						tournament.type === ladderType &&
-						matchStatus !== matchStatusTie
-					) {
-						const expectedScoreTeamOne = elo.getExpected(
-							teamOne.elo,
-							teamTwo.elo
-						)
-						const expectedScoreTeamTwo = elo.getExpected(
-							teamTwo.elo,
-							teamOne.elo
-						)
+			// If both teams posted the result check if it's not a dispute and update points/elo accordingly
+			const matchesStatus = await calculateMatchStatus([match], teams)
+			const matchStatus = matchesStatus[0].status
 
-						// +true equals 1
-						// +false equals 0
-						teamOne.elo = elo.updateRating(
-							expectedScoreTeamOne,
-							+(matchStatus === matchStatusTeamOne),
-							teamOne.elo
-						)
-						teamTwo.elo = elo.updateRating(
-							expectedScoreTeamTwo,
-							+(matchStatus === matchStatusTeamTwo),
-							teamTwo.elo
-						)
-					} else {
-						switch (matchStatus) {
-							case matchStatusTie:
-								teamOne.points += 1
-								teamOne.points += 1
-								break
-							case matchStatusTeamOne:
-								teamOne.points += 3
-								break
-							case matchStatusTeamTwo:
-								teamTwo.points += 3
-								break
-						}
-					}
+			// Only update elo or points if both teams have posted results and there's no dispute
+			if (matchStatus === matchStatusDispute) {
+				// Dispute
+				await Tickets.create({
+					subject: disputeTicketDefaultSubject,
+					date: new Date(),
+					tournamentId: req.params.tournamentId,
+					matchId: req.params.matchId,
+					category: ticketCategoryDispute,
+					messages: [],
+					status: ticketStatusNew,
+				})
+			} else {
+				// Elo doesn't update in case of a tie
+				if (tournament.type === ladderType && matchStatus !== matchStatusTie) {
+					// UPDATE ELO
+					const expectedScoreTeamOne = elo.getExpected(teamOne.elo, teamTwo.elo)
+					const expectedScoreTeamTwo = elo.getExpected(teamTwo.elo, teamOne.elo)
+
+					// +true equals 1
+					// +false equals 0
+
+					// Update teamOne
+					const teamOneNewElo = elo.updateRating(
+						expectedScoreTeamOne,
+						+(matchStatus === matchStatusTeamOne),
+						teamOne.elo
+					)
+					await Teams.updateOne(
+						{ _id: teamOne.toString() },
+						{ elo: teamOneNewElo }
+					)
+
+					// Update teamTwo
+					const teamTwoNewElo = elo.updateRating(
+						expectedScoreTeamTwo,
+						+(matchStatus === matchStatusTeamTwo),
+						teamTwo.elo
+					)
+					await Teams.updateOne(
+						{ _id: teamTwo.toString() },
+						{ elo: teamTwoNewElo }
+					)
 				} else {
-					// Disputa
-					const teamOneMembers = await tournament.teams.find(
-						(team) => team._id.toString() === match.teamOne.toString()
-					).members
-					const teamTwoMembers = await tournament.teams.find(
-						(team) => team._id.toString() === match.teamTwo.toString()
-					).members
-
-					const teamOneLeader = await teamOneMembers.find(
-						(member) => member.role === teamRoleLeader
-					).userId
-					const teamTwoLeader = await teamTwoMembers.find(
-						(member) => member.role === teamRoleLeader
-					).userId
-					await Tickets.create({
-						subject: `Disputa match`,
-						date: new Date(),
-						tournamentId: req.params.tournamentId,
-						matchId: req.params.matchId,
-						category: ticketCategoryDispute,
-						userId: teamOneLeader,
-						userIdTwo: teamTwoLeader,
-						messages: [],
-						status: ticketStatusNew,
-					})
+					// UPDATE POINTS
+					let teamOnePoints = teamOne.points
+					let teamTwoPoints = teamTwo.points
+					switch (matchStatus) {
+						case matchStatusTie:
+							teamOnePoints += 1
+							teamTwoPoints += 1
+							break
+						case matchStatusTeamOne:
+							teamOnePoints += 3
+							break
+						case matchStatusTeamTwo:
+							teamTwoPoints += 3
+							break
+					}
+					await Teams.updateOne(
+						{ _id: teamOne.toString() },
+						{ points: teamOnePoints }
+					)
+					await Teams.updateOne(
+						{ _id: teamTwo.toString() },
+						{ points: teamTwoPoints }
+					)
 				}
 			}
 
-			await Tournament.replaceOne({ _id: tournament._id }, tournament)
 			return res.status(200).json({})
 		} catch (e) {
 			next(e)
@@ -767,7 +746,7 @@ router.post(
 				return res.status(404).json({
 					errorMessage: "The match has already been accepted",
 				})
-			const ruleset = await Ruleset.findById(
+			const ruleset = await Rulesets.findById(
 				match.rulesetId.toString(),
 				"bestOf maps"
 			).lean()
@@ -784,24 +763,24 @@ router.post(
 	}
 )
 
+/**
+ * Get all the matches in a tournament
+ */
 router.get(
 	"/:tournamentId/matches",
 	checkJWT(),
-	[param("tournamentId").custom(checkTournamentExists).bail()],
+	[param("tournamentId").isMongoId().custom(checkTournamentExists)],
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
-				req.params.tournamentId
-			).lean()
 			const matches = await Matches.find({
 				tournamentId: req.params.tournamentId,
 			}).lean()
+			const teams = await Teams.find({
+				tournamentId: req.params.tournamentId,
+			}).lean()
 
-			const calculatedMatches = await calculateMatchStatus(
-				matches,
-				tournament.teams
-			)
+			const calculatedMatches = await calculateMatchStatus(matches, teams)
 
 			return res.status(200).json(calculatedMatches)
 		} catch (e) {
@@ -820,12 +799,12 @@ router.get(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
-				req.params.tournamentId
-			).lean()
 			const match = await Matches.findById(req.params.matchId).lean()
+			const teams = await Teams.find({
+				$or: [{ _id: match.teamOne }, { _id: match.teamTwo }],
+			})
 
-			const newMatch = await calculateMatchStatus([match], tournament.teams)
+			const newMatch = await calculateMatchStatus([match], teams)
 
 			return res.status(200).json(newMatch[0])
 		} catch (e) {
@@ -834,43 +813,48 @@ router.get(
 	}
 )
 
+/**
+ * Get a team details
+ */
 router.get(
 	"/:tournamentId/teams/:teamId",
 	checkJWT(),
 	[
-		param("tournamentId").custom(checkTournamentExists).bail(),
-		param("teamId").custom(checkTeamExists).bail(),
+		param("tournamentId")
+			.isMongoId()
+			.bail()
+			.custom(checkTournamentExists)
+			.bail(),
+		param("teamId").isMongoId().bail().custom(checkTeamExists).bail(),
 	],
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournament.findById(
+			const tournament = await Tournaments.findById(
 				req.params.tournamentId
 			).lean()
 			const matches = await Matches.find({
 				tournamentId: req.params.tournamentId,
 			}).lean()
+			const teams = await Teans.find({
+				tournamentId: req.params.tournamentId,
+			}).lean()
 
-			const ruleset = await Ruleset.findById(
+			const ruleset = await Rulesets.findById(
 				tournament.ruleset,
 				"maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam"
 			).lean()
 
 			// Add "status" to the matches
-			const calculatedMatches = await calculateMatchStatus(
-				matches,
-				tournament.teams
-			)
+			const calculatedMatches = await calculateMatchStatus(matches, teams)
 
 			// Count wins, losses and ties for each team
-			const team = await calculateTeamResults(calculatedMatches, [
-				tournament.teams.find(
-					(team) => team._id.toString() === req.params.teamId
-				),
+			const calculatedTeam = await calculateTeamResults(calculatedMatches, [
+				teams.find((team) => team._id.toString() === req.params.teamId),
 			])[0]
 
-			team.members = await Promise.all(
-				team.members.map(async (member) => {
+			calculatedTeam.members = await Promise.all(
+				calculatedTeam.members.map(async (member) => {
 					const user = await Users.findById(
 						member.userId.toString(),
 						"username"
@@ -883,18 +867,18 @@ router.get(
 			)
 
 			return res.status(200).json({
-				name: team.name,
-				members: team.members,
-				invites: team.invites,
+				name: calculatedTeam.name,
+				members: calculatedTeam.members,
+				invites: calculatedTeam.invites,
 				status:
-					team.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
-					team.members.length >= ruleset.minNumberOfPlayersPerTeam
+					calculatedTeam.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
+					calculatedTeam.members.length >= ruleset.minNumberOfPlayersPerTeam
 						? teamStatusOk
 						: teamStatusNotOk,
-				wins: team.wins,
-				ties: team.ties,
-				losses: team.losses,
-				imgUrl: team.imgUrl,
+				wins: calculatedTeam.wins,
+				ties: calculatedTeam.ties,
+				losses: calculatedTeam.losses,
+				imgUrl: calculatedTeam.imgUrl,
 			})
 		} catch (e) {
 			next(e)
