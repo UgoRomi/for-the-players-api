@@ -18,6 +18,8 @@ const matchSchema = new Schema({
 	],
 })
 
+matchSchema.index({ tournamentId: 1 })
+
 const matches = model("Matches", matchSchema)
 
 module.exports = matches

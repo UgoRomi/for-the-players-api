@@ -2,7 +2,7 @@ const { Schema, model, ObjectId } = require("mongoose")
 
 const gameSubSchema = new Schema(
 	{
-		id: { type: ObjectId, required: true, ref: "Games" },
+		gameId: { type: ObjectId, required: true, ref: "Games" },
 		show: { type: Boolean, required: true, default: false },
 	},
 	{ timestamps: true }

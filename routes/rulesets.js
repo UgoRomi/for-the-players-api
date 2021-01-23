@@ -78,16 +78,17 @@ router.get("/", checkJWT(), async (req, res, next) => {
 
 		return res.status(200).json(
 			rulesets.map((ruleset) => {
-        
-        const name = games.find(game => ruleset.game.toString() === game._id.toString()).name
+				const name = games.find(
+					(game) => ruleset.game.toString() === game._id.toString()
+				).name
 
 				return {
 					name: ruleset.name,
-					id: ruleset._id,
-          game: {
-            name,
-            id: ruleset.game,
-          },
+					_id: ruleset._id,
+					game: {
+						name,
+						_id: ruleset.game,
+					},
 					description: ruleset.description,
 					maxNumberOfPlayersPerTeam: ruleset.maxNumberOfPlayersPerTeam,
 					minNumberOfPlayersPerTeam: ruleset.minNumberOfPlayersPerTeam,

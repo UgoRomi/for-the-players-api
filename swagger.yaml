@@ -292,7 +292,7 @@ paths:
                       items:
                         type: object
                         properties:
-                          id:
+                          _id:
                             type: string
                             description: The game's ID
                           name:
@@ -348,7 +348,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        id:
+                        _id:
                           type: string
                           maxLength: 24
                           minLength: 24
@@ -389,12 +389,12 @@ paths:
                 items:
                   type: object
                   properties:
+                    _id:
+                      type: string
+                      description: The Mongo ID of the game
                     name:
                       type: string
                       description: "The name of the game"
-                    id:
-                      type: string
-                      description: The Mongo ID of the game
                     imgUrl:
                       type: string
                       description: The image for the game
@@ -694,7 +694,7 @@ paths:
                 - platform
                 - startsOn
                 - endsOn
-                - ruleset
+                - rulesets
                 - type
                 - show
               properties:
@@ -725,7 +725,7 @@ paths:
                   description: The date and time on which the tournament will end
                   type: string
                   format: date-time
-                ruleset:
+                rulesets:
                   type: array
                   items:
                     type: string
@@ -806,7 +806,7 @@ paths:
                     name:
                       type: string
                       description: "The name of the tournament"
-                    id:
+                    _id:
                       type: string
                       description: The Mongo ID of the tournament
                     startsOn:
@@ -817,7 +817,7 @@ paths:
                       type: string
                       format: date-time
                       description: The time on which the tournament ends
-                    ruleset:
+                    rulesets:
                       type: array
                       items:
                         type: string
@@ -886,7 +886,7 @@ paths:
                   name:
                     type: string
                     description: "The name of the tournament"
-                  id:
+                  _id:
                     type: string
                     description: The Mongo ID of the tournament
                   startsOn:
@@ -897,27 +897,28 @@ paths:
                     type: string
                     format: date-time
                     description: The time on which the tournament ends
-                  ruleset:
-                    type: object
-                    description: The ruleset used in this tournament
-                    properties:
-                      name:
-                        type: string
-                        description: The ruleset's name
-                      id:
-                        type: string
-                        minLength: 24
-                        maxLength: 24
-                        description: The Mongo ID of the ruleset
-                      description:
-                        type: string
-                        description: The ruleset's description
-                      maxNumberOfPlayersPerteam:
-                        type: integer
-                        description: The maximum number of players a team can have
-                      minNumberOfPlayersPerTeam:
-                        type: integer
-                        description: The minimum number of players a team can have
+                  rulesets:
+                    type: array
+                    description: The list of rulesets used in this tournament
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          $ref: "#/components/schemas/MongoID"
+                        maps:
+                          type: array
+                          items:
+                            type: string
+                        maxNumberOfPlayersPerTeam:
+                          type: integer
+                        minNumberOfPlayersPerTeam:
+                          type: integer
+                        description:
+                          type: string
+                        name:
+                          type: string
+                        bestOf:
+                          type: integer
                   type:
                     $ref: "#/components/schemas/TournamentTypes"
                   teams:
@@ -933,6 +934,9 @@ paths:
                           type: string
                           description: The team's name
                         elo:
+                          type: integer
+                          description: The team's ELO
+                        points:
                           type: integer
                           description: The team's ELO
                         members:
@@ -982,8 +986,6 @@ paths:
                               minLength: 24
                               maxLength: 24
                               description: The Mongo ID of the user that's a part of this team
-                      teamStatus:
-                        $ref: "#/components/schemas/TeamStatuses"
                   imgUrl:
                     type: string
                     description: The URL of the tournament's image
@@ -1408,7 +1410,7 @@ paths:
                   description: The mongo ID for the ruleset
                 numberOfPlayers:
                   type: integer
-                  description: The number of players that is gonna play
+                  description: The number of players that are going to play
       responses:
         "400":
           description: "The input data was wrongly formatted"
@@ -1812,13 +1814,13 @@ paths:
                     name:
                       type: string
                       description: "The name of the ruleset"
-                    id:
+                    _id:
                       type: string
                       description: The Mongo ID of the ruleset
                     game:
                       type: object
                       properties:
-                        id:
+                        _id:
                           type: string
                           description: The Mongo ID of the game the ruleset is for
                         name:
@@ -1947,7 +1949,7 @@ paths:
                     subject:
                       type: string
                       description: The subject of the ticket
-                    id:
+                    _id:
                       type: string
                       description: The Mongo ID of the ticket
                     date:
@@ -1985,7 +1987,7 @@ paths:
                         isAdmin: 
                           type: boolean
                           description: If the message has been sent by an admin
-                        id: 
+                        _id:
                           type: string
                           description: The Id of the message
     post:
@@ -2014,15 +2016,6 @@ paths:
                   type: string
                 category:
                   $ref: "#/components/schemas/TicketCategories"
-                date:
-                  description: The ticket's creation date
-                  type: string
-                  format: date-time
-                attachments:
-                  type: array
-                  items: 
-                    type: string
-                    description: The url of the attachment
                 matchId:
                   type: string
                   description: The linked match's ID 
@@ -2161,6 +2154,8 @@ paths:
                       items:
                         type: string
                         description: The url of the attachment
+                    status:
+                      $ref: "#/components/schemas/TicketStatuses"
     patch:
       summary: Update the ticket status
       security:

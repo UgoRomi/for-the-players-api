@@ -33,7 +33,6 @@ const mongoose = require("mongoose")
 const { calculateMatchStatus } = require("../models/tournament/utils")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
 const { checkImgInput } = require("../utils/helpers")
-const { checkIfRulesetExists } = require("../models/ruleset/utils")
 const { checkIfPlatformExists } = require("../models/platform/utils")
 const { checkIfGameExists } = require("../models/game/utils")
 const { formatISO } = require("date-fns")
@@ -89,10 +88,7 @@ router.post(
 			.notEmpty({ ignore_whitespace: true })
 			.isDate()
 			.customSanitizer(toISO),
-		body("ruleset")
-			.notEmpty({ ignore_whitespace: true })
-			.customSanitizer(convertToMongoId)
-			.custom(checkIfRulesetExists),
+		body("rulesets").isArray(),
 		body("type").isIn(types),
 		body("imgUrl").optional().isURL(),
 		body("imgBase64").isBase64().custom(checkIfValidaImageData),
@@ -108,7 +104,7 @@ router.post(
 				show,
 				startsOn,
 				endsOn,
-				ruleset,
+				rulesets,
 				type,
 				open,
 			} = req.body
@@ -122,7 +118,7 @@ router.post(
 				show,
 				startsOn,
 				endsOn,
-				ruleset,
+				rulesets,
 				type,
 				imgUrl: imageURL,
 				createdBy: req.user.id,
@@ -162,9 +158,9 @@ router.get(
 					const teams = await Teams.find({
 						tournamentId: tournament._id.toString(),
 					}).lean()
-					const rulesetDoc = await Promise.all(
-						tournament.ruleset.map(async (ruleset) => {
-							return await Rulesets.findById(ruleset).lean()
+					const rulesets = await Promise.all(
+						tournament.rulesets.map(async (ruleset) => {
+							return await Rulesets.findById(ruleset, "_id").lean()
 						})
 					)
 					const gameDoc = await Games.findById(
@@ -172,10 +168,10 @@ router.get(
 					).lean()
 					return {
 						name,
-						id: tournament._id,
+						_id: tournament._id,
 						startsOn,
 						endsOn,
-						ruleset: rulesetDoc?.name,
+						rulesets: rulesets.map((ruleset) => ruleset._id),
 						type,
 						numberOfTeams: teams.length,
 						imgUrl,
@@ -233,6 +229,7 @@ router.post(
 			const imageURL = await checkImgInput(req.body)
 
 			const newTeam = {
+				tournamentId: req.params.tournamentId,
 				name: req.body.name,
 				members: [{ role: teamRoleLeader, userId: req.user.id }],
 				imgUrl: imageURL,
@@ -263,15 +260,18 @@ router.get(
 			const matches = await Matches.find({
 				tournamentId: req.params.tournamentId,
 			}).lean()
-			const teams = await Teams.find({
-				tournamentId: req.params.tournamentId,
-			}).lean()
+			const teams = await Teams.find(
+				{
+					tournamentId: req.params.tournamentId,
+				},
+				"-tournamentId "
+			).lean()
 
-			const ruleset = await Promise.all(
-				tournament.ruleset.map(async (ruleset) => {
-					return await Rulesets.findById(ruleset).lean()
-				})
-			)
+			const rulesets = await Rulesets.find(
+				{ _id: { $in: tournament.rulesets } },
+				"_id maps maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam description name bestOf"
+			).lean()
+
 			// Add "status" to the matches
 			const calculatedMatches = await calculateMatchStatus(matches, teams)
 
@@ -312,18 +312,13 @@ router.get(
 						}
 					})
 				)
-				userTeam.teamStatus =
-					userTeam.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
-					userTeam.members.length >= ruleset.minNumberOfPlayersPerTeam
-						? teamStatusOk
-						: teamStatusNotOk
 			}
 			return res.status(200).json({
 				name: tournament.name,
-				id: tournament._id,
+				_id: tournament._id,
 				startsOn: tournament.startsOn,
 				endsOn: tournament.endsOn,
-				ruleset: ruleset,
+				rulesets,
 				type: tournament.type,
 				// Remove the team the user is a part of, if present
 				teams: calculatedTeams,
@@ -559,6 +554,7 @@ router.post(
 			}
 
 			await Matches.create({
+				tournamentId: req.params.tournamentId,
 				teamOne: req.body.teamId,
 				acceptedAt: formatISO(Date.now()),
 				numberOfPlayers: req.body.numberOfPlayers,
@@ -656,6 +652,8 @@ router.patch(
 					subject: disputeTicketDefaultSubject,
 					date: new Date(),
 					tournamentId: req.params.tournamentId,
+					teamOne: teamOne._id,
+					teamTwo: teamTwo._id,
 					matchId: req.params.matchId,
 					category: ticketCategoryDispute,
 					messages: [],

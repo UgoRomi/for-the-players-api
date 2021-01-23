@@ -2,6 +2,8 @@ const { body, param } = require("express-validator")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
 const mongoose = require("mongoose")
+const { ticketCategories } = require("../models/ticket/consts")
+const { teamRoleLeader } = require("../models/team/consts")
 const { ticketCategoryDispute } = require("../models/ticket/consts")
 const { ticketStatusDeleted } = require("../models/ticket/consts")
 const { ticketStatusSolved } = require("../models/ticket/consts")
@@ -14,25 +16,17 @@ const Tickets = mongoose.model("Tickets")
 const Tournaments = mongoose.model("Tournaments")
 const Users = mongoose.model("Users")
 const Teams = mongoose.model("Teams")
+const Matches = mongoose.model("Matches")
 
 router.post(
 	"/",
 	checkJWT(),
 	[
-		body("subject")
-			.notEmpty({ ignore_whitespace: true })
-			.trim()
-			.escape()
-			.bail(),
-		body("description")
-			.notEmpty({ ignore_whitespace: true })
-			.trim()
-			.escape()
-			.bail(),
-		body("tournamentId").optional().bail(),
-		body("matchId").optional().bail(),
-		body("category").optional(),
-		body("isAdmin").optional(),
+		body("subject").notEmpty({ ignore_whitespace: true }).trim().escape(),
+		body("description").notEmpty({ ignore_whitespace: true }).trim().escape(),
+		body("category").optional().isIn(ticketCategories),
+		body("matchId").optional().isMongoId(),
+		body("tournamentId").optional().isMongoId(),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -42,18 +36,28 @@ router.post(
 				{
 					message: req.body.description,
 					userId: req.user.id,
-					isAdmin: req.body.isAdmin ? req.body.isAdmin : false,
 				},
 			]
 
-			const user = await Users.findById(req.user.id.toString()).lean()
+			if (req.params.category === ticketCategoryDispute) {
+				const match = await Matches.findById(matchId, "teamOne teamTwo").lean()
+				await Tickets.create({
+					subject,
+					tournamentId,
+					matchId,
+					teamOne: match.teamOne._id,
+					teamTwo: match.teamTwo._id,
+					category,
+					messages: messages,
+					status: ticketStatusNew,
+				})
+				return res.status(201).json()
+			}
 
 			await Tickets.create({
 				subject,
-				tournamentId,
-				matchId,
+				userId: req.user.id,
 				category,
-				userId: user._id,
 				messages: messages,
 				status: ticketStatusNew,
 			})
@@ -64,15 +68,20 @@ router.post(
 	}
 )
 
-router.get("/", checkJWT(), checkValidation, async (req, res, next) => {
+router.get("/", checkJWT(), async (req, res, next) => {
 	try {
-		if (req.user.id) {
-			const tickets = await Tickets.find({
-				$or: [{ userId: req.user.id }, { userIdTwo: req.user.id }],
-			}).lean()
+		const userTeams = await Teams.find({
+			members: { $elemMatch: { userId: req.user.id, role: teamRoleLeader } },
+		})
+		const tickets = await Tickets.find({
+			$or: [
+				{ userId: req.user.id },
+				{ teamOneId: { $in: userTeams.map((team) => team._id) } },
+				{ teamTwoId: { $in: userTeams.map((team) => team._id) } },
+			],
+		}).lean()
 
-			return res.status(200).json(tickets)
-		}
+		return res.status(200).json(tickets)
 	} catch (e) {
 		next(e)
 	}
@@ -81,14 +90,14 @@ router.get("/", checkJWT(), checkValidation, async (req, res, next) => {
 router.get(
 	"/:ticketId",
 	checkJWT(),
-	[param("ticketId").custom(checkIfTicketExists).bail()],
+	[param("ticketId").isMongoId().bail().custom(checkIfTicketExists).bail()],
 	checkValidation,
 	async (req, res, next) => {
 		try {
 			// Get the ticket
 			const ticket = await Tickets.findById(
 				req.params.ticketId,
-				"subject createdAt messages category matchId tournamentId attachments"
+				"subject createdAt messages category matchId tournamentId attachments status"
 			).lean()
 
 			if (ticket.category === ticketCategoryDispute) {
@@ -171,7 +180,7 @@ router.patch(
 )
 
 router.post(
-	["/:ticketId/messages", "/:ticketId"],
+	"/:ticketId/messages",
 	checkJWT(),
 	[
 		param("ticketId").isMongoId().bail().custom(checkIfTicketExists),
