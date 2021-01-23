@@ -54,8 +54,8 @@ const ticketRoutes = require("./routes/tickets")
 const adminRoutes = require("./routes/admin")
 
 const limiter = rateLimit({
-	windowMs: 1000, // 15 minutes
-	max: 1, // limit each IP to 100 requests per windowMs
+	windowMs: 1000 * 3600, // 1 Hour
+	max: 3600, // limit each IP to 100 requests per windowMs
 })
 
 //  apply to all requests
