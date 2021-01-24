@@ -836,7 +836,7 @@ router.get(
 			const matches = await Matches.find({
 				tournamentId: req.params.tournamentId,
 			}).lean()
-			const teams = await Teans.find({
+			const teams = await Teams.find({
 				tournamentId: req.params.tournamentId,
 			}).lean()
 
