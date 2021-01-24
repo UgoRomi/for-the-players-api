@@ -19,11 +19,7 @@ router.post(
 			.custom(checkIfGameExists),
 		body("maxNumberOfPlayersPerTeam").isInt(),
 		body("minNumberOfPlayersPerTeam").isInt(),
-		body("description")
-			.isString()
-			.notEmpty({ ignore_whitespace: true })
-			.trim()
-			.escape(),
+		body("description").isString().notEmpty({ ignore_whitespace: true }).trim(),
 		body("name")
 			.isString()
 			.notEmpty({ ignore_whitespace: true })
