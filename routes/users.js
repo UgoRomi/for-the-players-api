@@ -6,16 +6,15 @@ const bcrypt = require("bcrypt")
 const { checkUniqueUsername } = require("../models/user/utils")
 const { body } = require("express-validator")
 const { isLoggedInUser } = require("../models/user/utils")
-const { teamStatusOk, teamStatusNotOk } = require("../models/tournament/consts")
 const { userExistsById } = require("../models/user/utils")
 const { isBefore, startOfToday } = require("date-fns")
 
 const Users = mongoose.model("Users")
-const Tournament = mongoose.model("Tournaments")
+const Tournaments = mongoose.model("Tournaments")
 const Invites = mongoose.model("Invites")
 const Games = mongoose.model("Games")
 const Platforms = mongoose.model("Platforms")
-const Rulesets = mongoose.model("Rulesets")
+const Teams = mongoose.model("Teams")
 
 router.get(
 	"/",
@@ -46,10 +45,13 @@ router.get(
 	}
 )
 
+/**
+ * Get user details
+ */
 router.get(
 	"/:userId",
 	checkJWT(),
-	[param("userId").custom(userExistsById)],
+	[param("userId").isMongoId().bail().custom(userExistsById)],
 	checkValidation,
 	async (req, res, next) => {
 		try {
@@ -68,46 +70,31 @@ router.get(
 				"tournamentId teamId status"
 			).lean()
 
-			const tournaments = await Tournament.find(
-				{
-					"teams.members": { $elemMatch: { userId: req.params.userId } },
-				},
-				"_id name game endsOn platform ruleset type teams"
-			).lean()
+			const userTeams = await Teams.find({
+				members: { $elemMatch: { userId: req.params.userId } },
+			}).lean()
+			const userTournaments = await Tournaments.find({
+				_id: { $in: userTeams.map((team) => team.tournamentId) },
+			}).lean()
 
 			user.tournaments = await Promise.all(
-				tournaments.map(async (tournament) => {
-					const { _id, name, type } = tournament
+				userTournaments.map(async (userTournament) => {
+					const { _id, name, type } = userTournament
 					const game = await Games.findById(
-						tournament.game.toString(),
+						userTournament.game.toString(),
 						"name"
 					).lean()
 					const platform = await Platforms.findById(
-						tournament.platform.toString(),
+						userTournament.platform.toString(),
 						"name"
 					).lean()
-					const finished = isBefore(startOfToday(), tournament.endsOn)
+					const finished = isBefore(startOfToday(), userTournament.endsOn)
 
-					// Get the team the user is a part of, if it exists
-					const userTeam = tournament.teams.find((team) =>
-						team.members.some(
-							(member) => member.userId.toString() === req.params.userId
-						)
+					// Get the team the user is a part of
+					const userTeam = userTeams.find(
+						(team) =>
+							team.tournamentId.toString() === userTournament._id.toString()
 					)
-
-					const ruleset = await Promise.all(
-						tournament.ruleset.map(async (ruleset) => {
-							return await Rulesets.findById(
-								ruleset,
-								"maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam"
-							).lean()
-						})
-					)
-					const teamStatus =
-						userTeam.members.length <= ruleset.maxNumberOfPlayersPerTeam &&
-						userTeam.members.length >= ruleset.minNumberOfPlayersPerTeam
-							? teamStatusOk
-							: teamStatusNotOk
 
 					return {
 						_id,
@@ -118,7 +105,6 @@ router.get(
 						type,
 						team: {
 							name: userTeam.name,
-							teamStatus,
 						},
 					}
 				})

@@ -11,17 +11,9 @@ const Game = mongoose.model("Games")
 
 router.get("/", checkJWT(), async (req, res, _next) => {
 	// Get all games
-	const games = await Game.find({})
+	const games = await Game.find({}, "name _id imgUrl")
 
-	return res.status(200).json(
-		games.map((game) => {
-			return {
-				name: game.name,
-				id: game._id,
-				imgUrl: game.imgUrl,
-			}
-		})
-	)
+	return res.status(200).json(games)
 })
 
 router.post(

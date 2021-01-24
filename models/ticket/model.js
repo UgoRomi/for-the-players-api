@@ -16,8 +16,13 @@ const ticketsSchema = new Schema(
 	{
 		subject: { type: String, required: true },
 		category: { type: String, required: true, enum: ticketCategories },
-		matchId: { type: ObjectId },
+		// matchId, tournamentId, teamOneId and teamTwoId are only used in disputes
+		matchId: { type: ObjectId, ref: "Matches" },
 		tournamentId: { type: ObjectId, ref: "Tournaments" },
+		teamOneId: { type: ObjectId, ref: "Teams" },
+		teamTwoId: { type: ObjectId, ref: "Teams" },
+		// userId is used everywhere but disputes
+		userId: { type: ObjectId, ref: "Users" },
 		attachments: { type: Array, required: true },
 		status: {
 			type: String,

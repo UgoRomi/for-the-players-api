@@ -1,7 +1,3 @@
-const teamRoleMember = "MEMBER"
-const teamRoleLeader = "LEADER"
-const teamRoles = [teamRoleMember, teamRoleLeader]
-
 const tournamentType = "TOURNAMENT"
 const ladderType = "LADDER"
 const types = [tournamentType, ladderType]
@@ -20,15 +16,6 @@ const matchStates = [
 	matchStatusDispute,
 ]
 
-const teamSubmittedMatchResultWin = "WIN",
-	teamSubmittedMatchResultLoss = "LOSS",
-	teamSubmittedMatchResultTie = "TIE"
-const teamSubmittedResults = [
-	teamSubmittedMatchResultWin,
-	teamSubmittedMatchResultLoss,
-	teamSubmittedMatchResultTie,
-]
-
 const updateMatchPostResult = "POST_RESULT"
 const updateMatchActions = [updateMatchPostResult]
 
@@ -39,9 +26,6 @@ const teamStatusNotOk = "NOT OK"
 const secondsToAcceptLadderMatch = 15 * 60
 
 module.exports = {
-	teamRoleMember,
-	teamRoleLeader,
-	teamRoles,
 	tournamentType,
 	ladderType,
 	types,
@@ -51,9 +35,6 @@ module.exports = {
 	matchStatusTeamTwo,
 	matchStatusDispute,
 	matchStates,
-	teamSubmittedMatchResultTie,
-	teamSubmittedMatchResultWin,
-	teamSubmittedResults,
 	secondsToAcceptLadderMatch,
 	teamStatusOk,
 	teamStatusNotOk,

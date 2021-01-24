@@ -1,8 +1,8 @@
 const mongoose = require("mongoose")
-const Platform = mongoose.model("Platforms")
+const Platforms = mongoose.model("Platforms")
 
 const checkIfPlatformExists = async (platformId) => {
-	const platformExists = await Platform.findOne({
+	const platformExists = await Platforms.findOne({
 		_id: platformId,
 	})
 
@@ -10,7 +10,7 @@ const checkIfPlatformExists = async (platformId) => {
 }
 
 const checkUniqueName = async (platformName) => {
-	const platformExists = await Platform.findOne({
+	const platformExists = await Platforms.findOne({
 		name: platformName,
 	})
 

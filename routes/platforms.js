@@ -14,7 +14,7 @@ const {
 } = require("../models/platform/utils")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 
-const Platform = mongoose.model("Platforms")
+const Platforms = mongoose.model("Platforms")
 
 router.post(
 	"/",
@@ -35,7 +35,7 @@ router.post(
 		const imageURL = await checkImgInput(req.body)
 
 		try {
-			await Platform.create({
+			await Platforms.create({
 				name: req.body.name,
 				show: req.body.show,
 				imgUrl: imageURL,
@@ -52,13 +52,28 @@ router.get("/", checkJWT(), async (req, res, next) => {
 		const findObject = {}
 		if (!req.user.permissions.includes(userPermissionPlatform))
 			findObject.show = true
-		const platforms = await Platform.find(findObject, {
+		let platforms = await Platforms.find(findObject, {
 			"_id": 1,
 			"name": 1,
 			"imgUrl": 1,
-			"games.id": 1,
+			"games.gameId": 1,
 			"games.name": 1,
 		}).lean()
+
+		platforms = platforms.map((platform) => {
+			const games = platform.games.map((game) => {
+				const newGame = {
+					...game,
+					_id: game.gameId,
+				}
+				delete newGame.gameId
+				return newGame
+			})
+			return {
+				...platform,
+				games,
+			}
+		})
 
 		return res.status(200).json(platforms)
 	} catch (e) {
@@ -78,7 +93,7 @@ router.get(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const platform = await Platform.findById(req.params.platformId).lean()
+			const platform = await Platforms.findById(req.params.platformId).lean()
 			if (
 				!platform.show &&
 				!req.user.permissions.includes(userPermissionPlatform)
@@ -98,7 +113,11 @@ router.get(
 				show,
 				imageUrl,
 				games: games.map((game) => {
-					return { id: game._id.toString(), name: game.name, show: game.show }
+					return {
+						_id: game.gameId.toString(),
+						name: game.name,
+						show: game.show,
+					}
 				}),
 			})
 		} catch (e) {

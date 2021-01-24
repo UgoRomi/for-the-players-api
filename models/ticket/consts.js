@@ -17,6 +17,8 @@ const ticketCategories = [
 	ticketCategoryGeneralInquiry,
 	ticketCategoryPayment,
 ]
+
+const disputeTicketDefaultSubject = "Disputa match"
 module.exports = {
 	ticketStatusNew,
 	ticketStatusInProgress,
@@ -25,4 +27,5 @@ module.exports = {
 	ticketStatuses,
 	ticketCategoryDispute,
 	ticketCategories,
+	disputeTicketDefaultSubject,
 }

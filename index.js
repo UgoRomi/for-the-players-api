@@ -21,6 +21,8 @@ require("./models/game/model")
 require("./models/imgurToken/model")
 require("./models/invite/model")
 require("./models/ticket/model")
+require("./models/match/model")
+require("./models/team/model")
 
 // Docs
 const swaggerUi = require("swagger-ui-express")
