@@ -46,9 +46,16 @@ router.patch(
 					{
 						_id: invite.teamId,
 					},
-					{ $push: { members: { userId: invite.userId, dateJoined: Date().toLocaleString("en-US", {
+					{
+						$push: {
+							members: {
+								userId: invite.userId,
+								dateJoined: Date().toLocaleString("en-US", {
 									timeZone: "Europe/Rome",
-								}) } } }
+								}),
+							},
+						},
+					}
 				)
 			}
 

@@ -498,7 +498,7 @@ router.post(
 					.json({ errorMessage: "The user has already been invited" })
 			await Invites.create({
 				userId: req.body.userId,
-				tournamentId: tournament._id.toString(),
+				tournamentId: req.params.tournamentId,
 				teamId: userTeam._id.toString(),
 			})
 
