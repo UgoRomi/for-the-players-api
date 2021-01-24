@@ -3,10 +3,7 @@ const {
 	userExistsById,
 	multipleUsersExistById,
 } = require("../models/user/utils")
-const {
-	types,
-	updateMatchActions,
-} = require("../models/tournament/consts")
+const { types, updateMatchActions } = require("../models/tournament/consts")
 const { teamRoleLeader } = require("../models/team/consts")
 const { teamSubmittedResults } = require("../models/match/consts")
 const { teamInvitePending } = require("../models/invite/consts")
@@ -640,11 +637,10 @@ router.patch(
 					errorMessage: "This team isn't in this match",
 				})
 
-			// If only one team posted the result just insert it and return
-			if (!match.teamOneResult || !match.teamTwoResult) {
-				await Matches.replaceOne({ _id: match._id }, match)
+			await Matches.replaceOne({ _id: match._id }, match)
+			// If only one team posted the result just return
+			if (!match.teamOneResult || !match.teamTwoResult)
 				return res.status(200).json({})
-			}
 
 			// If both teams posted the result check if it's not a dispute and update points/elo accordingly
 			const matchesStatus = await calculateMatchStatus([match], teams)
@@ -680,10 +676,7 @@ router.patch(
 						+(matchStatus === matchStatusTeamOne),
 						teamOne.elo
 					)
-					await Teams.updateOne(
-						{ _id: teamOne.toString() },
-						{ elo: teamOneNewElo }
-					)
+					await Teams.updateOne({ _id: teamOne._id }, { elo: teamOneNewElo })
 
 					// Update teamTwo
 					const teamTwoNewElo = elo.updateRating(
@@ -691,10 +684,7 @@ router.patch(
 						+(matchStatus === matchStatusTeamTwo),
 						teamTwo.elo
 					)
-					await Teams.updateOne(
-						{ _id: teamTwo.toString() },
-						{ elo: teamTwoNewElo }
-					)
+					await Teams.updateOne({ _id: teamTwo._id }, { elo: teamTwoNewElo })
 				} else {
 					// UPDATE POINTS
 					let teamOnePoints = teamOne.points
@@ -711,14 +701,8 @@ router.patch(
 							teamTwoPoints += 3
 							break
 					}
-					await Teams.updateOne(
-						{ _id: teamOne.toString() },
-						{ points: teamOnePoints }
-					)
-					await Teams.updateOne(
-						{ _id: teamTwo.toString() },
-						{ points: teamTwoPoints }
-					)
+					await Teams.updateOne({ _id: teamOne._id }, { points: teamOnePoints })
+					await Teams.updateOne({ _id: teamTwo._id }, { points: teamTwoPoints })
 				}
 			}
 
