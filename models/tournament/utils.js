@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const { ladderType } = require("./consts")
 const { error404, CustomError } = require("../../utils/error-consts")
 const { matchStatusTeamTwo } = require("./consts")
 const { matchStatusTeamOne } = require("./consts")
@@ -24,7 +25,10 @@ const checkTournamentExists = async (tournamentId) => {
 
 const checkTournamentHasNotStarted = async (tournamentId) => {
 	const tournament = await Tournaments.findById(tournamentId).lean()
-	if (isAfter(new Date(), tournament.startsOn))
+	if (
+		tournament.type !== ladderType &&
+		isAfter(new Date(), tournament.startsOn)
+	)
 		throw Error("Tournament already started")
 }
 
