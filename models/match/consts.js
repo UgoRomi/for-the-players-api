@@ -7,9 +7,9 @@ const teamSubmittedResults = [
 	teamSubmittedMatchResultTie,
 ]
 
-module.exports = [
+module.exports = {
 	teamSubmittedMatchResultWin,
 	teamSubmittedMatchResultLoss,
 	teamSubmittedMatchResultTie,
 	teamSubmittedResults,
-]
+}
