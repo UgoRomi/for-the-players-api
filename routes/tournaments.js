@@ -289,9 +289,16 @@ router.get(
 								member.userId.toString(),
 								"username"
 							).lean()
+							if (user){
+
 							return {
 								...member,
 								username: user.username,
+							}
+							}else{
+								return {
+									...member
+								}
 							}
 						})
 					)
