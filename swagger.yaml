@@ -1022,6 +1022,10 @@ paths:
                         type: string
                         format: date-time
                         description: "When the match was first created"
+                      acceptedAt:
+                        type: string
+                        format: date-time
+                        description: "When the match was accepted"
                   open:
                     type: boolean
                     description: If new teams can join the tournament
