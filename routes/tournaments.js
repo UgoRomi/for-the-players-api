@@ -545,7 +545,9 @@ router.post(
 						match.rulesetId.toString() === req.body.rulesetId
 				)
 				matchToUpdate.teamTwo = req.body.teamId
-				matchToUpdate.acceptedAt = formatISO(Date.now())
+				matchToUpdate.acceptedAt = Date().toLocaleString("en-US", {
+					timeZone: "Europe/Rome",
+				})
 				const ruleset = await Rulesets.findById(
 					req.body.rulesetId,
 					"bestOf maps"
@@ -558,7 +560,9 @@ router.post(
 			await Matches.create({
 				tournamentId: req.params.tournamentId,
 				teamOne: req.body.teamId,
-				acceptedAt: formatISO(Date.now()),
+				acceptedAt: Date().toLocaleString("en-US", {
+					timeZone: "Europe/Rome",
+				}),
 				numberOfPlayers: req.body.numberOfPlayers,
 				rulesetId: req.body.rulesetId,
 			})

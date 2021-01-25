@@ -3,10 +3,10 @@ const { ladderType } = require("./consts")
 const { error404, CustomError } = require("../../utils/error-consts")
 const { matchStatusTeamTwo } = require("./consts")
 const { matchStatusTeamOne } = require("./consts")
-const { teamSubmittedMatchResultWin } = require("./consts")
+const { teamSubmittedMatchResultWin } = require("../match/consts")
+const { teamSubmittedMatchResultTie } = require("../match/consts")
 const { matchStatusDispute } = require("./consts")
 const { matchStatusTie } = require("./consts")
-const { teamSubmittedMatchResultTie } = require("./consts")
 const { matchStatusPending } = require("./consts")
 const { isAfter } = require("date-fns")
 
@@ -73,6 +73,7 @@ const calculateMatchStatus = async (matches, teams) => {
 				name: teamTwoObj.name,
 				elo: teamTwoObj.elo,
 			}
+			formattedMatch.acceptedAt = match.acceptedAt
 		}
 
 		if (!match.teamTwo || !match.teamOneResult || !match.teamTwoResult)
