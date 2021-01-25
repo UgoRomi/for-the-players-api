@@ -551,7 +551,7 @@ router.post(
 					"bestOf maps"
 				).lean()
 				matchToUpdate.maps = _.sampleSize(ruleset.maps, ruleset.bestOf)
-				await Matches.replaceOne({ _id: tournament._id }, tournament)
+				await Matches.replaceOne({ _id: matchToUpdate._id }, matchToUpdate)
 				return res.status(200).json({ matchId: matchToUpdate._id.toString() })
 			}
 
@@ -669,7 +669,6 @@ router.patch(
 
 					// +true equals 1
 					// +false equals 0
-
 					// Update teamOne
 					const teamOneNewElo = elo.updateRating(
 						expectedScoreTeamOne,
