@@ -88,6 +88,8 @@ router.post(
 		body("imgUrl").optional().isURL(),
 		body("imgBase64").isBase64().custom(checkIfValidaImageData),
 		body("open").isBoolean(),
+		body("minTeamSizePerMatch").optional().isInt(),
+		body("maxTeamSizePerMatch").optional().isInt(),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -102,11 +104,12 @@ router.post(
 				rulesets,
 				type,
 				open,
+				minTeamSizePerMatch,
+				maxTeamSizePerMatch,
 			} = req.body
 
 			const imageURL = await checkImgInput(req.body)
-
-			await Tournaments.create({
+			const newTournament = {
 				name,
 				game,
 				platform,
@@ -118,7 +121,14 @@ router.post(
 				imgUrl: imageURL,
 				createdBy: req.user.id,
 				open,
-			})
+			}
+
+			if (minTeamSizePerMatch)
+				newTournament.minTeamSizePerMatch = minTeamSizePerMatch
+			if (maxTeamSizePerMatch)
+				newTournament.maxTeamSizePerMatch = maxTeamSizePerMatch
+
+			await Tournaments.create(newTournament)
 			return res.status(201).json()
 		} catch (e) {
 			next(e)
@@ -336,6 +346,8 @@ router.get(
 				game: tournament.game,
 				matches: calculatedMatches,
 				open: tournament.open,
+				minTeamSizePerMatch: tournament.minTeamSizePerMatch,
+				maxTeamSizePerMatch: tournament.maxTeamSizePerMatch,
 			})
 		} catch (e) {
 			next(e)
@@ -529,9 +541,6 @@ router.post(
 	checkValidation,
 	async (req, res, next) => {
 		try {
-			const tournament = await Tournaments.findById(
-				req.params.tournamentId
-			).lean()
 			const matches = await Matches.find({
 				tournamentId: req.params.tournamentId,
 			}).lean()

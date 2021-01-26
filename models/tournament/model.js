@@ -1,6 +1,4 @@
-const {
-	types,
-} = require("./consts")
+const { types } = require("./consts")
 const { Schema, model, ObjectId } = require("mongoose")
 
 const tournamentSchema = new Schema(
@@ -16,6 +14,8 @@ const tournamentSchema = new Schema(
 		createdBy: { type: ObjectId, required: true, ref: "Users" },
 		imgUrl: { type: String, required: true },
 		open: { type: Boolean, required: true, default: true },
+		maxTeamSizePerMatch: { type: Number },
+		minTeamSizePerMatch: { type: Number },
 	},
 	{ timestamps: true }
 )

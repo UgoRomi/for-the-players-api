@@ -740,6 +740,10 @@ paths:
                     The base64 of the new tournament's image.
                     If `imgUrl` is present this will be ignored
                   type: string
+                minTeamSizePerMatch:
+                  type: integer
+                maxTeamSizePerMatch:
+                  type: integer
       responses:
         "400":
           description: "The input data was wrongly formatted"
@@ -1029,6 +1033,10 @@ paths:
                   open:
                     type: boolean
                     description: If new teams can join the tournament
+                  minTeamSizePerMatch:
+                    type: integer
+                  maxTeamSizePerMatch:
+                    type: integer
   /tournaments/{tournamentId}/teams:
     parameters:
       - name: tournamentId
