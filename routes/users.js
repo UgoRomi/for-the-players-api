@@ -61,6 +61,7 @@ router.get(
 				username: 1,
 				createdAt: 1,
 				platforms: 1,
+				coins: 1,
 			}).lean()
 
 			user.invites = await Invites.find(

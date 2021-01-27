@@ -1,4 +1,3 @@
-const { userPermissionTournament } = require("../models/user/consts")
 const {
 	userExistsById,
 	multipleUsersExistById,
@@ -8,11 +7,10 @@ const { teamRoleLeader } = require("../models/team/consts")
 const { teamSubmittedResults } = require("../models/match/consts")
 const { teamInvitePending } = require("../models/invite/consts")
 const { body, query, param } = require("express-validator")
-const { convertToMongoId, toISO } = require("../utils/custom-sanitizers")
+const { convertToMongoId } = require("../utils/custom-sanitizers")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
 const {
-	checkUniqueName,
 	checkTournamentExists,
 } = require("../models/tournament/utils")
 const { checkTeamHasOngoingMatches } = require("../models/match/utils")
@@ -28,7 +26,6 @@ const mongoose = require("mongoose")
 const { calculateMatchStatus } = require("../models/tournament/utils")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
 const { checkImgInput } = require("../utils/helpers")
-const { checkIfPlatformExists } = require("../models/platform/utils")
 const { checkIfGameExists } = require("../models/game/utils")
 const { formatISO } = require("date-fns")
 const eloRank = require("elo-rank")
@@ -56,88 +53,6 @@ const Matches = mongoose.model("Matches")
 const Teams = mongoose.model("Teams")
 
 const elo = new eloRank()
-
-router.post(
-	"/",
-	checkJWT(userPermissionTournament),
-	[
-		body("name")
-			.notEmpty({ ignore_whitespace: true })
-			.trim()
-			.escape()
-			.custom(checkUniqueName),
-		body("game")
-			.notEmpty({ ignore_whitespace: true })
-			.customSanitizer(convertToMongoId)
-			.custom(checkIfGameExists),
-		body("platform")
-			.notEmpty({ ignore_whitespace: true })
-			.customSanitizer(convertToMongoId)
-			.custom(checkIfPlatformExists),
-		body("show").isBoolean(),
-		body("startsOn")
-			.notEmpty({ ignore_whitespace: true })
-			.isDate()
-			.customSanitizer(toISO),
-		body("endsOn")
-			.notEmpty({ ignore_whitespace: true })
-			.isDate()
-			.customSanitizer(toISO),
-		body("rulesets").isArray(),
-		body("type").isIn(types),
-		body("imgUrl").optional().isURL(),
-		body("imgBase64").isBase64().custom(checkIfValidaImageData),
-		body("open").isBoolean(),
-		body("minTeamSizePerMatch").optional().isInt(),
-		body("maxTeamSizePerMatch").optional().isInt(),
-		body("rules").optional().isString(),
-	],
-	checkValidation,
-	async (req, res, next) => {
-		try {
-			const {
-				name,
-				game,
-				platform,
-				show,
-				startsOn,
-				endsOn,
-				rulesets,
-				type,
-				open,
-				minTeamSizePerMatch,
-				maxTeamSizePerMatch,
-				rules,
-			} = req.body
-
-			const imageURL = await checkImgInput(req.body)
-			const newTournament = {
-				name,
-				game,
-				platform,
-				show,
-				startsOn,
-				endsOn,
-				rulesets,
-				type,
-				imgUrl: imageURL,
-				createdBy: req.user.id,
-				open,
-			}
-
-			if (minTeamSizePerMatch)
-				newTournament.minTeamSizePerMatch = minTeamSizePerMatch
-			if (maxTeamSizePerMatch)
-				newTournament.maxTeamSizePerMatch = maxTeamSizePerMatch
-			if (rules) newTournament.rules = rules
-
-			await Tournaments.create(newTournament)
-			return res.status(201).json()
-		} catch (e) {
-			next(e)
-		}
-	}
-)
 
 router.get(
 	"/",

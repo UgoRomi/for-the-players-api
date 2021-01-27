@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
 const { error403 } = require("../../utils/error-consts")
-const { CustomError, error404 } = require("../../utils/error-consts")
+const { error404 } = require("../../utils/error-consts")
 const { userStatusVerified, userStatusBanned } = require("./consts")
 const User = mongoose.model("Users")
 
