@@ -6,12 +6,15 @@ const { userExistsById, checkUserEmailInUse } = require("../models/user/utils")
 const {
 	teamSubmittedMatchResultWin,
 	teamSubmittedMatchResultLoss,
+  types,
 } = require("../models/tournament/consts")
 const { body, param } = require("express-validator")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
 const { checkTournamentExists } = require("../models/tournament/utils")
 const { checkTeamExists } = require("../models/team/utils")
+const { checkIfPlatformExists } = require("../models/platform/utils")
+const { checkIfValidaImageData } = require("../utils/custom-validators")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
 const { calculateMatchStatus } = require("../models/tournament/utils")
@@ -27,6 +30,9 @@ const { matchStatusDispute } = require("../models/tournament/consts")
 const { checkMatchExists } = require("../models/match/utils")
 const { ticketCategoryDispute } = require("../models/ticket/consts")
 const { ticketStatusNew } = require("../models/ticket/consts")
+const { checkIfGameExists } = require("../models/game/utils")
+const { toISO } = require("../utils/custom-sanitizers")
+const { checkImgInput } = require("../utils/helpers")
 
 const Tournaments = mongoose.model("Tournaments")
 const Tickets = mongoose.model("Tickets")
@@ -238,5 +244,99 @@ router.get("/tickets", checkJWT(), async (req, res, next) => {
 		next(e)
 	}
 })
+
+/**
+ * Update a single team
+ */
+router.patch(
+	"/tournaments/:tournamentId",
+	checkJWT(userPermissionTournament),
+	[
+		param("tournamentId")
+			.isMongoId()
+			.bail()
+			.custom(checkTournamentExists)
+			.bail(),
+		body("name")
+			.optional()
+			.notEmpty({ ignore_whitespace: true })
+			.trim()
+			.escape(),
+		// .custom(checkUniqueName),
+		body("game")
+			.optional()
+			.notEmpty({ ignore_whitespace: true })
+			.customSanitizer(convertToMongoId)
+			.custom(checkIfGameExists),
+		body("platform")
+			.optional()
+			.notEmpty({ ignore_whitespace: true })
+			.customSanitizer(convertToMongoId)
+			.custom(checkIfPlatformExists),
+		body("show").isBoolean(),
+		body("startsOn")
+			.optional()
+			.notEmpty({ ignore_whitespace: true })
+			.isDate()
+			.customSanitizer(toISO),
+		body("endsOn")
+			.optional()
+			.notEmpty({ ignore_whitespace: true })
+			.isDate()
+			.customSanitizer(toISO),
+		body("rulesets").optional().isArray(),
+		body("type").optional().isIn(types),
+		body("imgUrl").optional().isURL(),
+		body("imgBase64").optional().isBase64().custom(checkIfValidaImageData),
+		body("open").optional().isBoolean(),
+		body("minTeamSizePerMatch").optional().isInt(),
+		body("maxTeamSizePerMatch").optional().isInt(),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			const tournamentToUpdate = await Tournaments.findById(
+				req.params.tournamentId
+			).lean()
+			if (req.body.name) tournamentToUpdate.name = req.body.name
+
+			if (req.body.game) tournamentToUpdate.game = req.body.game
+
+      if (req.body.platform) tournamentToUpdate.platform = req.body.platform
+      
+      if (req.body.show) tournamentToUpdate.show = req.body.show
+      
+      if (req.body.startsOn) tournamentToUpdate.startsOn = req.body.startsOn
+      
+      if (req.body.endsOn) tournamentToUpdate.endsOn = req.body.endsOn
+      
+      if (req.body.rulesets) tournamentToUpdate.rulesets = req.body.rulesets
+      
+      if (req.body.type) tournamentToUpdate.type = req.body.type
+      
+      if (req.body.open) tournamentToUpdate.open = req.body.open
+      
+			if (req.body.minTeamSizePerMatch)
+        tournamentToUpdate.minTeamSizePerMatch = req.body.minTeamSizePerMatch
+        
+			if (req.body.maxTeamSizePerMatch)
+        tournamentToUpdate.maxTeamSizePerMatch = req.body.maxTeamSizePerMatch
+
+			if (req.body.imgBase64 || req.body.imgUrl)
+				tournamentToUpdate.imgUrl = await checkImgInput(req.body)
+
+			await Tournaments.updateOne(
+				{
+					_id: req.params.tournamentId,
+				},
+				tournamentToUpdate
+			)
+
+			return res.status(200).json()
+		} catch (e) {
+			next(e)
+		}
+	}
+)
 
 module.exports = router
