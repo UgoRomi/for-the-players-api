@@ -218,15 +218,15 @@ paths:
                 show:
                   description: If the platform should be showed to the end user
                   type: boolean
-                imgUrl:
+                imgur:
                   description: >
-                    The imgurl link of the new platform's image.
+                    The imgur link of the new platform's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
                     The base64 of the new platform's image.
-                    If `imgUrl` is present this will be ignored
+                    If `imgur` is present this will be ignored
                   type: string
       responses:
         "400":
@@ -395,7 +395,7 @@ paths:
                     name:
                       type: string
                       description: "The name of the game"
-                    imgUrl:
+                    imgur:
                       type: string
                       description: The image for the game
     post:
@@ -416,15 +416,15 @@ paths:
                 name:
                   description: The new game's name
                   type: string
-                imgUrl:
+                imgur:
                   description: >
-                    The imgurl link of the new game's image.
+                    The imgur link of the new game's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
                     The base64 of the new game's image.
-                    If `imgUrl` is present this will be ignored
+                    If `imgur` is present this will be ignored
                   type: string
       responses:
         "400":
@@ -612,7 +612,7 @@ paths:
                         status:
                           $ref: "#/components/schemas/TeamInvites"
     patch:
-      summary: Updats the user profile
+      summary: Updates the user profile
       security:
         - BearerAuth: []
       tags:
@@ -730,15 +730,15 @@ paths:
                     description: The mongo ID of the ruleset
                 type:
                   $ref: "#/components/schemas/TournamentTypes"
-                imgUrl:
+                imgur:
                   description: >
-                    The imgurl link of the new tournament's image.
+                    The imgur link of the new tournament's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
                     The base64 of the new tournament's image.
-                    If `imgUrl` is present this will be ignored
+                    If `imgur` is present this will be ignored
                   type: string
                 minTeamSizePerMatch:
                   type: integer
@@ -832,7 +832,7 @@ paths:
                     numberOfTeams:
                       type: integer
                       description: How many teams are already signed up to this tournament
-                    imgUrl:
+                    imgur:
                       type: string
                       description: The URL of the tournament's image
                     game:
@@ -991,7 +991,7 @@ paths:
                               minLength: 24
                               maxLength: 24
                               description: The Mongo ID of the user that's a part of this team
-                  imgUrl:
+                  imgur:
                     type: string
                     description: The URL of the tournament's image
                   game:
@@ -1069,15 +1069,15 @@ paths:
                 name:
                   description: The new team's name
                   type: string
-                imgUrl:
+                imgur:
                   description: >
-                    The imgurl link of the new team's image.
+                    The imgur link of the new team's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
                     The base64 of the new team's image.
-                    If `imgUrl` is present this will be ignored
+                    If `imgur` is present this will be ignored
                   type: string
       responses:
         "400":
@@ -1137,15 +1137,15 @@ paths:
                     description: user ID
                     minLength: 24
                     maxLength: 24
-                imgUrl:
+                imgur:
                   description: >
-                    The imgurl link of the new team's image.
+                    The imgur link of the new team's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
                     The base64 of the new team's image.
-                    If `imgUrl` is present this will be ignored
+                    If `imgur` is present this will be ignored
                   type: string
                 newLeader:
                   description: The ID of the new Leader
@@ -1274,9 +1274,9 @@ paths:
                   ties:
                     type: integer
                     description: The total ties for this team in this tournament
-                  imgUrl:
+                  imgur:
                     description: >
-                      The imgurl link of the new team's image.
+                      The imgur link of the new team's image.
                       If this is present `imgBase64` will be ignored
                     type: string
   /tournaments/{tournamentId}/teams/{teamId}/user/{userId}:
