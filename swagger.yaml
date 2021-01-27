@@ -744,6 +744,9 @@ paths:
                   type: integer
                 maxTeamSizePerMatch:
                   type: integer
+                rules:
+                  description: The tournament specific rules. Different from the rulesets
+                  type: string
       responses:
         "400":
           description: "The input data was wrongly formatted"
@@ -1037,6 +1040,9 @@ paths:
                     type: integer
                   maxTeamSizePerMatch:
                     type: integer
+                  rules:
+                    type: string
+                    description: Tournament specific rules. Different from the ruleset
   /tournaments/{tournamentId}/teams:
     parameters:
       - name: tournamentId

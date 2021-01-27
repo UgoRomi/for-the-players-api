@@ -90,6 +90,7 @@ router.post(
 		body("open").isBoolean(),
 		body("minTeamSizePerMatch").optional().isInt(),
 		body("maxTeamSizePerMatch").optional().isInt(),
+		body("rules").optional().isString(),
 	],
 	checkValidation,
 	async (req, res, next) => {
@@ -106,6 +107,7 @@ router.post(
 				open,
 				minTeamSizePerMatch,
 				maxTeamSizePerMatch,
+				rules,
 			} = req.body
 
 			const imageURL = await checkImgInput(req.body)
@@ -127,6 +129,7 @@ router.post(
 				newTournament.minTeamSizePerMatch = minTeamSizePerMatch
 			if (maxTeamSizePerMatch)
 				newTournament.maxTeamSizePerMatch = maxTeamSizePerMatch
+			if (rules) newTournament.rules = rules
 
 			await Tournaments.create(newTournament)
 			return res.status(201).json()
@@ -348,6 +351,7 @@ router.get(
 				open: tournament.open,
 				minTeamSizePerMatch: tournament.minTeamSizePerMatch,
 				maxTeamSizePerMatch: tournament.maxTeamSizePerMatch,
+				rules: tournament.rules,
 			})
 		} catch (e) {
 			next(e)
