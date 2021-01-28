@@ -46,9 +46,15 @@ const _checkUniqueField = async (fieldName, fieldValue) => {
  */
 const calculateMatchStatus = async (matches, teams) => {
 	return matches.map((match) => {
-		const teamOneObj = teams.find(
+		let teamOneObj = teams.find(
 			(team) => team._id.toString() === match.teamOne.toString()
 		)
+
+		if (!teamOneObj) {
+			teamOneObj = {}
+			teamOneObj.name = "Team cancellato"
+			teamOneObj.elo = 0
+		}
 		const formattedMatch = {
 			_id: match._id,
 			teamOne: {
@@ -64,9 +70,14 @@ const calculateMatchStatus = async (matches, teams) => {
 		}
 
 		if (match.teamTwo) {
-			const teamTwoObj = teams.find(
+			let teamTwoObj = teams.find(
 				(team) => team._id.toString() === match.teamTwo.toString()
 			)
+			if (!teamTwoObj) {
+				teamTwoObj = {}
+				teamTwoObj.name = "Team cancellato"
+				teamTwoObj.elo = 0
+			}
 			formattedMatch.teamTwo = {
 				_id: match.teamTwo,
 				result: match.teamTwoResult,
