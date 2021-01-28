@@ -22,6 +22,7 @@ tags:
     description: Team invites
   - name: matches
     description: Tournament matches
+  - name: admin
 paths:
   /auth/signup:
     post:
@@ -218,15 +219,15 @@ paths:
                 show:
                   description: If the platform should be showed to the end user
                   type: boolean
-                imgUrl:
+                imgur:
                   description: >
-                    The imgurl link of the new platform's image.
+                    The imgur link of the new platform's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
                     The base64 of the new platform's image.
-                    If `imgUrl` is present this will be ignored
+                    If `imgur` is present this will be ignored
                   type: string
       responses:
         "400":
@@ -395,7 +396,7 @@ paths:
                     name:
                       type: string
                       description: "The name of the game"
-                    imgUrl:
+                    imgur:
                       type: string
                       description: The image for the game
     post:
@@ -416,15 +417,15 @@ paths:
                 name:
                   description: The new game's name
                   type: string
-                imgUrl:
+                imgur:
                   description: >
-                    The imgurl link of the new game's image.
+                    The imgur link of the new game's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
                     The base64 of the new game's image.
-                    If `imgUrl` is present this will be ignored
+                    If `imgur` is present this will be ignored
                   type: string
       responses:
         "400":
@@ -611,8 +612,11 @@ paths:
                           description: The name of the team the user got invited to
                         status:
                           $ref: "#/components/schemas/TeamInvites"
+                  coins:
+                    type: integer
+                    description: The amount of tokens a user has
     patch:
-      summary: Updats the user profile
+      summary: Updates the user profile
       security:
         - BearerAuth: []
       tags:
@@ -674,97 +678,6 @@ paths:
         "200":
           description: "User updated"
   /tournaments:
-    post:
-      summary: Create a new tournament
-      security:
-        - BearerAuth: []
-      tags:
-        - tournaments
-      operationId: createTournament
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - name
-                - game
-                - platform
-                - startsOn
-                - endsOn
-                - rulesets
-                - type
-                - show
-              properties:
-                name:
-                  description: The new tournament's name
-                  type: string
-                game:
-                  description: The Mongo ID of the game on which the tournament will be played on
-                  type: string
-                  minLength: 24
-                  maxLength: 24
-                platform:
-                  description: The Mongo ID of the platform on which the tournament will be played on
-                  type: string
-                  minLength: 24
-                  maxLength: 24
-                show:
-                  description: If the tournament should appear in the list of upcoming tournaments in the app
-                  type: boolean
-                open:
-                  description: If teams can join the tournament, defaults to true
-                  type: boolean
-                startsOn:
-                  description: The date and time on which the tournament will start
-                  type: string
-                  format: date-time
-                endsOn:
-                  description: The date and time on which the tournament will end
-                  type: string
-                  format: date-time
-                rulesets:
-                  type: array
-                  items:
-                    type: string
-                    description: The mongo ID of the ruleset
-                type:
-                  $ref: "#/components/schemas/TournamentTypes"
-                imgUrl:
-                  description: >
-                    The imgurl link of the new tournament's image.
-                    If this is present `imgBase64` will be ignored
-                  type: string
-                imgBase64:
-                  description: >
-                    The base64 of the new tournament's image.
-                    If `imgUrl` is present this will be ignored
-                  type: string
-                minTeamSizePerMatch:
-                  type: integer
-                maxTeamSizePerMatch:
-                  type: integer
-      responses:
-        "400":
-          description: "The input data was wrongly formatted"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SchemaValidationError"
-        "401":
-          description: "Missing bearer token"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "403":
-          description: "Forbidden"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageResponse"
-        "201":
-          description: "Tournament added"
     get:
       summary: List all visible tournaments
       security:
@@ -829,7 +742,7 @@ paths:
                     numberOfTeams:
                       type: integer
                       description: How many teams are already signed up to this tournament
-                    imgUrl:
+                    imgur:
                       type: string
                       description: The URL of the tournament's image
                     game:
@@ -988,7 +901,7 @@ paths:
                               minLength: 24
                               maxLength: 24
                               description: The Mongo ID of the user that's a part of this team
-                  imgUrl:
+                  imgur:
                     type: string
                     description: The URL of the tournament's image
                   game:
@@ -1037,6 +950,9 @@ paths:
                     type: integer
                   maxTeamSizePerMatch:
                     type: integer
+                  rules:
+                    type: string
+                    description: Tournament specific rules. Different from the ruleset
   /tournaments/{tournamentId}/teams:
     parameters:
       - name: tournamentId
@@ -1063,15 +979,15 @@ paths:
                 name:
                   description: The new team's name
                   type: string
-                imgUrl:
+                imgur:
                   description: >
-                    The imgurl link of the new team's image.
+                    The imgur link of the new team's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
                     The base64 of the new team's image.
-                    If `imgUrl` is present this will be ignored
+                    If `imgur` is present this will be ignored
                   type: string
       responses:
         "400":
@@ -1131,15 +1047,15 @@ paths:
                     description: user ID
                     minLength: 24
                     maxLength: 24
-                imgUrl:
+                imgur:
                   description: >
-                    The imgurl link of the new team's image.
+                    The imgur link of the new team's image.
                     If this is present `imgBase64` will be ignored
                   type: string
                 imgBase64:
                   description: >
                     The base64 of the new team's image.
-                    If `imgUrl` is present this will be ignored
+                    If `imgur` is present this will be ignored
                   type: string
                 newLeader:
                   description: The ID of the new Leader
@@ -1268,9 +1184,9 @@ paths:
                   ties:
                     type: integer
                     description: The total ties for this team in this tournament
-                  imgUrl:
+                  imgur:
                     description: >
-                      The imgurl link of the new team's image.
+                      The imgur link of the new team's image.
                       If this is present `imgBase64` will be ignored
                     type: string
   /tournaments/{tournamentId}/teams/{teamId}/user/{userId}:
@@ -2252,6 +2168,235 @@ paths:
                 $ref: "#/components/schemas/ErrorMessageResponse"
         "201":
           description: "Ticket's message added"
+  /admin/tournaments:
+    post:
+      summary: Create a new tournament
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - admin
+      operationId: createTournament
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - game
+                - platform
+                - startsOn
+                - endsOn
+                - rulesets
+                - type
+                - show
+              properties:
+                name:
+                  description: The new tournament's name
+                  type: string
+                game:
+                  description: The Mongo ID of the game on which the tournament will be played on
+                  type: string
+                  minLength: 24
+                  maxLength: 24
+                platform:
+                  description: The Mongo ID of the platform on which the tournament will be played on
+                  type: string
+                  minLength: 24
+                  maxLength: 24
+                show:
+                  description: If the tournament should appear in the list of upcoming tournaments in the app
+                  type: boolean
+                open:
+                  description: If teams can join the tournament, defaults to true
+                  type: boolean
+                startsOn:
+                  description: The date and time on which the tournament will start
+                  type: string
+                  format: date-time
+                endsOn:
+                  description: The date and time on which the tournament will end
+                  type: string
+                  format: date-time
+                rulesets:
+                  type: array
+                  items:
+                    type: string
+                    description: The mongo ID of the ruleset
+                type:
+                  $ref: "#/components/schemas/TournamentTypes"
+                imgur:
+                  description: >
+                    The imgur link of the new tournament's image.
+                    If this is present `imgBase64` will be ignored
+                  type: string
+                imgBase64:
+                  description: >
+                    The base64 of the new tournament's image.
+                    If `imgur` is present this will be ignored
+                  type: string
+                minTeamSizePerMatch:
+                  type: integer
+                maxTeamSizePerMatch:
+                  type: integer
+                rules:
+                  description: The tournament specific rules. Different from the rulesets
+                  type: string
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "201":
+          description: "Tournament added"
+  /admin/tournaments/{tournamentId}:
+    parameters:
+      - name: tournamentId
+        in: path
+        required: true
+        description: The MongoDB ID of the tournament
+        schema:
+          $ref: "#/components/schemas/MongoID"
+    patch:
+      security:
+        - BearerAuth: []
+      tags:
+        - admin
+      operationId: updateTournament
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                game: 
+                  type: string
+                platform:
+                  type: string
+                show:
+                  type: boolean
+                open:
+                  type: boolean
+                startsOn:
+                  type: string
+                  format: date-time
+                endsOn:
+                  type: string
+                  format: date-time
+                rulesets:
+                  type: array
+                  items:
+                    type: string
+                    description: ruleset ID
+                    minLength: 24
+                    maxLength: 24
+                type:
+                  $ref: "#/components/schemas/TournamentTypes"
+                imgUrl:
+                  description: >
+                    The imgurl link of the new team's image.
+                    If this is present `imgBase64` will be ignored
+                  type: string
+                imgBase64:
+                  description: >
+                    The base64 of the new team's image.
+                    If `imgUrl` is present this will be ignored
+                  type: string
+                minTeamSizePerMatch:
+                  type: integer
+                maxTeamSizePerMatch:
+                  type: integer
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Resource not found"
+        "200":
+          description: "Tournament updated"
+  /admin/user/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: The ID of the user that wants to quit the team
+        schema:
+          $ref: "#/components/schemas/MongoID"
+    patch:
+      security:
+        - BearerAuth: [ ]
+      tags:
+        - admin
+      operationId: updateUserAdmin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  $ref: "#/components/schemas/UserStatuses"
+                email:
+                  type: string
+                  format: email
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "400":
+          description: "The input data was wrongly formatted"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchemaValidationError"
+        "401":
+          description: "Missing bearer token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "403":
+          description: "Forbidden"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageResponse"
+        "404":
+          description: "Resource not found"
+        "200":
+          description: "User updated"
 components:
   securitySchemes:
     BearerAuth:

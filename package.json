@@ -9,10 +9,7 @@
   },
   "scripts": {
     "dev": "nodemon index.js",
-    "doc": "apidoc -i . -o docs/ -e \"(node_modules|docs|models|migrations|knekfile.js)\"",
-    "start": "node index.js",
-    "migrate": "knex migrate:latest",
-    "createMigration": "knex migrate:make"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "Ugo Romi",

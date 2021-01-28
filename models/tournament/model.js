@@ -16,6 +16,7 @@ const tournamentSchema = new Schema(
 		open: { type: Boolean, required: true, default: true },
 		maxTeamSizePerMatch: { type: Number },
 		minTeamSizePerMatch: { type: Number },
+		rules: { type: String },
 	},
 	{ timestamps: true }
 )
