@@ -10,9 +10,7 @@ const { body, query, param } = require("express-validator")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
-const {
-	checkTournamentExists,
-} = require("../models/tournament/utils")
+const { checkTournamentExists } = require("../models/tournament/utils")
 const { checkTeamHasOngoingMatches } = require("../models/match/utils")
 const {
 	checkTeamNameInTournament,
@@ -217,15 +215,14 @@ router.get(
 								member.userId.toString(),
 								"username"
 							).lean()
-							if (user){
-
-							return {
-								...member,
-								username: user.username,
-							}
-							}else{
+							if (user) {
 								return {
-									...member
+									...member,
+									username: user.username,
+								}
+							} else {
+								return {
+									...member,
 								}
 							}
 						})
@@ -814,6 +811,49 @@ router.get(
 	async (req, res, next) => {
 		try {
 			//
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
+router.delete(
+	"/:tournamentId/teams/:teamId/user/:userId",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("teamId").custom(checkTeamExists).bail(),
+		param("userId").custom(userExistsById).bail(),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			//
+			if (req.user.id !== req.params.userId) {
+				return res.status(403).json({
+					errorMessage: "You can just remove yourself from a team",
+				})
+			}
+
+			const teamToUpdate = await Teams.findOne({
+				_id: req.params.teamId,
+			}).lean()
+
+			if (teamToUpdate) {
+				_.remove(
+					teamToUpdate.members,
+					(member) => req.user.id === member.userId.toString()
+				)
+			}
+
+			await Teams.updateOne(
+				{
+					_id: req.params.teamId,
+				},
+				teamToUpdate
+			)
+
+			return res.status(200).json({})
 		} catch (e) {
 			next(e)
 		}
