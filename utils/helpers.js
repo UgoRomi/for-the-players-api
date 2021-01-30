@@ -2,6 +2,8 @@ const { formatISO, addSeconds } = require("date-fns")
 const mongoose = require("mongoose")
 const FormData = require("form-data")
 const got = require("got")
+const isAfter = require("date-fns/isAfter")
+const sub = require("date-fns/sub")
 
 const ImgurToken = mongoose.model("ImgurTokens")
 
@@ -62,9 +64,25 @@ const getCurrentDateTime = () =>
 		})
 	)
 
+// Find the IDs of all the teams this team played with in the last 30 minutes
+const getRecentTeamsPlayedWith = (matches, teamId) => {
+	return matches
+		.filter(
+			(match) =>
+				(match.teamOne?.toString() === teamId ||
+					match.teamTwo?.toString() === teamId) &&
+				isAfter(match.acceptedAt, sub(getCurrentDateTime(), { minutes: 60 }))
+		)
+		.map((match) => {
+			if (match.teamOne?.toString() === teamId) return match.teamTwo.toString()
+			return match.teamOne.toString()
+		})
+}
+
 module.exports = {
 	getImgurToken,
 	uploadImageToImgur,
 	checkImgInput,
 	getCurrentDateTime,
+	getRecentTeamsPlayedWith,
 }

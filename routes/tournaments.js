@@ -25,7 +25,6 @@ const { calculateMatchStatus } = require("../models/tournament/utils")
 const { checkIfValidaImageData } = require("../utils/custom-validators")
 const { checkImgInput } = require("../utils/helpers")
 const { checkIfGameExists } = require("../models/game/utils")
-const { formatISO } = require("date-fns")
 const eloRank = require("elo-rank")
 const { checkTournamentHasNotStarted } = require("../models/tournament/utils")
 const { matchStatusTie } = require("../models/tournament/consts")
@@ -40,9 +39,8 @@ const { ticketCategoryDispute } = require("../models/ticket/consts")
 const { checkMatchExists } = require("../models/match/utils")
 const { teamRoleMember } = require("../models/team/consts")
 const { calculateTeamResults } = require("../models/tournament/utils")
-const isAfter = require("date-fns/isAfter")
 const { getCurrentDateTime } = require("../utils/helpers")
-const sub = require("date-fns/sub")
+const { getRecentTeamsPlayedWith } = require("../utils/helpers")
 
 const Tournaments = mongoose.model("Tournaments")
 const Rulesets = mongoose.model("Rulesets")
@@ -463,21 +461,10 @@ router.post(
 			}).lean()
 
 			// Find the IDs of all the teams this team played with in the last 30 minutes
-			const recentTeamsPlayedWith = matches
-				.filter(
-					(match) =>
-						(match.teamOne?.toString() === req.body.teamId ||
-							match.teamTwo?.toString() === req.body.teamId) &&
-						isAfter(
-							match.acceptedAt,
-							sub(getCurrentDateTime(), { minutes: 60 })
-						)
-				)
-				.map((match) => {
-					if (match.teamOne?.toString() === req.body.teamId)
-						return match.teamTwo.toString()
-					return match.teamOne.toString()
-				})
+			const recentTeamsPlayedWith = getRecentTeamsPlayedWith(
+				matches,
+				req.body.teamId
+			)
 
 			// TODO: Fix race condition
 			if (
@@ -510,7 +497,6 @@ router.post(
 			await Matches.create({
 				tournamentId: req.params.tournamentId,
 				teamOne: req.body.teamId,
-				acceptedAt: getCurrentDateTime(),
 				numberOfPlayers: req.body.numberOfPlayers,
 				rulesetId: req.body.rulesetId,
 			})
@@ -668,8 +654,15 @@ router.post(
 	"/:tournamentId/matches/:matchId",
 	checkJWT(),
 	[
-		param("matchId").custom(checkMatchExists).bail(),
+		param("tournamentId")
+			.isMongoId()
+			.bail()
+			.custom(checkTournamentExists)
+			.bail(),
+		param("matchId").isMongoId().bail().custom(checkMatchExists).bail(),
 		body("teamId")
+			.isMongoId()
+			.bail()
 			.custom(checkTeamExists)
 			.custom(userIsLeaderMiddleware)
 			.bail(),
@@ -678,6 +671,24 @@ router.post(
 	async (req, res, next) => {
 		try {
 			const match = await Matches.findById(req.params.matchId)
+			const teamMatches = await Matches.find({
+				tournamentId: req.params.tournamentId,
+				$or: [{ teamOne: req.body.teamId }, { teamTwo: req.body.teamId }],
+			})
+
+			const recentTeamsPlayedWith = getRecentTeamsPlayedWith(
+				teamMatches,
+				req.body.teamId
+			)
+			if (recentTeamsPlayedWith.includes(match.teamOne.toString()))
+				return res.status(400).json([
+					{
+						value: req.params.matchId,
+						msg: "You already played with this team in the last hour",
+						param: "matchId",
+						location: "params",
+					},
+				])
 
 			//TODO: Fix race condition
 			if (match.teamTwo)
@@ -692,7 +703,7 @@ router.post(
 
 			await Matches.updateOne(
 				{ _id: req.params.matchId },
-				{ teamTwo: req.body.teamId, acceptedAt: formatISO(Date.now()), maps }
+				{ teamTwo: req.body.teamId, acceptedAt: getCurrentDateTime(), maps }
 			)
 			return res.status(200).json({})
 		} catch (e) {
