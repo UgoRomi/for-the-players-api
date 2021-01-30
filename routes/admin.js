@@ -2,40 +2,40 @@ const {
 	userPermissionTournament,
 	userStatusBanned,
 } = require("../models/user/consts")
-const {userExistsById, checkUserEmailInUse} = require("../models/user/utils")
+const { userExistsById, checkUserEmailInUse } = require("../models/user/utils")
 const {
 	teamSubmittedMatchResultWin,
 	teamSubmittedMatchResultLoss,
 	types,
 } = require("../models/tournament/consts")
-const {body, param} = require("express-validator")
-const {checkJWT, checkValidation} = require("../utils/custom-middlewares")
+const { body, param } = require("express-validator")
+const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
-const {checkTournamentExists} = require("../models/tournament/utils")
-const {checkTeamExists} = require("../models/team/utils")
-const {checkIfPlatformExists} = require("../models/platform/utils")
-const {checkIfValidaImageData} = require("../utils/custom-validators")
-const {convertToMongoId} = require("../utils/custom-sanitizers")
+const { checkTournamentExists } = require("../models/tournament/utils")
+const { checkTeamExists } = require("../models/team/utils")
+const { checkIfPlatformExists } = require("../models/platform/utils")
+const { checkIfValidaImageData } = require("../utils/custom-validators")
+const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
-const {calculateMatchStatus} = require("../models/tournament/utils")
+const { calculateMatchStatus } = require("../models/tournament/utils")
 const eloRank = require("elo-rank")
-const {matchStatusTie} = require("../models/tournament/consts")
-const {ladderType} = require("../models/tournament/consts")
-const {matchStatusTeamOne} = require("../models/tournament/consts")
-const {matchStatusTeamTwo} = require("../models/tournament/consts")
+const { matchStatusTie } = require("../models/tournament/consts")
+const { ladderType } = require("../models/tournament/consts")
+const { matchStatusTeamOne } = require("../models/tournament/consts")
+const { matchStatusTeamTwo } = require("../models/tournament/consts")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
-const {checkUniqueName} = require("../models/game/utils")
-const {userPermissionUser} = require("../models/user/consts")
-const {userPermissionTicket} = require("../models/user/consts")
-const {disputeTicketDefaultSubject} = require("../models/ticket/consts")
-const {matchStatusDispute} = require("../models/tournament/consts")
-const {checkMatchExists} = require("../models/match/utils")
-const {ticketCategoryDispute} = require("../models/ticket/consts")
-const {ticketStatusNew} = require("../models/ticket/consts")
-const {checkIfGameExists} = require("../models/game/utils")
-const {toISO} = require("../utils/custom-sanitizers")
-const {checkImgInput} = require("../utils/helpers")
+const { checkUniqueName } = require("../models/game/utils")
+const { userPermissionUser } = require("../models/user/consts")
+const { userPermissionTicket } = require("../models/user/consts")
+const { disputeTicketDefaultSubject } = require("../models/ticket/consts")
+const { matchStatusDispute } = require("../models/tournament/consts")
+const { checkMatchExists } = require("../models/match/utils")
+const { ticketCategoryDispute } = require("../models/ticket/consts")
+const { ticketStatusNew } = require("../models/ticket/consts")
+const { checkIfGameExists } = require("../models/game/utils")
+const { toISO } = require("../utils/custom-sanitizers")
+const { checkImgInput } = require("../utils/helpers")
 const { userStatuses } = require("../models/user/consts")
 const {
 	checkUniqueEmail,
@@ -225,17 +225,8 @@ router.patch(
 	[
 		param("userId").isMongoId().bail().custom(userExistsById),
 		body("status").optional().isIn(userStatuses),
-		body("email")
-			.optional()
-			.isEmail()
-			.normalizeEmail()
-			.custom(checkUniqueEmail),
-		body("username")
-			.optional()
-			.isString()
-			.trim()
-			.escape()
-			.custom(checkUniqueUsernamePatch),
+		body("email").optional().isEmail().normalizeEmail(),
+		body("username").optional().isString().trim().escape(),
 		body("password").optional().isString().trim().escape(),
 	],
 	checkValidation,

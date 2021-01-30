@@ -833,4 +833,47 @@ router.get(
 	}
 )
 
+router.delete(
+	"/:tournamentId/teams/:teamId/user/:userId",
+	checkJWT(),
+	[
+		param("tournamentId").custom(checkTournamentExists).bail(),
+		param("teamId").custom(checkTeamExists).bail(),
+		param("userId").custom(userExistsById).bail(),
+	],
+	checkValidation,
+	async (req, res, next) => {
+		try {
+			//
+			if (req.user.id !== req.params.userId) {
+				return res.status(403).json({
+					errorMessage: "You can just remove yourself from a team",
+				})
+			}
+
+			const teamToUpdate = await Teams.findOne({
+				_id: req.params.teamId,
+			}).lean()
+
+			if (teamToUpdate) {
+				_.remove(
+					teamToUpdate.members,
+					(member) => req.user.id === member.userId.toString()
+				)
+			}
+
+			await Teams.updateOne(
+				{
+					_id: req.params.teamId,
+				},
+				teamToUpdate
+			)
+
+			return res.status(200).json({})
+		} catch (e) {
+			next(e)
+		}
+	}
+)
+
 module.exports = router
