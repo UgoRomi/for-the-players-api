@@ -10,9 +10,7 @@ const { body, query, param } = require("express-validator")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const router = require("express").Router()
-const {
-	checkTournamentExists,
-} = require("../models/tournament/utils")
+const { checkTournamentExists } = require("../models/tournament/utils")
 const { checkTeamHasOngoingMatches } = require("../models/match/utils")
 const {
 	checkTeamNameInTournament,
@@ -42,6 +40,9 @@ const { ticketCategoryDispute } = require("../models/ticket/consts")
 const { checkMatchExists } = require("../models/match/utils")
 const { teamRoleMember } = require("../models/team/consts")
 const { calculateTeamResults } = require("../models/tournament/utils")
+const isAfter = require("date-fns/isAfter")
+const { getCurrentDateTime } = require("../utils/helpers")
+const sub = require("date-fns/sub")
 
 const Tournaments = mongoose.model("Tournaments")
 const Rulesets = mongoose.model("Rulesets")
@@ -157,9 +158,7 @@ router.post(
 					{
 						role: teamRoleLeader,
 						userId: req.user.id,
-						dateJoined: Date().toLocaleString("en-US", {
-							timeZone: "Europe/Rome",
-						}),
+						dateJoined: getCurrentDateTime(),
 					},
 				],
 				imgUrl: imageURL,
@@ -217,15 +216,14 @@ router.get(
 								member.userId.toString(),
 								"username"
 							).lean()
-							if (user){
-
-							return {
-								...member,
-								username: user.username,
-							}
-							}else{
+							if (user) {
 								return {
-									...member
+									...member,
+									username: user.username,
+								}
+							} else {
+								return {
+									...member,
 								}
 							}
 						})
@@ -464,25 +462,42 @@ router.post(
 				tournamentId: req.params.tournamentId,
 			}).lean()
 
+			// Find the IDs of all the teams this team played with in the last 30 minutes
+			const recentTeamsPlayedWith = matches
+				.filter(
+					(match) =>
+						(match.teamOne?.toString() === req.body.teamId ||
+							match.teamTwo?.toString() === req.body.teamId) &&
+						isAfter(
+							match.acceptedAt,
+							sub(getCurrentDateTime(), { minutes: 60 })
+						)
+				)
+				.map((match) => {
+					if (match.teamOne?.toString() === req.body.teamId)
+						return match.teamTwo.toString()
+					return match.teamOne.toString()
+				})
+
 			// TODO: Fix race condition
 			if (
 				matches.some(
 					(match) =>
 						!match.teamTwo &&
 						match.numberOfPlayers === parseInt(req.body.numberOfPlayers) &&
-						match.rulesetId.toString() === req.body.rulesetId
+						match.rulesetId.toString() === req.body.rulesetId &&
+						!recentTeamsPlayedWith.includes(match.teamOne.toString())
 				)
 			) {
 				const matchToUpdate = matches.find(
 					(match) =>
 						!match.teamTwo &&
 						match.numberOfPlayers === parseInt(req.body.numberOfPlayers) &&
-						match.rulesetId.toString() === req.body.rulesetId
+						match.rulesetId.toString() === req.body.rulesetId &&
+						!recentTeamsPlayedWith.includes(match.teamOne.toString())
 				)
 				matchToUpdate.teamTwo = req.body.teamId
-				matchToUpdate.acceptedAt = Date().toLocaleString("en-US", {
-					timeZone: "Europe/Rome",
-				})
+				matchToUpdate.acceptedAt = getCurrentDateTime()
 				const ruleset = await Rulesets.findById(
 					req.body.rulesetId,
 					"bestOf maps"
@@ -495,9 +510,7 @@ router.post(
 			await Matches.create({
 				tournamentId: req.params.tournamentId,
 				teamOne: req.body.teamId,
-				acceptedAt: Date().toLocaleString("en-US", {
-					timeZone: "Europe/Rome",
-				}),
+				acceptedAt: getCurrentDateTime(),
 				numberOfPlayers: req.body.numberOfPlayers,
 				rulesetId: req.body.rulesetId,
 			})
@@ -566,7 +579,7 @@ router.patch(
 			const teamTwo = await Teams.findById(match.teamTwo.toString()).lean()
 			const teams = [teamOne, teamTwo]
 
-			//TODO: Fix race
+			//TODO: Fix race condition
 			if (match.teamOne.toString() === req.body.teamId)
 				match.teamOneResult = req.body.result
 			else if (match.teamTwo.toString() === req.body.teamId)

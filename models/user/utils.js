@@ -58,7 +58,8 @@ const multipleUsersExistById = async (usersIds) => {
 
 const checkUniqueUsernamePatch = async (username, { req }) => {
 	const userAlreadyExists = await User.findOne({
-		username, _id: { $ne: req.params.userId}
+		username,
+		_id: { $ne: req.params.userId },
 	}).lean()
 	// If this validator is called on an endpoint that does not require authentication (sign up)
 	if (userAlreadyExists) throw Error("Username already in use")
@@ -72,5 +73,5 @@ module.exports = {
 	userExistsById,
 	multipleUsersExistById,
 	isLoggedInUser,
-	checkUniqueUsernamePatch
+	checkUniqueUsernamePatch,
 }

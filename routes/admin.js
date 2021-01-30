@@ -36,8 +36,11 @@ const {ticketStatusNew} = require("../models/ticket/consts")
 const {checkIfGameExists} = require("../models/game/utils")
 const {toISO} = require("../utils/custom-sanitizers")
 const {checkImgInput} = require("../utils/helpers")
-const {userStatuses} = require("../models/user/consts")
-const {checkUniqueEmail, checkUniqueUsernamePatch} = require("../models/user/utils")
+const { userStatuses } = require("../models/user/consts")
+const {
+	checkUniqueEmail,
+	checkUniqueUsernamePatch,
+} = require("../models/user/utils")
 
 const Tournaments = mongoose.model("Tournaments")
 const Tickets = mongoose.model("Tickets")

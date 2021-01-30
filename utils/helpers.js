@@ -5,7 +5,7 @@ const got = require("got")
 
 const ImgurToken = mongoose.model("ImgurTokens")
 
-const getImgurlToken = async () => {
+const getImgurToken = async () => {
 	const requestBody = new FormData()
 	requestBody.append("refresh_token", process.env.IMGURL_REFRESH_TOKEN)
 	requestBody.append("client_id", process.env.IMGURL_CLIENT_ID)
@@ -22,7 +22,7 @@ const getImgurlToken = async () => {
 	return access_token
 }
 
-const uploadImageToImgurl = async (authToken, imageBase64) => {
+const uploadImageToImgur = async (authToken, imageBase64) => {
 	const requestBody = new FormData()
 	requestBody.append("image", imageBase64)
 	requestBody.append("type", "base64")
@@ -48,15 +48,23 @@ const checkImgInput = async (body) => {
 		}).lean()
 		let imgurToken = imgurTokenDoc?.token
 		if (!imgurToken) {
-			imgurToken = await getImgurlToken()
+			imgurToken = await getImgurToken()
 		}
-		imageURL = await uploadImageToImgurl(imgurToken, body.imgBase64)
+		imageURL = await uploadImageToImgur(imgurToken, body.imgBase64)
 	}
 	return imageURL
 }
 
+const getCurrentDateTime = () =>
+	new Date(
+		Date().toLocaleString("en-US", {
+			timeZone: "Europe/Rome",
+		})
+	)
+
 module.exports = {
-	getImgurlToken,
-	uploadImageToImgurl,
+	getImgurToken,
+	uploadImageToImgur,
 	checkImgInput,
+	getCurrentDateTime,
 }

@@ -27,7 +27,7 @@ const userPermissions = [
 	userPermissionTournament,
 	userPermissionRuleset,
 	userPermissionTicket,
-	userPermissionUser
+	userPermissionUser,
 ]
 
 const resetPasswordPage = "https://app.theplayers.tech/reset-password"

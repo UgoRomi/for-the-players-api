@@ -3,6 +3,7 @@ const { body, param } = require("express-validator")
 const { checkJWT, checkValidation } = require("../utils/custom-middlewares")
 const { convertToMongoId } = require("../utils/custom-sanitizers")
 const mongoose = require("mongoose")
+const { getCurrentDateTime } = require("../utils/helpers")
 const { teamInvites, teamInviteAccepted } = require("../models/invite/consts")
 const { inviteExistsById, inviteIsPending } = require("../models/invite/utils")
 
@@ -50,9 +51,7 @@ router.patch(
 						$push: {
 							members: {
 								userId: invite.userId,
-								dateJoined: Date().toLocaleString("en-US", {
-									timeZone: "Europe/Rome",
-								}),
+								dateJoined: getCurrentDateTime(),
 							},
 						},
 					}

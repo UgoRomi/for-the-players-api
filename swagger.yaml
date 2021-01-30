@@ -114,7 +114,7 @@ paths:
     get:
       summary: Send a verification email for the logged in user
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - auth
       operationId: sendVerificationEmail
@@ -163,7 +163,7 @@ paths:
     patch:
       summary: Resets the user's password
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - auth
       operationId: resetUserPassword
@@ -203,7 +203,7 @@ paths:
     post:
       summary: Create a new platform
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - platform
       operationId: createPlatform
@@ -253,7 +253,7 @@ paths:
     get:
       summary: Returns the list of all platforms that can be seen by the end user (The one that have visible=true)
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - platform
       operationId: listAllVisiblePlatforms
@@ -311,7 +311,7 @@ paths:
       tags:
         - platform
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       summary: Returns the platforms that corresponds to the platform ID
       responses:
         "401":
@@ -364,7 +364,7 @@ paths:
     get:
       summary: Returns the list of all games
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - game
       operationId: listAllGames
@@ -402,7 +402,7 @@ paths:
     post:
       summary: Create a new game
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - game
       operationId: createGame
@@ -465,7 +465,7 @@ paths:
       tags:
         - user
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       summary: Returns a list of users
       responses:
         "400":
@@ -518,7 +518,7 @@ paths:
       tags:
         - user
       security:
-        - BearerToken: []
+        - BearerToken: [ ]
       summary: Returns a single user's details
       responses:
         "400":
@@ -618,7 +618,7 @@ paths:
     patch:
       summary: Updates the user profile
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - users
       requestBody:
@@ -681,7 +681,7 @@ paths:
     get:
       summary: List all visible tournaments
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tournaments
       operationId: listVisibleTournaments
@@ -762,7 +762,7 @@ paths:
     get:
       summary: Get a tournament details
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tournaments
       operationId: getTeam
@@ -964,7 +964,7 @@ paths:
     post:
       summary: Create a new team in the tournament
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tournaments
       operationId: createTeam
@@ -1027,7 +1027,7 @@ paths:
     patch:
       summary: Update the team details
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tournaments
       operationId: updateTeam
@@ -1086,7 +1086,7 @@ paths:
     delete:
       summary: Deletes the team
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tournaments
       operationId: deleteTeam
@@ -1116,7 +1116,7 @@ paths:
     get:
       summary: Get a team's details
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tournaments
       operationId: teamDetails
@@ -1211,7 +1211,7 @@ paths:
           $ref: "#/components/schemas/MongoID"
     delete:
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       description: >
         Remove the user from the team's members.
         Only the user of the team can remove himself
@@ -1262,7 +1262,7 @@ paths:
     post:
       summary: Invites a player to a team
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tournaments
       operationId: inviteToTeam
@@ -1313,7 +1313,7 @@ paths:
           $ref: "#/components/schemas/MongoID"
     post:
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       description: >
         Create a new match. The match has to be accepted by another team before it's valid <br>
         If there already is a match with an open spot for this tournament the team will automatically join that match
@@ -1372,7 +1372,7 @@ paths:
           description: "Match created"
     get:
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       description: "Get the list of matches for the given tournament"
       tags:
         - matches
@@ -1455,7 +1455,7 @@ paths:
           $ref: "#/components/schemas/MongoID"
     get:
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       description: Get the details of a match
       tags:
         - matches
@@ -1535,7 +1535,7 @@ paths:
                       type: string
     delete:
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       description: >
         Deletes the match.
         Only the leader of the team that created the match can do this
@@ -1572,7 +1572,7 @@ paths:
           description: "Match deleted"
     patch:
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       description: Used when a team accepts or quits the match or to post results
       tags:
         - matches
@@ -1626,7 +1626,7 @@ paths:
           $ref: "#/components/schemas/MongoID"
     patch:
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       description: Updates the status of an invite
       tags:
         - invites
@@ -1668,7 +1668,7 @@ paths:
           description: "Invite status updated"
     delete:
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       description: >
         Deletes an invite
         Invite must be in status: PENDING
@@ -1702,7 +1702,7 @@ paths:
     get:
       summary: Returns all rulesets
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - rulesets
       operationId: listRulesets
@@ -1769,7 +1769,7 @@ paths:
     post:
       summary: Create a new ruleset for a game
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - rulesets
       operationId: createRuleset
@@ -1837,7 +1837,7 @@ paths:
     get:
       summary: Returns all tickets
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tickets
       operationId: listTickets
@@ -1897,17 +1897,17 @@ paths:
                     messages:
                       type: object
                       properties:
-                        authorId: 
+                        authorId:
                           type: string
                           description: The url of the attachment
-                        message: 
+                        message:
                           type: string
                           description: The message
-                        date: 
+                        date:
                           type: string
                           format: date-time
                           description: The date of the message
-                        isAdmin: 
+                        isAdmin:
                           type: boolean
                           description: If the message has been sent by an admin
                         _id:
@@ -1916,7 +1916,7 @@ paths:
     post:
       summary: Create a new ticket
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tickets
       operationId: createTicket
@@ -1941,10 +1941,10 @@ paths:
                   $ref: "#/components/schemas/TicketCategories"
                 matchId:
                   type: string
-                  description: The linked match's ID 
+                  description: The linked match's ID
                 tournamentId:
                   type: string
-                  description: The linked tournament's ID 
+                  description: The linked tournament's ID
       responses:
         "400":
           description: "The input data was wrongly formatted"
@@ -1977,7 +1977,7 @@ paths:
     get:
       summary: Returns a single ticket
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tickets
       operationId: getTicketDetail
@@ -2082,7 +2082,7 @@ paths:
     patch:
       summary: Update the ticket status
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - tickets
       operationId: updateTicket
@@ -2095,7 +2095,7 @@ paths:
                 - newStatus
               properties:
                 newStatus:
-                  $ref:  "#/components/schemas/TicketStatuses"
+                  $ref: "#/components/schemas/TicketStatuses"
       responses:
         "400":
           description: "The input data was wrongly formatted"
@@ -2273,7 +2273,7 @@ paths:
           $ref: "#/components/schemas/MongoID"
     patch:
       security:
-        - BearerAuth: []
+        - BearerAuth: [ ]
       tags:
         - admin
       operationId: updateTournament
@@ -2285,7 +2285,7 @@ paths:
               properties:
                 name:
                   type: string
-                game: 
+                game:
                   type: string
                 platform:
                   type: string
