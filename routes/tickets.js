@@ -164,13 +164,14 @@ router.patch(
 	checkJWT(userPermissionTicket),
 	[
 		param("ticketId").isMongoId().bail().custom(checkIfTicketExists),
-		body("newStatus").isIn(ticketStatuses),
+		body("status").isIn(ticketStatuses),
 	],
+	checkValidation,
 	async (req, res, next) => {
 		try {
 			await Tickets.findOneAndUpdate(
 				{ _id: req.params.ticketId },
-				{ status: req.body.newStatus }
+				{ status: req.body.status }
 			)
 			return res.status(200).json()
 		} catch (e) {

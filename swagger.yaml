@@ -1832,7 +1832,6 @@ paths:
                 $ref: "#/components/schemas/ErrorMessageResponse"
         "201":
           description: "Ruleset added"
-
   /tickets:
     get:
       summary: Returns all tickets
@@ -2092,9 +2091,9 @@ paths:
             schema:
               type: object
               required:
-                - newStatus
+                - status
               properties:
-                newStatus:
+                status:
                   $ref: "#/components/schemas/TicketStatuses"
       responses:
         "400":
