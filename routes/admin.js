@@ -128,85 +128,66 @@ router.patch(
 				})
 
 			const teamOneWon = match.teamOne.toString() === req.body.winningTeamId
-			match.teamOneResult = teamOneWon
-				? teamSubmittedMatchResultWin
-				: teamSubmittedMatchResultLoss
-			match.teamTwoResult = teamOneWon
-				? teamSubmittedMatchResultLoss
-				: teamSubmittedMatchResultWin
-
+			match.teamOneResult = teamOneWon ? "WIN" : "LOSS"
+			match.teamTwoResult = teamOneWon ? "LOSS" : "WIN"
 			const matchesStatus = await calculateMatchStatus([match], teams)
 			const matchStatus = matchesStatus[0].status
-			await Matches.replaceOne({ _id: match._id.toString() }, match)
+			await Matches.replaceOne({ _id: match._id }, match)
 
-			// Only update elo or points if both teams have posted results and there's no dispute
-			if (matchStatus === matchStatusDispute) {
-				// Dispute
-				await Tickets.create({
-					subject: disputeTicketDefaultSubject,
-					date: new Date(),
-					tournamentId: req.params.tournamentId,
-					matchId: req.params.matchId,
-					category: ticketCategoryDispute,
-					messages: [],
-					status: ticketStatusNew,
-				})
+			// Elo doesn't update in case of a tie
+			if (tournament.type === ladderType && matchStatus !== matchStatusTie) {
+				// UPDATE ELO
+				const expectedScoreTeamOne = elo.getExpected(teamOne.elo, teamTwo.elo)
+				const expectedScoreTeamTwo = elo.getExpected(teamTwo.elo, teamOne.elo)
+
+				// +true equals 1
+				// +false equals 0
+
+				// Update teamOne
+				const teamOneNewElo = elo.updateRating(
+					expectedScoreTeamOne,
+					+(matchStatus === matchStatusTeamOne),
+					teamOne.elo
+				)
+				await Teams.updateOne(
+					{ _id: teamOne._id.toString() },
+					{ elo: teamOneNewElo }
+				)
+
+				// Update teamTwo
+				const teamTwoNewElo = elo.updateRating(
+					expectedScoreTeamTwo,
+					+(matchStatus === matchStatusTeamTwo),
+					teamTwo.elo
+				)
+				await Teams.updateOne(
+					{ _id: teamTwo._id.toString() },
+					{ elo: teamTwoNewElo }
+				)
 			} else {
-				// Elo doesn't update in case of a tie
-				if (tournament.type === ladderType && matchStatus !== matchStatusTie) {
-					// UPDATE ELO
-					const expectedScoreTeamOne = elo.getExpected(teamOne.elo, teamTwo.elo)
-					const expectedScoreTeamTwo = elo.getExpected(teamTwo.elo, teamOne.elo)
-
-					// +true equals 1
-					// +false equals 0
-
-					// Update teamOne
-					const teamOneNewElo = elo.updateRating(
-						expectedScoreTeamOne,
-						+(matchStatus === matchStatusTeamOne),
-						teamOne.elo
-					)
-					await Teams.updateOne(
-						{ _id: teamOne.toString() },
-						{ elo: teamOneNewElo }
-					)
-
-					// Update teamTwo
-					const teamTwoNewElo = elo.updateRating(
-						expectedScoreTeamTwo,
-						+(matchStatus === matchStatusTeamTwo),
-						teamTwo.elo
-					)
-					await Teams.updateOne(
-						{ _id: teamTwo.toString() },
-						{ elo: teamTwoNewElo }
-					)
-				} else {
-					// UPDATE POINTS
-					let teamOnePoints = teamOne.points
-					let teamTwoPoints = teamTwo.points
-					switch (matchStatus) {
-						case matchStatusTie:
-							teamOnePoints += 1
-							teamTwoPoints += 1
-							break
-						case matchStatusTeamOne:
-							teamOnePoints += 3
-							break
-						case matchStatusTeamTwo:
-							teamTwoPoints += 3
-							break
-					}
-					await Teams.updateOne(
-						{ _id: teamOne.toString() },
-						{ points: teamOnePoints }
-					)
-					await Teams.updateOne(
-						{ _id: teamTwo.toString() },
-						{ points: teamTwoPoints }
-					)
+				// UPDATE POINTS
+				let teamOnePoints = teamOne.points
+				let teamTwoPoints = teamTwo.points
+				switch (matchStatus) {
+					case matchStatusTie:
+						teamOnePoints += 1
+						teamTwoPoints += 1
+						break
+					case matchStatusTeamOne:
+						teamOnePoints += 3
+						break
+					case matchStatusTeamTwo:
+						teamTwoPoints += 3
+						break
 				}
+				await Teams.updateOne(
+					{ _id: teamOne._id.toString() },
+					{ points: teamOnePoints }
+				)
+				await Teams.updateOne(
+					{ _id: teamTwo._id.toString() },
+					{ points: teamTwoPoints }
+				)
 			}
 
 			return res.status(200).json({})
