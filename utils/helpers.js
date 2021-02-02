@@ -71,7 +71,7 @@ const getRecentTeamsPlayedWith = (matches, teamId) => {
 			(match) =>
 				(match.teamOne?.toString() === teamId ||
 					match.teamTwo?.toString() === teamId) &&
-				isAfter(match.acceptedAt, sub(getCurrentDateTime(), { minutes: 60 }))
+				isAfter(match.acceptedAt, sub(getCurrentDateTime(), { minutes: 150 }))
 		)
 		.map((match) => {
 			if (match.teamOne?.toString() === teamId) return match.teamTwo.toString()
