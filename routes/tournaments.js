@@ -650,6 +650,9 @@ router.patch(
 	}
 )
 
+/**
+ * Used to manually accept a match
+ */
 router.post(
 	"/:tournamentId/matches/:matchId",
 	checkJWT(),
@@ -671,6 +674,17 @@ router.post(
 	async (req, res, next) => {
 		try {
 			const match = await Matches.findById(req.params.matchId)
+
+			if (match.teamOne.toString() === req.body.teamId)
+				return res.status(400).json([
+					{
+						value: req.params.matchId,
+						msg: "You cannot accept your own match",
+						param: "matchId",
+						location: "params",
+					},
+				])
+
 			const teamMatches = await Matches.find({
 				tournamentId: req.params.tournamentId,
 				$or: [{ teamOne: req.body.teamId }, { teamTwo: req.body.teamId }],
