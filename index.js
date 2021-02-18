@@ -33,53 +33,55 @@ app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 if (!_.isEmpty(connectionError)) return
 
 // Middlewares
-app.use(helmet())
+app.use(helmet());
 // noinspection JSCheckFunctionSignatures
-app.use(morgan("dev"))
-app.use(cors())
-app.use(express.json({ limit: "10mb" }))
+app.use(morgan('dev'));
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
 // noinspection JSCheckFunctionSignatures
-app.use(compression())
-app.use(bodyParser.json())
+app.use(compression());
+app.use(bodyParser.json());
 
 // Routes
-const authRoutes = require("./routes/auth")
-const platformRoutes = require("./routes/platforms")
-const gameRoutes = require("./routes/games")
-const tournamentRoutes = require("./routes/tournaments")
-const rulesetRoutes = require("./routes/rulesets")
-const invitesRoutes = require("./routes/invites")
-const userRoutes = require("./routes/users")
-const ticketRoutes = require("./routes/tickets")
-const adminRoutes = require("./routes/admin")
+const authRoutes = require('./routes/auth');
+const platformRoutes = require('./routes/platforms');
+const gameRoutes = require('./routes/games');
+const tournamentRoutes = require('./routes/tournaments');
+const rulesetRoutes = require('./routes/rulesets');
+const invitesRoutes = require('./routes/invites');
+const userRoutes = require('./routes/users');
+const ticketRoutes = require('./routes/tickets');
+const adminRoutes = require('./routes/admin');
+const challongeRoutes = require('./routes/challonge');
 
 const limiter = rateLimit({
-	windowMs: 1000 * 3600, // 1 Hour
-	max: 3600, // limit each IP to 100 requests per windowMs
-})
+  windowMs: 1000 * 3600, // 1 Hour
+  max: 3600, // limit each IP to 100 requests per windowMs
+});
 
 //  apply to all requests
-app.use(limiter)
+app.use(limiter);
 
-app.use("/auth", authRoutes)
-app.use("/platforms", platformRoutes)
-app.use("/games", gameRoutes)
-app.use("/tournaments", tournamentRoutes)
-app.use("/rulesets", rulesetRoutes)
-app.use("/invites", invitesRoutes)
-app.use("/users", userRoutes)
-app.use("/tickets", ticketRoutes)
-app.use("/admin", adminRoutes)
+app.use('/auth', authRoutes);
+app.use('/platforms', platformRoutes);
+app.use('/games', gameRoutes);
+app.use('/tournaments', tournamentRoutes);
+app.use('/rulesets', rulesetRoutes);
+app.use('/invites', invitesRoutes);
+app.use('/users', userRoutes);
+app.use('/tickets', ticketRoutes);
+app.use('/admin', adminRoutes);
+app.use('/challonge', challongeRoutes);
 
-app.use("/test", (_req, res, _next) => {
-	res.send("Welcome to 4TP APIs!")
-})
+app.use('/test', (_req, res, _next) => {
+  res.send('Welcome to 4TP APIs!');
+});
 
 // Error handling
 //404
-app.use("*", (req, res, _next) => {
-	return res.status(404).json({ error: `URL ${req.baseUrl} not found` })
-})
+app.use('*', (req, res, _next) => {
+  return res.status(404).json({ error: `URL ${req.baseUrl} not found` });
+});
 
 app.use((error, req, res, next) => {
 	if (!error.statusCode) error.statusCode = 500

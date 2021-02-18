@@ -38,17 +38,22 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
+    "eslint": "^7.20.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2"
   },
   "prettier": {
     "tabWidth": 2,
-    "useTabs": true,
-    "semi": false,
+    "useTabs": false,
+    "semi": true,
     "quoteProps": "consistent",
     "trailingComma": "es5",
     "bracketSpacing": true,
-    "arrowParens": "always"
+    "arrowParens": "always",
+    "printWidth": 80,
+    "singleQuote": true
   },
   "engines": {
     "node": "14.x"
