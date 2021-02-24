@@ -1,21 +1,21 @@
-const { body, query, param } = require('express-validator');
-const router = require('express').Router();
-const mongoose = require('mongoose');
-const got = require('got');
-const EloRank = require('elo-rank');
-const _ = require('lodash');
+const { body, query, param } = require("express-validator");
+const router = require("express").Router();
+const mongoose = require("mongoose");
+const got = require("got");
+const EloRank = require("elo-rank");
+const _ = require("lodash");
 const {
   userExistsById,
   multipleUsersExistById,
-} = require('../models/user/utils');
-const { types, updateMatchActions } = require('../models/tournament/consts');
-const { teamRoleLeader } = require('../models/team/consts');
-const { teamSubmittedResults } = require('../models/match/consts');
-const { teamInvitePending } = require('../models/invite/consts');
-const { convertToMongoId } = require('../utils/custom-sanitizers');
-const { checkJWT, checkValidation } = require('../utils/custom-middlewares');
-const { checkTournamentExists } = require('../models/tournament/utils');
-const { checkTeamHasOngoingMatches } = require('../models/match/utils');
+} = require("../models/user/utils");
+const { types, updateMatchActions } = require("../models/tournament/consts");
+const { teamRoleLeader } = require("../models/team/consts");
+const { teamSubmittedResults } = require("../models/match/consts");
+const { teamInvitePending } = require("../models/invite/consts");
+const { convertToMongoId } = require("../utils/custom-sanitizers");
+const { checkJWT, checkValidation } = require("../utils/custom-middlewares");
+const { checkTournamentExists } = require("../models/tournament/utils");
+const { checkTeamHasOngoingMatches } = require("../models/match/utils");
 const {
   checkTeamNameInTournament,
   checkTeamExists,
@@ -23,51 +23,51 @@ const {
   userNotInATeam,
   userIsLeader,
   userIsLeaderMiddleware,
-} = require('../models/team/utils');
-const { calculateMatchStatus } = require('../models/tournament/utils');
-const { checkIfValidImageData } = require('../utils/custom-validators');
-const { checkImgInput } = require('../utils/helpers');
-const { checkIfGameExists } = require('../models/game/utils');
-const { checkTournamentHasNotStarted } = require('../models/tournament/utils');
-const { matchStatusTie } = require('../models/tournament/consts');
+} = require("../models/team/utils");
+const { calculateMatchStatus } = require("../models/tournament/utils");
+const { checkIfValidImageData } = require("../utils/custom-validators");
+const { checkImgInput } = require("../utils/helpers");
+const { checkIfGameExists } = require("../models/game/utils");
+const { checkTournamentHasNotStarted } = require("../models/tournament/utils");
+const { matchStatusTie } = require("../models/tournament/consts");
 const {
   ladderType,
   tournamentType,
   bracketType,
-} = require('../models/tournament/consts');
-const { matchStatusTeamOne } = require('../models/tournament/consts');
-const { matchStatusTeamTwo } = require('../models/tournament/consts');
-const { disputeTicketDefaultSubject } = require('../models/ticket/consts');
-const { matchStatusDispute } = require('../models/tournament/consts');
-const { ticketStatusNew } = require('../models/ticket/consts');
-const { ticketCategoryDispute } = require('../models/ticket/consts');
-const { checkMatchExists } = require('../models/match/utils');
-const { teamRoleMember } = require('../models/team/consts');
-const { calculateTeamResults } = require('../models/tournament/utils');
-const { getCurrentDateTime } = require('../utils/helpers');
-const { getRecentTeamsPlayedWith } = require('../utils/helpers');
+} = require("../models/tournament/consts");
+const { matchStatusTeamOne } = require("../models/tournament/consts");
+const { matchStatusTeamTwo } = require("../models/tournament/consts");
+const { disputeTicketDefaultSubject } = require("../models/ticket/consts");
+const { matchStatusDispute } = require("../models/tournament/consts");
+const { ticketStatusNew } = require("../models/ticket/consts");
+const { ticketCategoryDispute } = require("../models/ticket/consts");
+const { checkMatchExists } = require("../models/match/utils");
+const { teamRoleMember } = require("../models/team/consts");
+const { calculateTeamResults } = require("../models/tournament/utils");
+const { getCurrentDateTime } = require("../utils/helpers");
+const { getRecentTeamsPlayedWith } = require("../utils/helpers");
 
-const Tournaments = mongoose.model('Tournaments');
-const Rulesets = mongoose.model('Rulesets');
-const Games = mongoose.model('Games');
-const Invites = mongoose.model('Invites');
-const Users = mongoose.model('Users');
-const Tickets = mongoose.model('Tickets');
-const Matches = mongoose.model('Matches');
-const Teams = mongoose.model('Teams');
+const Tournaments = mongoose.model("Tournaments");
+const Rulesets = mongoose.model("Rulesets");
+const Games = mongoose.model("Games");
+const Invites = mongoose.model("Invites");
+const Users = mongoose.model("Users");
+const Tickets = mongoose.model("Tickets");
+const Matches = mongoose.model("Matches");
+const Teams = mongoose.model("Teams");
 
 const elo = new EloRank();
 
 router.get(
-  '/',
+  "/",
   checkJWT(),
   [
-    query('gameId')
+    query("gameId")
       .optional()
       .isAlphanumeric()
       .customSanitizer(convertToMongoId)
       .custom(checkIfGameExists),
-    query('type').optional().isString().isIn(types),
+    query("type").optional().isString().isIn(types),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -87,11 +87,11 @@ router.get(
           }).lean();
           const rulesets = await Promise.all(
             tournament.rulesets.map(async (ruleset) =>
-              Rulesets.findById(ruleset, '_id').lean(),
-            ),
+              Rulesets.findById(ruleset, "_id").lean()
+            )
           );
           const gameDoc = await Games.findById(
-            tournament.game.toString(),
+            tournament.game.toString()
           ).lean();
           return {
             name,
@@ -119,28 +119,28 @@ router.get(
 	Register a new team to the tournament
  */
 router.post(
-  '/:tournamentId/teams',
+  "/:tournamentId/teams",
   checkJWT(),
   [
-    param('tournamentId')
+    param("tournamentId")
       .custom(checkTournamentExists)
       .bail()
       .custom(checkTournamentHasNotStarted)
       .bail(),
-    body('name')
+    body("name")
       .notEmpty({ ignore_whitespace: true })
       .trim()
       .escape()
       .custom(checkTeamNameInTournament),
-    body('imgUrl').optional().isURL(),
-    body('imgBase64').isBase64().custom(checkIfValidImageData),
+    body("imgUrl").optional().isURL(),
+    body("imgBase64").isBase64().custom(checkIfValidImageData),
   ],
   checkValidation,
   async (req, res, next) => {
     let createdTeam;
     try {
       const tournament = await Tournaments.findById(
-        req.params.tournamentId,
+        req.params.tournamentId
       ).lean();
       if (
         await Teams.findOne({
@@ -149,10 +149,10 @@ router.post(
         }).lean()
       ) {
         return res.status(400).json({
-          value: 'userId',
-          msg: 'User is already registered in a team',
-          param: 'userId',
-          location: 'JWT',
+          value: "userId",
+          msg: "User is already registered in a team",
+          param: "userId",
+          location: "JWT",
         });
       }
 
@@ -185,7 +185,7 @@ router.post(
           `${process.env.CHALLONGE_URL}/v1/tournaments/${tournament.challongeId}/participants.json`,
           {
             json: challongeBody,
-          },
+          }
         );
       }
       if (tournamentType === bracketType)
@@ -201,14 +201,14 @@ router.post(
 );
 
 router.get(
-  '/:tournamentId',
+  "/:tournamentId",
   checkJWT(),
-  [param('tournamentId').custom(checkTournamentExists)],
+  [param("tournamentId").custom(checkTournamentExists)],
   checkValidation,
   async (req, res, next) => {
     try {
       const tournament = await Tournaments.findById(
-        req.params.tournamentId,
+        req.params.tournamentId
       ).lean();
       const matches = await Matches.find({
         tournamentId: req.params.tournamentId,
@@ -217,12 +217,12 @@ router.get(
         {
           tournamentId: req.params.tournamentId,
         },
-        '-tournamentId ',
+        "-tournamentId "
       ).lean();
 
       const rulesets = await Rulesets.find(
         { _id: { $in: tournament.rulesets } },
-        '_id maps maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam description name bestOf',
+        "_id maps maxNumberOfPlayersPerTeam minNumberOfPlayersPerTeam description name bestOf"
       ).lean();
 
       // Add "status" to the matches
@@ -231,7 +231,7 @@ router.get(
       // Count wins, losses and ties for each team
       let calculatedTeams = await calculateTeamResults(
         calculatedMatches,
-        teams,
+        teams
       );
 
       // TODO: It does a shit ton of queries
@@ -241,7 +241,7 @@ router.get(
             team.members.map(async (member) => {
               const user = await Users.findById(
                 member.userId.toString(),
-                'username',
+                "username"
               ).lean();
               if (user) {
                 return {
@@ -252,26 +252,26 @@ router.get(
               return {
                 ...member,
               };
-            }),
+            })
           );
           return team;
-        }),
+        })
       );
 
       // Get the team the user is a part of, if it exists
       const userTeam = calculatedTeams.find((team) =>
-        team.members.some((member) => member.userId.toString() === req.user.id),
+        team.members.some((member) => member.userId.toString() === req.user.id)
       );
       // Check if the team the user is a part of can play in the tournament
       if (userTeam) {
         userTeam.members = await Promise.all(
           userTeam.members.map(async (member) => {
-            const user = await Users.findById(member.userId, 'username').lean();
+            const user = await Users.findById(member.userId, "username").lean();
             return {
               ...member,
               username: user.username,
             };
-          }),
+          })
         );
       }
       return res.status(200).json({
@@ -302,16 +302,16 @@ router.get(
  * Update a single team
  */
 router.patch(
-  '/:tournamentId/teams/:teamId',
+  "/:tournamentId/teams/:teamId",
   checkJWT(),
   [
-    param('tournamentId').custom(checkTournamentExists).bail(),
-    param('teamId').custom(checkTeamExists),
-    body('name').optional().custom(checkTeamNameInTournament).trim().escape(),
-    body('membersToRemove').optional().custom(multipleUsersExistById),
-    body('imgUrl').optional().isURL(),
-    body('imgBase64').optional().isBase64(),
-    body('newLeader').optional().isMongoId(),
+    param("tournamentId").custom(checkTournamentExists).bail(),
+    param("teamId").custom(checkTeamExists),
+    body("name").optional().custom(checkTeamNameInTournament).trim().escape(),
+    body("membersToRemove").optional().custom(multipleUsersExistById),
+    body("imgUrl").optional().isURL(),
+    body("imgBase64").optional().isBase64(),
+    body("newLeader").optional().isMongoId(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -320,11 +320,11 @@ router.patch(
         !(await userIsLeader(
           req.params.teamId,
           req.params.tournamentId,
-          req.user.id,
+          req.user.id
         ))
       ) {
         return res.status(403).json({
-          errorMessage: 'You need to be a leader to update a team\'s details',
+          errorMessage: "You need to be a leader to update a team's details",
         });
       }
 
@@ -338,7 +338,7 @@ router.patch(
       // Remove members
       if (req.body.membersToRemove) {
         _.remove(teamToUpdate.members, (member) =>
-          req.body.membersToRemove.includes(member.userId.toString()),
+          req.body.membersToRemove.includes(member.userId.toString())
         );
       }
       // Update leader
@@ -361,7 +361,7 @@ router.patch(
         {
           _id: req.params.teamId,
         },
-        teamToUpdate,
+        teamToUpdate
       );
 
       return res.status(200).json();
@@ -375,15 +375,15 @@ router.patch(
  * Remove a team from a tournament
  */
 router.delete(
-  '/:tournamentId/teams/:teamId',
+  "/:tournamentId/teams/:teamId",
   checkJWT(),
   [
-    param('tournamentId')
+    param("tournamentId")
       .custom(checkTournamentExists)
       .bail()
       .custom(checkTournamentHasNotStarted)
       .bail(),
-    param('teamId').custom(checkTeamExists),
+    param("teamId").custom(checkTeamExists),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -392,11 +392,11 @@ router.delete(
         !(await userIsLeader(
           req.params.teamId,
           req.params.tournamentId,
-          req.user.id,
+          req.user.id
         ))
       ) {
         return res.status(403).json({
-          errorMessage: 'You need to be a leader to delete a team',
+          errorMessage: "You need to be a leader to delete a team",
         });
       }
 
@@ -413,16 +413,16 @@ router.delete(
  * Invite a user to a team
  */
 router.post(
-  '/:tournamentId/teams/:teamId/invites',
+  "/:tournamentId/teams/:teamId/invites",
   checkJWT(),
   [
-    param('tournamentId')
+    param("tournamentId")
       .isMongoId()
       .bail()
       .custom(checkTournamentExists)
       .bail(),
-    param('teamId').isMongoId().bail().custom(checkTeamExists),
-    body('userId').isMongoId().custom(userExistsById).custom(userNotInATeam),
+    param("teamId").isMongoId().bail().custom(checkTeamExists),
+    body("userId").isMongoId().custom(userExistsById).custom(userNotInATeam),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -430,12 +430,12 @@ router.post(
       if (req.body.userId.toUpperCase() === req.user.id.toUpperCase()) {
         return res
           .status(422)
-          .json({ errorMessage: 'The user tried to invite himself' });
+          .json({ errorMessage: "The user tried to invite himself" });
       }
 
       const userTeam = await Teams.findById(
         req.params.teamId,
-        'members',
+        "members"
       ).lean();
 
       // Check that the user is in the team and is a leader
@@ -443,12 +443,12 @@ router.post(
         !(await userIsLeader(
           userTeam._id,
           req.params.tournamentId,
-          req.user.id,
+          req.user.id
         ))
       ) {
         return res
           .status(403)
-          .json({ errorMessage: 'The user is not a leader of this team' });
+          .json({ errorMessage: "The user is not a leader of this team" });
       }
 
       // Check if invited user already has an invite pending
@@ -461,7 +461,7 @@ router.post(
       ) {
         return res
           .status(403)
-          .json({ errorMessage: 'The user has already been invited' });
+          .json({ errorMessage: "The user has already been invited" });
       }
       await Invites.create({
         userId: req.body.userId,
@@ -477,17 +477,17 @@ router.post(
 );
 
 router.post(
-  '/:tournamentId/matches',
+  "/:tournamentId/matches",
   checkJWT(),
   [
-    param('tournamentId').custom(checkTournamentExists).bail(),
-    body('teamId')
+    param("tournamentId").custom(checkTournamentExists).bail(),
+    body("teamId")
       .custom(checkTeamExists)
       .bail()
       .custom(checkUserIsLeaderInTeam)
       .custom(checkTeamHasOngoingMatches),
-    body('rulesetId').isString().bail(),
-    body('numberOfPlayers').isInt().bail(),
+    body("rulesetId").isString().bail(),
+    body("numberOfPlayers").isInt().bail(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -499,7 +499,7 @@ router.post(
       // Find the IDs of all the teams this team played with in the last 30 minutes
       const recentTeamsPlayedWith = getRecentTeamsPlayedWith(
         matches,
-        req.body.teamId,
+        req.body.teamId
       );
 
       // TODO: Fix race condition
@@ -509,7 +509,7 @@ router.post(
             !match.teamTwo &&
             match.numberOfPlayers === parseInt(req.body.numberOfPlayers) &&
             match.rulesetId.toString() === req.body.rulesetId &&
-            !recentTeamsPlayedWith.includes(match.teamOne.toString()),
+            !recentTeamsPlayedWith.includes(match.teamOne.toString())
         )
       ) {
         const matchToUpdate = matches.find(
@@ -517,13 +517,13 @@ router.post(
             !match.teamTwo &&
             match.numberOfPlayers === parseInt(req.body.numberOfPlayers) &&
             match.rulesetId.toString() === req.body.rulesetId &&
-            !recentTeamsPlayedWith.includes(match.teamOne.toString()),
+            !recentTeamsPlayedWith.includes(match.teamOne.toString())
         );
         matchToUpdate.teamTwo = req.body.teamId;
         matchToUpdate.acceptedAt = getCurrentDateTime();
         const ruleset = await Rulesets.findById(
           req.body.rulesetId,
-          'bestOf maps',
+          "bestOf maps"
         ).lean();
         matchToUpdate.maps = _.sampleSize(ruleset.maps, ruleset.bestOf);
         await Matches.replaceOne({ _id: matchToUpdate._id }, matchToUpdate);
@@ -544,9 +544,9 @@ router.post(
 );
 
 router.delete(
-  '/:tournamentId/matches/:matchId',
+  "/:tournamentId/matches/:matchId",
   checkJWT(),
-  [param('matchId').custom(checkMatchExists)],
+  [param("matchId").custom(checkMatchExists)],
   checkValidation,
   async (req, res, next) => {
     try {
@@ -554,7 +554,7 @@ router.delete(
 
       if (match.teamTwo) {
         return res.status(403).json({
-          errorMessage: 'Match already accepted',
+          errorMessage: "Match already accepted",
         });
       }
 
@@ -562,11 +562,11 @@ router.delete(
         !(await userIsLeader(
           match.teamOne._id.toString(),
           req.params.tournamentId,
-          req.user.id,
+          req.user.id
         ))
       ) {
         return res.status(403).json({
-          errorMessage: 'You need to be a leader to delete a match',
+          errorMessage: "You need to be a leader to delete a match",
         });
       }
 
@@ -579,24 +579,24 @@ router.delete(
 );
 
 router.patch(
-  '/:tournamentId/matches/:matchId',
+  "/:tournamentId/matches/:matchId",
   checkJWT(),
   [
-    param('tournamentId').custom(checkTournamentExists).bail(),
-    param('matchId').custom(checkMatchExists).bail(),
-    body('teamId')
+    param("tournamentId").custom(checkTournamentExists).bail(),
+    param("matchId").custom(checkMatchExists).bail(),
+    body("teamId")
       .custom(checkTeamExists)
       .custom(userIsLeaderMiddleware)
       .bail(),
-    body('action').isIn(updateMatchActions),
-    body('result').isIn(teamSubmittedResults),
+    body("action").isIn(updateMatchActions),
+    body("result").isIn(teamSubmittedResults),
   ],
   checkValidation,
   async (req, res, next) => {
     try {
       const tournament = await Tournaments.findById(
         req.params.tournamentId,
-        'type',
+        "type"
       ).lean();
       const match = await Matches.findById(req.params.matchId).lean();
       const teamOne = await Teams.findById(match.teamOne.toString()).lean();
@@ -610,7 +610,7 @@ router.patch(
         match.teamTwoResult = req.body.result;
       else {
         return res.status(404).json({
-          errorMessage: 'This team isn\'t in this match',
+          errorMessage: "This team isn't in this match",
         });
       }
 
@@ -652,7 +652,7 @@ router.patch(
         const teamOneNewElo = elo.updateRating(
           expectedScoreTeamOne,
           +(matchStatus === matchStatusTeamOne),
-          teamOne.elo,
+          teamOne.elo
         );
         await Teams.updateOne({ _id: teamOne._id }, { elo: teamOneNewElo });
 
@@ -660,7 +660,7 @@ router.patch(
         const teamTwoNewElo = elo.updateRating(
           expectedScoreTeamTwo,
           +(matchStatus === matchStatusTeamTwo),
-          teamTwo.elo,
+          teamTwo.elo
         );
         await Teams.updateOne({ _id: teamTwo._id }, { elo: teamTwoNewElo });
       } else {
@@ -694,16 +694,16 @@ router.patch(
  * Used to manually accept a match
  */
 router.post(
-  '/:tournamentId/matches/:matchId',
+  "/:tournamentId/matches/:matchId",
   checkJWT(),
   [
-    param('tournamentId')
+    param("tournamentId")
       .isMongoId()
       .bail()
       .custom(checkTournamentExists)
       .bail(),
-    param('matchId').isMongoId().bail().custom(checkMatchExists).bail(),
-    body('teamId')
+    param("matchId").isMongoId().bail().custom(checkMatchExists).bail(),
+    body("teamId")
       .isMongoId()
       .bail()
       .custom(checkTeamExists)
@@ -719,9 +719,9 @@ router.post(
         return res.status(400).json([
           {
             value: req.params.matchId,
-            msg: 'You cannot accept your own match',
-            param: 'matchId',
-            location: 'params',
+            msg: "You cannot accept your own match",
+            param: "matchId",
+            location: "params",
           },
         ]);
       }
@@ -733,15 +733,15 @@ router.post(
 
       const recentTeamsPlayedWith = getRecentTeamsPlayedWith(
         teamMatches,
-        req.body.teamId,
+        req.body.teamId
       );
       if (recentTeamsPlayedWith.includes(match.teamOne.toString())) {
         return res.status(400).json([
           {
             value: req.params.matchId,
-            msg: 'You already played with this team in the last hour',
-            param: 'matchId',
-            location: 'params',
+            msg: "You already played with this team in the last hour",
+            param: "matchId",
+            location: "params",
           },
         ]);
       }
@@ -749,18 +749,18 @@ router.post(
       // TODO: Fix race condition
       if (match.teamTwo) {
         return res.status(404).json({
-          errorMessage: 'The match has already been accepted',
+          errorMessage: "The match has already been accepted",
         });
       }
       const ruleset = await Rulesets.findById(
         match.rulesetId.toString(),
-        'bestOf maps',
+        "bestOf maps"
       ).lean();
       const maps = _.sampleSize(ruleset.maps, ruleset.bestOf);
 
       await Matches.updateOne(
         { _id: req.params.matchId },
-        { teamTwo: req.body.teamId, acceptedAt: getCurrentDateTime(), maps },
+        { teamTwo: req.body.teamId, acceptedAt: getCurrentDateTime(), maps }
       );
       return res.status(200).json({});
     } catch (e) {
@@ -773,9 +773,9 @@ router.post(
  * Get all the matches in a tournament
  */
 router.get(
-  '/:tournamentId/matches',
+  "/:tournamentId/matches",
   checkJWT(),
-  [param('tournamentId').isMongoId().custom(checkTournamentExists)],
+  [param("tournamentId").isMongoId().custom(checkTournamentExists)],
   checkValidation,
   async (req, res, next) => {
     try {
@@ -796,11 +796,11 @@ router.get(
 );
 
 router.get(
-  '/:tournamentId/matches/:matchId',
+  "/:tournamentId/matches/:matchId",
   checkJWT(),
   [
-    param('tournamentId').custom(checkTournamentExists).bail(),
-    param('matchId').custom(checkMatchExists).bail(),
+    param("tournamentId").custom(checkTournamentExists).bail(),
+    param("matchId").custom(checkMatchExists).bail(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -823,15 +823,15 @@ router.get(
  * Get a team details
  */
 router.get(
-  '/:tournamentId/teams/:teamId',
+  "/:tournamentId/teams/:teamId",
   checkJWT(),
   [
-    param('tournamentId')
+    param("tournamentId")
       .isMongoId()
       .bail()
       .custom(checkTournamentExists)
       .bail(),
-    param('teamId').isMongoId().bail().custom(checkTeamExists).bail(),
+    param("teamId").isMongoId().bail().custom(checkTeamExists).bail(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -855,7 +855,7 @@ router.get(
         calculatedTeam.members.map(async (member) => {
           const user = await Users.findById(
             member.userId.toString(),
-            'username',
+            "username"
           ).lean();
           return {
             ...member,
@@ -881,15 +881,15 @@ router.get(
 
 // Bracket tournaments are identified by "bracket"
 router.get(
-  '/brackets',
+  "/brackets",
   checkJWT(),
   [
-    query('gameId')
+    query("gameId")
       .optional()
       .isAlphanumeric()
       .customSanitizer(convertToMongoId)
       .custom(checkIfGameExists),
-    query('type').optional().isString().isIn(types),
+    query("type").optional().isString().isIn(types),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -902,12 +902,12 @@ router.get(
 );
 
 router.delete(
-  '/:tournamentId/teams/:teamId/user/:userId',
+  "/:tournamentId/teams/:teamId/user/:userId",
   checkJWT(),
   [
-    param('tournamentId').custom(checkTournamentExists).bail(),
-    param('teamId').custom(checkTeamExists).bail(),
-    param('userId').custom(userExistsById).bail(),
+    param("tournamentId").custom(checkTournamentExists).bail(),
+    param("teamId").custom(checkTeamExists).bail(),
+    param("userId").custom(userExistsById).bail(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -915,7 +915,7 @@ router.delete(
       //
       if (req.user.id !== req.params.userId) {
         return res.status(403).json({
-          errorMessage: 'You can just remove yourself from a team',
+          errorMessage: "You can just remove yourself from a team",
         });
       }
 
@@ -926,7 +926,7 @@ router.delete(
       if (teamToUpdate) {
         _.remove(
           teamToUpdate.members,
-          (member) => req.user.id === member.userId.toString(),
+          (member) => req.user.id === member.userId.toString()
         );
       }
 
@@ -934,7 +934,7 @@ router.delete(
         {
           _id: req.params.teamId,
         },
-        teamToUpdate,
+        teamToUpdate
       );
 
       return res.status(200).json({});

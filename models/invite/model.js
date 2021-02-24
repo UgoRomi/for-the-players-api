@@ -1,9 +1,9 @@
-const { Schema, model, ObjectId } = require('mongoose');
-const { teamInvites, teamInvitePending } = require('./consts');
+const { Schema, model, ObjectId } = require("mongoose");
+const { teamInvites, teamInvitePending } = require("./consts");
 
 const inviteSchema = new Schema({
-  userId: { type: ObjectId, ref: 'Users', required: true },
-  tournamentId: { type: ObjectId, ref: 'Tournaments', required: true },
+  userId: { type: ObjectId, ref: "Users", required: true },
+  tournamentId: { type: ObjectId, ref: "Tournaments", required: true },
   teamId: { type: ObjectId, required: true },
   status: {
     type: String,
@@ -12,6 +12,6 @@ const inviteSchema = new Schema({
     required: true,
   },
 });
-const inviteModel = model('Invites', inviteSchema);
+const inviteModel = model("Invites", inviteSchema);
 
 module.exports = inviteModel;

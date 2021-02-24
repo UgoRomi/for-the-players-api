@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
-const { teamRoleLeader } = require('./consts');
-const { error404, CustomError } = require('../../utils/error-consts');
+const mongoose = require("mongoose");
+const { teamRoleLeader } = require("./consts");
+const { error404, CustomError } = require("../../utils/error-consts");
 
-const Teams = mongoose.model('Teams');
+const Teams = mongoose.model("Teams");
 
 const checkTeamNameInTournament = async (name, { req }) => {
   const { tournamentId, teamId } = req.params;
@@ -29,7 +29,7 @@ const checkUserInTeam = async (teamId, { req }) => {
       members: { userId: req.user.id },
     }))
   )
-    throw Error('You are not part of this team');
+    throw Error("You are not part of this team");
 };
 
 const userIsLeader = async (teamId, tournamentId, userId) => {
@@ -43,7 +43,7 @@ const userIsLeader = async (teamId, tournamentId, userId) => {
 const checkUserIsLeaderInTeam = async (teamId, { req }) => {
   const { tournamentId } = req.params;
   if (!(await userIsLeader(teamId, tournamentId, req.user.id)))
-    throw Error('You are not the leader of this team');
+    throw Error("You are not the leader of this team");
 };
 
 const userIsLeaderMiddleware = async (teamId, { req }) => {
@@ -54,7 +54,7 @@ const userNotInATeam = async (userId, { req }) => {
   const { tournamentId } = req.params;
   await Teams.findOne({ tournamentId, members: { userId } });
   if (await Teams.findOne({ tournamentId, members: { userId } }))
-    throw Error('The user you are tying to invite is already in another team');
+    throw Error("The user you are tying to invite is already in another team");
 };
 
 module.exports = {

@@ -1,11 +1,11 @@
-const { Schema, model, ObjectId } = require('mongoose');
+const { Schema, model, ObjectId } = require("mongoose");
 
 const gameSubSchema = new Schema(
   {
-    gameId: { type: ObjectId, required: true, ref: 'Games' },
+    gameId: { type: ObjectId, required: true, ref: "Games" },
     show: { type: Boolean, required: true, default: false },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const platformSchema = new Schema(
@@ -15,9 +15,9 @@ const platformSchema = new Schema(
     show: { type: Boolean, required: true, default: false },
     games: [gameSubSchema],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-const platform = model('Platforms', platformSchema);
+const platform = model("Platforms", platformSchema);
 
 module.exports = platform;

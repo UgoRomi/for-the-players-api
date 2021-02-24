@@ -1,32 +1,32 @@
-const router = require('express').Router();
-const mongoose = require('mongoose');
-const { body } = require('express-validator');
-const { checkImgInput } = require('../utils/helpers');
-const { checkJWT, checkValidation } = require('../utils/custom-middlewares');
-const { userPermissionGame } = require('../models/user/consts');
-const { checkIfValidImageData } = require('../utils/custom-validators');
-const { checkUniqueName } = require('../models/game/utils');
+const router = require("express").Router();
+const mongoose = require("mongoose");
+const { body } = require("express-validator");
+const { checkImgInput } = require("../utils/helpers");
+const { checkJWT, checkValidation } = require("../utils/custom-middlewares");
+const { userPermissionGame } = require("../models/user/consts");
+const { checkIfValidImageData } = require("../utils/custom-validators");
+const { checkUniqueName } = require("../models/game/utils");
 
-const Game = mongoose.model('Games');
+const Game = mongoose.model("Games");
 
-router.get('/', checkJWT(), async (req, res, _next) => {
+router.get("/", checkJWT(), async (req, res, _next) => {
   // Get all games
-  const games = await Game.find({}, 'name _id imgUrl');
+  const games = await Game.find({}, "name _id imgUrl");
 
   return res.status(200).json(games);
 });
 
 router.post(
-  '/',
+  "/",
   checkJWT([userPermissionGame]),
   [
-    body('name')
+    body("name")
       .notEmpty({ ignore_whitespace: true })
       .trim()
       .escape()
       .custom(checkUniqueName),
-    body('imgUrl').optional().isURL(),
-    body('imgBase64').isBase64().custom(checkIfValidImageData),
+    body("imgUrl").optional().isURL(),
+    body("imgBase64").isBase64().custom(checkIfValidImageData),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -42,7 +42,7 @@ router.post(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 module.exports = router;

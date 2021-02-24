@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const { error404, CustomError } = require('../../utils/error-consts');
+const mongoose = require("mongoose");
+const { error404, CustomError } = require("../../utils/error-consts");
 
-const Matches = mongoose.model('Matches');
+const Matches = mongoose.model("Matches");
 
 const checkMatchExists = async (matchId) => {
   const match = await Matches.findById(matchId).lean();
@@ -18,7 +18,7 @@ const checkTeamHasOngoingMatches = async (teamId, { req }) => {
       ],
     })
   )
-    throw Error('This team already has an ongoing match');
+    throw Error("This team already has an ongoing match");
 };
 
 module.exports = {

@@ -1,4 +1,4 @@
-const { Schema, model, ObjectId } = require('mongoose');
+const { Schema, model, ObjectId } = require("mongoose");
 
 const rulesetSchema = new Schema(
   {
@@ -6,7 +6,7 @@ const rulesetSchema = new Schema(
     description: { type: String },
     maxNumberOfPlayersPerTeam: { type: Number, min: 1 },
     minNumberOfPlayersPerTeam: { type: Number, min: 1 },
-    game: { type: ObjectId, required: true, ref: 'Games' },
+    game: { type: ObjectId, required: true, ref: "Games" },
     maps: [
       {
         type: String,
@@ -14,8 +14,8 @@ const rulesetSchema = new Schema(
     ],
     bestOf: { type: Number, required: true },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-const ruleset = model('Rulesets', rulesetSchema);
+const ruleset = model("Rulesets", rulesetSchema);
 module.exports = ruleset;

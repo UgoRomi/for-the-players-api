@@ -1,19 +1,19 @@
-const { formatISO, addSeconds } = require('date-fns');
-const mongoose = require('mongoose');
-const FormData = require('form-data');
-const got = require('got');
-const isAfter = require('date-fns/isAfter');
-const sub = require('date-fns/sub');
+const { formatISO, addSeconds } = require("date-fns");
+const mongoose = require("mongoose");
+const FormData = require("form-data");
+const got = require("got");
+const isAfter = require("date-fns/isAfter");
+const sub = require("date-fns/sub");
 
-const ImgurToken = mongoose.model('ImgurTokens');
+const ImgurToken = mongoose.model("ImgurTokens");
 
 const getImgurToken = async () => {
   const requestBody = new FormData();
-  requestBody.append('refresh_token', process.env.IMGURL_REFRESH_TOKEN);
-  requestBody.append('client_id', process.env.IMGURL_CLIENT_ID);
-  requestBody.append('client_secret', process.env.IMGURL_CLIENT_SECRET);
-  requestBody.append('grant_type', 'refresh_token');
-  const { body } = await got.post('https://api.imgur.com/oauth2/token', {
+  requestBody.append("refresh_token", process.env.IMGURL_REFRESH_TOKEN);
+  requestBody.append("client_id", process.env.IMGURL_CLIENT_ID);
+  requestBody.append("client_secret", process.env.IMGURL_CLIENT_SECRET);
+  requestBody.append("grant_type", "refresh_token");
+  const { body } = await got.post("https://api.imgur.com/oauth2/token", {
     body: requestBody,
   });
   const { access_token, expires_in } = JSON.parse(body);
@@ -26,10 +26,10 @@ const getImgurToken = async () => {
 
 const uploadImageToImgur = async (authToken, imageBase64) => {
   const requestBody = new FormData();
-  requestBody.append('image', imageBase64);
-  requestBody.append('type', 'base64');
+  requestBody.append("image", imageBase64);
+  requestBody.append("type", "base64");
 
-  const response = await got.post('https://api.imgur.com/3/upload', {
+  const response = await got.post("https://api.imgur.com/3/upload", {
     headers: {
       Authorization: `Bearer ${authToken}`,
     },
@@ -59,9 +59,9 @@ const checkImgInput = async (body) => {
 
 const getCurrentDateTime = () =>
   new Date(
-    Date().toLocaleString('en-US', {
-      timeZone: 'Europe/Rome',
-    }),
+    Date().toLocaleString("en-US", {
+      timeZone: "Europe/Rome",
+    })
   );
 
 // Find the IDs of all the teams this team played with in the last 30 minutes
@@ -71,7 +71,7 @@ const getRecentTeamsPlayedWith = (matches, teamId) =>
       (match) =>
         (match.teamOne?.toString() === teamId ||
           match.teamTwo?.toString() === teamId) &&
-        isAfter(match.acceptedAt, sub(getCurrentDateTime(), { minutes: 150 })),
+        isAfter(match.acceptedAt, sub(getCurrentDateTime(), { minutes: 150 }))
     )
     .map((match) => {
       if (match.teamOne?.toString() === teamId) return match.teamTwo.toString();

@@ -1,6 +1,6 @@
-const teamSubmittedMatchResultWin = 'WIN';
-const teamSubmittedMatchResultLoss = 'LOSS';
-const teamSubmittedMatchResultTie = 'TIE';
+const teamSubmittedMatchResultWin = "WIN";
+const teamSubmittedMatchResultLoss = "LOSS";
+const teamSubmittedMatchResultTie = "TIE";
 const teamSubmittedResults = [
   teamSubmittedMatchResultWin,
   teamSubmittedMatchResultLoss,

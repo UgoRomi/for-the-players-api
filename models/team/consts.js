@@ -1,5 +1,5 @@
-const teamRoleMember = 'MEMBER';
-const teamRoleLeader = 'LEADER';
+const teamRoleMember = "MEMBER";
+const teamRoleLeader = "LEADER";
 const teamRoles = [teamRoleMember, teamRoleLeader];
 
 module.exports = {

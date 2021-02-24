@@ -1,16 +1,16 @@
-const mongoose = require('mongoose');
-const { isAfter } = require('date-fns');
-const { ladderType } = require('./consts');
-const { error404, CustomError } = require('../../utils/error-consts');
-const { matchStatusTeamTwo } = require('./consts');
-const { matchStatusTeamOne } = require('./consts');
-const { teamSubmittedMatchResultWin } = require('../match/consts');
-const { teamSubmittedMatchResultTie } = require('../match/consts');
-const { matchStatusDispute } = require('./consts');
-const { matchStatusTie } = require('./consts');
-const { matchStatusPending } = require('./consts');
+const mongoose = require("mongoose");
+const { isAfter } = require("date-fns");
+const { ladderType } = require("./consts");
+const { error404, CustomError } = require("../../utils/error-consts");
+const { matchStatusTeamTwo } = require("./consts");
+const { matchStatusTeamOne } = require("./consts");
+const { teamSubmittedMatchResultWin } = require("../match/consts");
+const { teamSubmittedMatchResultTie } = require("../match/consts");
+const { matchStatusDispute } = require("./consts");
+const { matchStatusTie } = require("./consts");
+const { matchStatusPending } = require("./consts");
 
-const Tournaments = mongoose.model('Tournaments');
+const Tournaments = mongoose.model("Tournaments");
 
 const _checkUniqueField = async (fieldName, fieldValue) => {
   const fieldAlreadyExists = await Tournaments.findOne({
@@ -20,13 +20,13 @@ const _checkUniqueField = async (fieldName, fieldValue) => {
 };
 
 const checkUniqueName = async (name) => {
-  await _checkUniqueField('name', name);
+  await _checkUniqueField("name", name);
 };
 
 const checkTournamentExists = async (tournamentId) => {
   if (tournamentId) {
     const tournament = await Tournaments.findById(tournamentId).lean();
-    if (!tournament) throw new CustomError(error404, 'Tournament not found');
+    if (!tournament) throw new CustomError(error404, "Tournament not found");
   }
 };
 
@@ -36,7 +36,7 @@ const checkTournamentHasNotStarted = async (tournamentId) => {
     tournament.type !== ladderType &&
     isAfter(new Date(), tournament.startsOn)
   )
-    throw Error('Tournament already started');
+    throw Error("Tournament already started");
 };
 
 /**
@@ -48,12 +48,12 @@ const checkTournamentHasNotStarted = async (tournamentId) => {
 const calculateMatchStatus = async (matches, teams) => {
   return matches.map((match) => {
     let teamOneObj = teams.find(
-      (team) => team._id.toString() === match.teamOne.toString(),
+      (team) => team._id.toString() === match.teamOne.toString()
     );
 
     if (!teamOneObj) {
       teamOneObj = {};
-      teamOneObj.name = 'Team cancellato';
+      teamOneObj.name = "Team cancellato";
       teamOneObj.elo = 0;
     }
     const formattedMatch = {
@@ -72,11 +72,11 @@ const calculateMatchStatus = async (matches, teams) => {
 
     if (match.teamTwo) {
       let teamTwoObj = teams.find(
-        (team) => team._id.toString() === match.teamTwo.toString(),
+        (team) => team._id.toString() === match.teamTwo.toString()
       );
       if (!teamTwoObj) {
         teamTwoObj = {};
-        teamTwoObj.name = 'Team cancellato';
+        teamTwoObj.name = "Team cancellato";
         teamTwoObj.elo = 0;
       }
       formattedMatch.teamTwo = {
@@ -115,24 +115,24 @@ const calculateTeamResults = (matches, teams) => {
     const teamMatches = matches.filter(
       (match) =>
         match.teamOne._id.toString() === team._id.toString() ||
-        match.teamTwo?._id.toString() === team._id.toString(),
+        match.teamTwo?._id.toString() === team._id.toString()
     );
     team.ties = teamMatches.filter(
-      (match) => match.status === matchStatusTie,
+      (match) => match.status === matchStatusTie
     ).length;
     team.wins = teamMatches.filter(
       (match) =>
         (match.teamOne._id.toString() === team._id.toString() &&
           match.status === matchStatusTeamOne) ||
         (match.teamTwo?._id.toString() === team._id.toString() &&
-          match.status === matchStatusTeamTwo),
+          match.status === matchStatusTeamTwo)
     ).length;
     team.losses = teamMatches.filter(
       (match) =>
         (match.teamOne._id.toString() === team._id.toString() &&
           match.status === matchStatusTeamTwo) ||
         (match.teamTwo?._id.toString() === team._id.toString() &&
-          match.status === matchStatusTeamOne),
+          match.status === matchStatusTeamOne)
     ).length;
 
     return team;

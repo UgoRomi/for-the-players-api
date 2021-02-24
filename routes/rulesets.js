@@ -1,33 +1,33 @@
-const router = require('express').Router();
-const { body, param } = require('express-validator');
-const mongoose = require('mongoose');
-const { checkIfGameExists } = require('../models/game/utils');
-const { userPermissionRuleset } = require('../models/user/consts');
-const { checkJWT, checkValidation } = require('../utils/custom-middlewares');
-const { convertToMongoId } = require('../utils/custom-sanitizers');
-const { checkIfRulesetExists } = require('../models/ruleset/utils');
+const router = require("express").Router();
+const { body, param } = require("express-validator");
+const mongoose = require("mongoose");
+const { checkIfGameExists } = require("../models/game/utils");
+const { userPermissionRuleset } = require("../models/user/consts");
+const { checkJWT, checkValidation } = require("../utils/custom-middlewares");
+const { convertToMongoId } = require("../utils/custom-sanitizers");
+const { checkIfRulesetExists } = require("../models/ruleset/utils");
 
-const Ruleset = mongoose.model('Rulesets');
-const Game = mongoose.model('Games');
+const Ruleset = mongoose.model("Rulesets");
+const Game = mongoose.model("Games");
 
 router.post(
-  '/',
+  "/",
   [
-    body('game')
+    body("game")
       .notEmpty({ ignore_whitespace: true })
       .isMongoId()
       .custom(checkIfGameExists),
-    body('maxNumberOfPlayersPerTeam').isInt(),
-    body('minNumberOfPlayersPerTeam').isInt(),
-    body('description').isString().notEmpty({ ignore_whitespace: true }).trim(),
-    body('name')
+    body("maxNumberOfPlayersPerTeam").isInt(),
+    body("minNumberOfPlayersPerTeam").isInt(),
+    body("description").isString().notEmpty({ ignore_whitespace: true }).trim(),
+    body("name")
       .isString()
       .notEmpty({ ignore_whitespace: true })
       .isString()
       .trim()
       .escape(),
-    body('maps').isArray(),
-    body('bestOf').isInt(),
+    body("maps").isArray(),
+    body("bestOf").isInt(),
   ],
   checkJWT(userPermissionRuleset),
   checkValidation,
@@ -37,8 +37,8 @@ router.post(
         return res.status(400).json([
           {
             msg: `"bestOf" cannot be bigger than the number of maps`,
-            param: 'bestOf',
-            location: 'body',
+            param: "bestOf",
+            location: "body",
           },
         ]);
 
@@ -64,7 +64,7 @@ router.post(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 router.get("/", checkJWT(), async (req, res, next) => {
@@ -75,7 +75,7 @@ router.get("/", checkJWT(), async (req, res, next) => {
     return res.status(200).json(
       rulesets.map((ruleset) => {
         const { name } = games.find(
-          (game) => ruleset.game.toString() === game._id.toString(),
+          (game) => ruleset.game.toString() === game._id.toString()
         );
 
         return {
@@ -91,7 +91,7 @@ router.get("/", checkJWT(), async (req, res, next) => {
           maps: ruleset.maps,
           bestOf: ruleset.bestOf,
         };
-      }),
+      })
     );
   } catch (e) {
     next(e);
@@ -100,20 +100,20 @@ router.get("/", checkJWT(), async (req, res, next) => {
 
 // Add to swagger
 router.patch(
-  '/:rulesetId/',
+  "/:rulesetId/",
   checkJWT(),
   [
-    param('rulesetId')
+    param("rulesetId")
       .customSanitizer(convertToMongoId)
       .bail()
       .custom(checkIfRulesetExists),
-    body('minNumberOfPlayer').bail(),
-    body('maxNumberOfPlayer').bail(),
-    body('name').bail(),
-    body('description').bail(),
-    body('bestOf').bail(),
-    body('maps').bail(),
-    body('gameId').bail(),
+    body("minNumberOfPlayer").bail(),
+    body("maxNumberOfPlayer").bail(),
+    body("name").bail(),
+    body("description").bail(),
+    body("bestOf").bail(),
+    body("maps").bail(),
+    body("gameId").bail(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -138,7 +138,7 @@ router.patch(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 module.exports = router;

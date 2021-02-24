@@ -1,33 +1,33 @@
-const mongoose = require('mongoose');
-const router = require('express').Router();
-const { body, param } = require('express-validator');
+const mongoose = require("mongoose");
+const router = require("express").Router();
+const { body, param } = require("express-validator");
 const {
   userPermissionPlatform,
   userPermissionGame,
-} = require('../models/user/consts');
-const { checkValidation, checkJWT } = require('../utils/custom-middlewares');
-const { checkImgInput } = require('../utils/helpers');
-const { checkIfValidImageData } = require('../utils/custom-validators');
+} = require("../models/user/consts");
+const { checkValidation, checkJWT } = require("../utils/custom-middlewares");
+const { checkImgInput } = require("../utils/helpers");
+const { checkIfValidImageData } = require("../utils/custom-validators");
 const {
   checkUniqueName,
   checkIfPlatformExists,
-} = require('../models/platform/utils');
-const { convertToMongoId } = require('../utils/custom-sanitizers');
+} = require("../models/platform/utils");
+const { convertToMongoId } = require("../utils/custom-sanitizers");
 
-const Platforms = mongoose.model('Platforms');
+const Platforms = mongoose.model("Platforms");
 
 router.post(
-  '/',
+  "/",
   [
-    body('name')
+    body("name")
       .not()
       .isEmpty({ ignore_whitespace: true })
       .trim()
       .escape()
       .custom(checkUniqueName),
-    body('show').isBoolean(),
-    body('imgUrl').optional().isURL(),
-    body('imgBase64').isBase64().custom(checkIfValidImageData),
+    body("show").isBoolean(),
+    body("imgUrl").optional().isURL(),
+    body("imgBase64").isBase64().custom(checkIfValidImageData),
   ],
   checkJWT([userPermissionPlatform]),
   checkValidation,
@@ -44,7 +44,7 @@ router.post(
     } catch (e) {
       return next(e);
     }
-  },
+  }
 );
 
 router.get("/", checkJWT(), async (req, res, next) => {
@@ -57,8 +57,8 @@ router.get("/", checkJWT(), async (req, res, next) => {
       _id: 1,
       name: 1,
       imgUrl: 1,
-      'games.gameId': 1,
-      'games.name': 1,
+      "games.gameId": 1,
+      "games.name": 1,
     }).lean();
 
     platforms = platforms.map((platform) => {
@@ -83,10 +83,10 @@ router.get("/", checkJWT(), async (req, res, next) => {
 });
 
 router.get(
-  '/:platformId',
+  "/:platformId",
   checkJWT(),
   [
-    param('platformId')
+    param("platformId")
       .customSanitizer(convertToMongoId)
       .bail()
       .custom(checkIfPlatformExists),
@@ -101,7 +101,7 @@ router.get(
       ) {
         return res
           .status(403)
-          .json({ errorMessage: 'Cannot access the requested platform' });
+          .json({ errorMessage: "Cannot access the requested platform" });
       }
 
       const { name, show, imageUrl } = platform;
@@ -124,7 +124,7 @@ router.get(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 module.exports = router;

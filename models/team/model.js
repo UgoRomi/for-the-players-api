@@ -1,8 +1,8 @@
-const { Schema, model, ObjectId } = require('mongoose');
-const { teamRoles, teamRoleMember } = require('./consts');
+const { Schema, model, ObjectId } = require("mongoose");
+const { teamRoles, teamRoleMember } = require("./consts");
 
 const teamSchema = new Schema({
-  tournamentId: { type: ObjectId, ref: 'Tournaments', required: true },
+  tournamentId: { type: ObjectId, ref: "Tournaments", required: true },
   name: { type: String, required: true },
   // elo is user for ladders, points for tournaments
   elo: { type: Number },
@@ -18,13 +18,13 @@ const teamSchema = new Schema({
         default: teamRoleMember,
       },
       dateJoined: { type: Date, required: true, default: Date.now() },
-      userId: { type: ObjectId, ref: 'Users', required: true },
+      userId: { type: ObjectId, ref: "Users", required: true },
     },
   ],
 });
 
 teamSchema.index({ tournamentId: 1, name: 1 }, { unique: true });
 
-const teams = model('Teams', teamSchema);
+const teams = model("Teams", teamSchema);
 
 module.exports = teams;

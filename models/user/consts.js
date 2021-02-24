@@ -1,7 +1,7 @@
 // Status
-const userStatusNotVerified = 'NOT_VERIFIED';
-const userStatusVerified = 'VERIFIED';
-const userStatusBanned = 'BANNED';
+const userStatusNotVerified = "NOT_VERIFIED";
+const userStatusVerified = "VERIFIED";
+const userStatusBanned = "BANNED";
 const userStatuses = [
   userStatusNotVerified,
   userStatusVerified,
@@ -10,17 +10,17 @@ const userStatuses = [
 
 // Permissions
 // Games
-const userPermissionGame = 'GAME';
+const userPermissionGame = "GAME";
 // Platforms
-const userPermissionPlatform = 'PLATFORM';
+const userPermissionPlatform = "PLATFORM";
 // Tournaments
-const userPermissionTournament = 'TOURNAMENT';
+const userPermissionTournament = "TOURNAMENT";
 // Ruleset
-const userPermissionRuleset = 'RULESET';
+const userPermissionRuleset = "RULESET";
 // Tickets
-const userPermissionTicket = 'TICKET';
+const userPermissionTicket = "TICKET";
 // Users
-const userPermissionUser = 'USER';
+const userPermissionUser = "USER";
 const userPermissions = [
   userPermissionGame,
   userPermissionPlatform,
@@ -30,7 +30,7 @@ const userPermissions = [
   userPermissionUser,
 ];
 
-const resetPasswordPage = 'https://app.theplayers.tech/reset-password';
+const resetPasswordPage = "https://app.theplayers.tech/reset-password";
 
 module.exports = {
   // Status

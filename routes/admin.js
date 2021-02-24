@@ -1,60 +1,60 @@
-const router = require('express').Router();
-const { body, param } = require('express-validator');
-const mongoose = require('mongoose');
-const EloRank = require('elo-rank');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const router = require("express").Router();
+const { body, param } = require("express-validator");
+const mongoose = require("mongoose");
+const EloRank = require("elo-rank");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const {
   userPermissionTournament,
   userStatusBanned,
-} = require('../models/user/consts');
-const { userExistsById, checkUserEmailInUse } = require('../models/user/utils');
-const { types } = require('../models/tournament/consts');
-const { checkJWT, checkValidation } = require('../utils/custom-middlewares');
-const { checkTournamentExists } = require('../models/tournament/utils');
-const { checkTeamExists } = require('../models/team/utils');
-const { checkIfPlatformExists } = require('../models/platform/utils');
-const { checkIfValidImageData } = require('../utils/custom-validators');
-const { convertToMongoId } = require('../utils/custom-sanitizers');
-const { calculateMatchStatus } = require('../models/tournament/utils');
-const { matchStatusTie } = require('../models/tournament/consts');
-const { ladderType } = require('../models/tournament/consts');
-const { matchStatusTeamOne } = require('../models/tournament/consts');
-const { matchStatusTeamTwo } = require('../models/tournament/consts');
-const { checkUniqueName } = require('../models/game/utils');
-const { userPermissionUser } = require('../models/user/consts');
-const { userPermissionTicket } = require('../models/user/consts');
-const { checkMatchExists } = require('../models/match/utils');
-const { checkIfGameExists } = require('../models/game/utils');
-const { toISO } = require('../utils/custom-sanitizers');
-const { checkImgInput } = require('../utils/helpers');
-const { userStatuses } = require('../models/user/consts');
-const { checkUniqueUsernamePatch } = require('../models/user/utils');
+} = require("../models/user/consts");
+const { userExistsById, checkUserEmailInUse } = require("../models/user/utils");
+const { types } = require("../models/tournament/consts");
+const { checkJWT, checkValidation } = require("../utils/custom-middlewares");
+const { checkTournamentExists } = require("../models/tournament/utils");
+const { checkTeamExists } = require("../models/team/utils");
+const { checkIfPlatformExists } = require("../models/platform/utils");
+const { checkIfValidImageData } = require("../utils/custom-validators");
+const { convertToMongoId } = require("../utils/custom-sanitizers");
+const { calculateMatchStatus } = require("../models/tournament/utils");
+const { matchStatusTie } = require("../models/tournament/consts");
+const { ladderType } = require("../models/tournament/consts");
+const { matchStatusTeamOne } = require("../models/tournament/consts");
+const { matchStatusTeamTwo } = require("../models/tournament/consts");
+const { checkUniqueName } = require("../models/game/utils");
+const { userPermissionUser } = require("../models/user/consts");
+const { userPermissionTicket } = require("../models/user/consts");
+const { checkMatchExists } = require("../models/match/utils");
+const { checkIfGameExists } = require("../models/game/utils");
+const { toISO } = require("../utils/custom-sanitizers");
+const { checkImgInput } = require("../utils/helpers");
+const { userStatuses } = require("../models/user/consts");
+const { checkUniqueUsernamePatch } = require("../models/user/utils");
 const {
   teamSubmittedMatchResultLoss,
   teamSubmittedMatchResultWin,
-} = require('../models/match/consts');
+} = require("../models/match/consts");
 
-const Tournaments = mongoose.model('Tournaments');
-const Tickets = mongoose.model('Tickets');
-const Users = mongoose.model('Users');
-const Matches = mongoose.model('Matches');
-const Teams = mongoose.model('Teams');
+const Tournaments = mongoose.model("Tournaments");
+const Tickets = mongoose.model("Tickets");
+const Users = mongoose.model("Users");
+const Matches = mongoose.model("Matches");
+const Teams = mongoose.model("Teams");
 
 const elo = new EloRank();
 
 // Login from admin panel
 router.post(
-  '/login',
+  "/login",
   [
-    body('email')
+    body("email")
       .notEmpty({ ignore_whitespace: true })
       .trim()
       .escape()
       .isEmail()
       .normalizeEmail()
       .custom(checkUserEmailInUse),
-    body('password').not().isEmpty({ ignore_whitespace: true }).trim().escape(),
+    body("password").not().isEmpty({ ignore_whitespace: true }).trim().escape(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -64,20 +64,20 @@ router.post(
 
       // If the password is wrong
       if (!bcrypt.compareSync(password, userOnDB.password))
-        return res.status(400).json({ error: 'Password does not match' });
+        return res.status(400).json({ error: "Password does not match" });
 
       if (userOnDB.status === userStatusBanned)
-        return res.status(400).json({ error: 'User is banned' });
+        return res.status(400).json({ error: "User is banned" });
 
       if (userOnDB.permissions.length === 0)
-        return res.status(400).json({ error: 'User is not an admin' });
+        return res.status(400).json({ error: "User is not an admin" });
 
       const token = jwt.sign(
         {
           email,
           id: userOnDB._id,
         },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET
       );
       return res.json({ token, status: userOnDB.status });
     } catch (e) {
@@ -88,23 +88,23 @@ router.post(
 
 // Tournament's match
 router.patch(
-  '/tournaments/:tournamentId/matches/:matchId',
+  "/tournaments/:tournamentId/matches/:matchId",
   checkJWT(userPermissionTournament),
   [
-    param('tournamentId')
+    param("tournamentId")
       .isMongoId()
       .bail()
       .custom(checkTournamentExists)
       .bail(),
-    param('matchId').isMongoId().bail().custom(checkMatchExists).bail(),
-    body('winningTeamId').isMongoId().bail().custom(checkTeamExists).bail(),
+    param("matchId").isMongoId().bail().custom(checkMatchExists).bail(),
+    body("winningTeamId").isMongoId().bail().custom(checkTeamExists).bail(),
   ],
   checkValidation,
   async (req, res, next) => {
     try {
       const tournament = await Tournaments.findById(
         req.params.tournamentId,
-        'type',
+        "type"
       ).lean();
       const match = await Matches.findById(req.params.matchId).lean();
       const teamOne = await Teams.findById(match.teamOne.toString()).lean();
@@ -113,11 +113,11 @@ router.patch(
 
       if (
         ![match.teamOne.toString(), match.teamTwo.toString()].includes(
-          req.body.winningTeamId,
+          req.body.winningTeamId
         )
       ) {
         return res.status(404).json({
-          errorMessage: 'This team isn\'t in this match',
+          errorMessage: "This team isn't in this match",
         });
       }
 
@@ -145,22 +145,22 @@ router.patch(
         const teamOneNewElo = elo.updateRating(
           expectedScoreTeamOne,
           +(matchStatus === matchStatusTeamOne),
-          teamOne.elo,
+          teamOne.elo
         );
         await Teams.updateOne(
           { _id: teamOne._id.toString() },
-          { elo: teamOneNewElo },
+          { elo: teamOneNewElo }
         );
 
         // Update teamTwo
         const teamTwoNewElo = elo.updateRating(
           expectedScoreTeamTwo,
           +(matchStatus === matchStatusTeamTwo),
-          teamTwo.elo,
+          teamTwo.elo
         );
         await Teams.updateOne(
           { _id: teamTwo._id.toString() },
-          { elo: teamTwoNewElo },
+          { elo: teamTwoNewElo }
         );
       } else {
         // UPDATE POINTS
@@ -180,11 +180,11 @@ router.patch(
         }
         await Teams.updateOne(
           { _id: teamOne._id.toString() },
-          { points: teamOnePoints },
+          { points: teamOnePoints }
         );
         await Teams.updateOne(
           { _id: teamTwo._id.toString() },
-          { points: teamTwoPoints },
+          { points: teamTwoPoints }
         );
       }
 
@@ -199,19 +199,19 @@ router.patch(
  * Update user
  */
 router.patch(
-  '/users/:userId',
+  "/users/:userId",
   checkJWT(userPermissionUser),
   [
-    param('userId').isMongoId().bail().custom(userExistsById),
-    body('status').optional().isIn(userStatuses),
-    body('email').optional().isEmail().normalizeEmail(),
-    body('username')
+    param("userId").isMongoId().bail().custom(userExistsById),
+    body("status").optional().isIn(userStatuses),
+    body("email").optional().isEmail().normalizeEmail(),
+    body("username")
       .optional()
       .isString()
       .trim()
       .escape()
       .custom(checkUniqueUsernamePatch),
-    body('password').optional().isString().trim().escape(),
+    body("password").optional().isString().trim().escape(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -237,7 +237,7 @@ router.patch(
  * List all tickets
  */
 router.get(
-  '/tickets',
+  "/tickets",
   checkJWT(userPermissionTicket),
   async (req, res, next) => {
     try {
@@ -247,61 +247,61 @@ router.get(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 /**
  * Update a single team
  */
 router.patch(
-  '/tournaments/:tournamentId',
+  "/tournaments/:tournamentId",
   checkJWT(userPermissionTournament),
   [
-    param('tournamentId')
+    param("tournamentId")
       .isMongoId()
       .bail()
       .custom(checkTournamentExists)
       .bail(),
-    body('name')
+    body("name")
       .optional()
       .notEmpty({ ignore_whitespace: true })
       .trim()
       .escape(),
     // .custom(checkUniqueName),
-    body('game')
+    body("game")
       .optional()
       .notEmpty({ ignore_whitespace: true })
       .customSanitizer(convertToMongoId)
       .custom(checkIfGameExists),
-    body('platform')
+    body("platform")
       .optional()
       .notEmpty({ ignore_whitespace: true })
       .customSanitizer(convertToMongoId)
       .custom(checkIfPlatformExists),
-    body('show').isBoolean(),
-    body('startsOn')
+    body("show").isBoolean(),
+    body("startsOn")
       .optional()
       .notEmpty({ ignore_whitespace: true })
       .isDate()
       .customSanitizer(toISO),
-    body('endsOn')
+    body("endsOn")
       .optional()
       .notEmpty({ ignore_whitespace: true })
       .isDate()
       .customSanitizer(toISO),
-    body('rulesets').optional().isArray(),
-    body('type').optional().isIn(types),
-    body('imgUrl').optional().isURL(),
-    body('imgBase64').optional().isBase64().custom(checkIfValidImageData),
-    body('open').optional().isBoolean(),
-    body('minTeamSizePerMatch').optional().isInt(),
-    body('maxTeamSizePerMatch').optional().isInt(),
+    body("rulesets").optional().isArray(),
+    body("type").optional().isIn(types),
+    body("imgUrl").optional().isURL(),
+    body("imgBase64").optional().isBase64().custom(checkIfValidImageData),
+    body("open").optional().isBoolean(),
+    body("minTeamSizePerMatch").optional().isInt(),
+    body("maxTeamSizePerMatch").optional().isInt(),
   ],
   checkValidation,
   async (req, res, next) => {
     try {
       const tournamentToUpdate = await Tournaments.findById(
-        req.params.tournamentId,
+        req.params.tournamentId
       ).lean();
       if (req.body.name) tournamentToUpdate.name = req.body.name;
 
@@ -334,7 +334,7 @@ router.patch(
         {
           _id: req.params.tournamentId,
         },
-        tournamentToUpdate,
+        tournamentToUpdate
       );
 
       return res.status(200).json();
@@ -345,40 +345,40 @@ router.patch(
 );
 
 router.post(
-  '/tournaments',
+  "/tournaments",
   checkJWT(userPermissionTournament),
   [
-    body('name')
+    body("name")
       .notEmpty({ ignore_whitespace: true })
       .trim()
       .escape()
       .custom(checkUniqueName),
-    body('game')
+    body("game")
       .notEmpty({ ignore_whitespace: true })
       .customSanitizer(convertToMongoId)
       .custom(checkIfGameExists),
-    body('platform')
+    body("platform")
       .notEmpty({ ignore_whitespace: true })
       .customSanitizer(convertToMongoId)
       .custom(checkIfPlatformExists),
-    body('show').isBoolean(),
-    body('startsOn')
+    body("show").isBoolean(),
+    body("startsOn")
       .notEmpty({ ignore_whitespace: true })
       .isDate()
       .customSanitizer(toISO),
-    body('endsOn')
+    body("endsOn")
       .notEmpty({ ignore_whitespace: true })
       .isDate()
       .customSanitizer(toISO),
-    body('rulesets').isArray(),
-    body('type').isIn(types),
-    body('imgUrl').optional().isURL(),
-    body('imgBase64').isBase64().custom(checkIfValidImageData),
-    body('open').isBoolean(),
-    body('minTeamSizePerMatch').optional().isInt(),
-    body('maxTeamSizePerMatch').optional().isInt(),
-    body('rules').optional().isString(),
-    body('challongeId').optional().isInt(),
+    body("rulesets").isArray(),
+    body("type").isIn(types),
+    body("imgUrl").optional().isURL(),
+    body("imgBase64").isBase64().custom(checkIfValidImageData),
+    body("open").isBoolean(),
+    body("minTeamSizePerMatch").optional().isInt(),
+    body("maxTeamSizePerMatch").optional().isInt(),
+    body("rules").optional().isString(),
+    body("challongeId").optional().isInt(),
   ],
   checkValidation,
   async (req, res, next) => {

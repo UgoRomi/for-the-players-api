@@ -1,13 +1,13 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const Game = mongoose.model('Games');
+const Game = mongoose.model("Games");
 
 const checkIfGameExists = async (gameId) => {
   const gameExists = await Game.findOne({
     _id: gameId,
   });
 
-  if (!gameExists) throw Error('Game does not exists');
+  if (!gameExists) throw Error("Game does not exists");
 };
 
 const _checkUniqueField = async (fieldName, fieldValue) => {
@@ -18,7 +18,7 @@ const _checkUniqueField = async (fieldName, fieldValue) => {
 };
 
 const checkUniqueName = async (name) => {
-  await _checkUniqueField('name', name);
+  await _checkUniqueField("name", name);
 };
 module.exports = {
   checkIfGameExists,
