@@ -29,6 +29,7 @@ const secondsToAcceptLadderMatch = 15 * 60;
 module.exports = {
   tournamentType,
   ladderType,
+  bracketType,
   types,
   matchStatusPending,
   matchStatusTie,

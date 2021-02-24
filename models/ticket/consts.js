@@ -1,31 +1,31 @@
-const ticketStatusNew = "NEW"
-const ticketStatusInProgress = "IN_PROGRESS"
-const ticketStatusSolved = "SOLVED"
-const ticketStatusDeleted = "DELETED"
+const ticketStatusNew = 'NEW';
+const ticketStatusInProgress = 'IN_PROGRESS';
+const ticketStatusSolved = 'SOLVED';
+const ticketStatusDeleted = 'DELETED';
 const ticketStatuses = [
-	ticketStatusNew,
-	ticketStatusInProgress,
-	ticketStatusSolved,
-	ticketStatusDeleted,
-]
+  ticketStatusNew,
+  ticketStatusInProgress,
+  ticketStatusSolved,
+  ticketStatusDeleted,
+];
 
-const ticketCategoryDispute = "DISPUTE"
-const ticketCategoryGeneralInquiry = "GENERAL_INQUIRY"
-const ticketCategoryPayment = "PAYMENT"
+const ticketCategoryDispute = 'DISPUTE';
+const ticketCategoryGeneralInquiry = 'GENERAL_INQUIRY';
+const ticketCategoryPayment = 'PAYMENT';
 const ticketCategories = [
-	ticketCategoryDispute,
-	ticketCategoryGeneralInquiry,
-	ticketCategoryPayment,
-]
+  ticketCategoryDispute,
+  ticketCategoryGeneralInquiry,
+  ticketCategoryPayment,
+];
 
-const disputeTicketDefaultSubject = "Disputa match"
+const disputeTicketDefaultSubject = 'Disputa match';
 module.exports = {
-	ticketStatusNew,
-	ticketStatusInProgress,
-	ticketStatusSolved,
-	ticketStatusDeleted,
-	ticketStatuses,
-	ticketCategoryDispute,
-	ticketCategories,
-	disputeTicketDefaultSubject,
-}
+  ticketStatusNew,
+  ticketStatusInProgress,
+  ticketStatusSolved,
+  ticketStatusDeleted,
+  ticketStatuses,
+  ticketCategoryDispute,
+  ticketCategories,
+  disputeTicketDefaultSubject,
+};

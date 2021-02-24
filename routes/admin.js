@@ -1,4 +1,9 @@
+const router = require('express').Router();
 const { body, param } = require('express-validator');
+const mongoose = require('mongoose');
+const EloRank = require('elo-rank');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const {
   userPermissionTournament,
   userStatusBanned,
@@ -6,21 +11,16 @@ const {
 const { userExistsById, checkUserEmailInUse } = require('../models/user/utils');
 const { types } = require('../models/tournament/consts');
 const { checkJWT, checkValidation } = require('../utils/custom-middlewares');
-const router = require('express').Router();
 const { checkTournamentExists } = require('../models/tournament/utils');
 const { checkTeamExists } = require('../models/team/utils');
 const { checkIfPlatformExists } = require('../models/platform/utils');
-const { checkIfValidaImageData } = require('../utils/custom-validators');
+const { checkIfValidImageData } = require('../utils/custom-validators');
 const { convertToMongoId } = require('../utils/custom-sanitizers');
-const mongoose = require('mongoose');
 const { calculateMatchStatus } = require('../models/tournament/utils');
-const eloRank = require('elo-rank');
 const { matchStatusTie } = require('../models/tournament/consts');
 const { ladderType } = require('../models/tournament/consts');
 const { matchStatusTeamOne } = require('../models/tournament/consts');
 const { matchStatusTeamTwo } = require('../models/tournament/consts');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const { checkUniqueName } = require('../models/game/utils');
 const { userPermissionUser } = require('../models/user/consts');
 const { userPermissionTicket } = require('../models/user/consts');
@@ -41,7 +41,7 @@ const Users = mongoose.model('Users');
 const Matches = mongoose.model('Matches');
 const Teams = mongoose.model('Teams');
 
-const elo = new eloRank();
+const elo = new EloRank();
 
 // Login from admin panel
 router.post(
@@ -54,8 +54,7 @@ router.post(
       .isEmail()
       .normalizeEmail()
       .custom(checkUserEmailInUse),
-    body('password').not().isEmpty({ ignore_whitespace: true }).trim()
-      .escape(),
+    body('password').not().isEmpty({ ignore_whitespace: true }).trim().escape(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -64,11 +63,14 @@ router.post(
       const userOnDB = await Users.findOne({ email }).lean();
 
       // If the password is wrong
-      if (!bcrypt.compareSync(password, userOnDB.password)) return res.status(400).json({ error: 'Password does not match' });
+      if (!bcrypt.compareSync(password, userOnDB.password))
+        return res.status(400).json({ error: 'Password does not match' });
 
-      if (userOnDB.status === userStatusBanned) return res.status(400).json({ error: 'User is banned' });
+      if (userOnDB.status === userStatusBanned)
+        return res.status(400).json({ error: 'User is banned' });
 
-      if (userOnDB.permissions.length === 0) return res.status(400).json({ error: 'User is not an admin' });
+      if (userOnDB.permissions.length === 0)
+        return res.status(400).json({ error: 'User is not an admin' });
 
       const token = jwt.sign(
         {
@@ -81,7 +83,7 @@ router.post(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 // Tournament's match
@@ -94,10 +96,8 @@ router.patch(
       .bail()
       .custom(checkTournamentExists)
       .bail(),
-    param('matchId').isMongoId().bail().custom(checkMatchExists)
-      .bail(),
-    body('winningTeamId').isMongoId().bail().custom(checkTeamExists)
-      .bail(),
+    param('matchId').isMongoId().bail().custom(checkMatchExists).bail(),
+    body('winningTeamId').isMongoId().bail().custom(checkTeamExists).bail(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -192,7 +192,7 @@ router.patch(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 /**
@@ -211,16 +211,13 @@ router.patch(
       .trim()
       .escape()
       .custom(checkUniqueUsernamePatch),
-    body('password').optional().isString().trim()
-      .escape(),
+    body('password').optional().isString().trim().escape(),
   ],
   checkValidation,
   async (req, res, next) => {
     try {
       const updateObj = {};
-      const {
-        status, email, username, password,
-      } = req.body;
+      const { status, email, username, password } = req.body;
 
       if (status) updateObj.status = status;
       if (email) updateObj.email = email;
@@ -233,7 +230,7 @@ router.patch(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 /**
@@ -295,7 +292,7 @@ router.patch(
     body('rulesets').optional().isArray(),
     body('type').optional().isIn(types),
     body('imgUrl').optional().isURL(),
-    body('imgBase64').optional().isBase64().custom(checkIfValidaImageData),
+    body('imgBase64').optional().isBase64().custom(checkIfValidImageData),
     body('open').optional().isBoolean(),
     body('minTeamSizePerMatch').optional().isInt(),
     body('maxTeamSizePerMatch').optional().isInt(),
@@ -324,11 +321,14 @@ router.patch(
 
       if (req.body.open) tournamentToUpdate.open = req.body.open;
 
-      if (req.body.minTeamSizePerMatch) tournamentToUpdate.minTeamSizePerMatch = req.body.minTeamSizePerMatch;
+      if (req.body.minTeamSizePerMatch)
+        tournamentToUpdate.minTeamSizePerMatch = req.body.minTeamSizePerMatch;
 
-      if (req.body.maxTeamSizePerMatch) tournamentToUpdate.maxTeamSizePerMatch = req.body.maxTeamSizePerMatch;
+      if (req.body.maxTeamSizePerMatch)
+        tournamentToUpdate.maxTeamSizePerMatch = req.body.maxTeamSizePerMatch;
 
-      if (req.body.imgBase64 || req.body.imgUrl) tournamentToUpdate.imgUrl = await checkImgInput(req.body);
+      if (req.body.imgBase64 || req.body.imgUrl)
+        tournamentToUpdate.imgUrl = await checkImgInput(req.body);
 
       await Tournaments.updateOne(
         {
@@ -341,7 +341,7 @@ router.patch(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 router.post(
@@ -373,7 +373,7 @@ router.post(
     body('rulesets').isArray(),
     body('type').isIn(types),
     body('imgUrl').optional().isURL(),
-    body('imgBase64').isBase64().custom(checkIfValidaImageData),
+    body('imgBase64').isBase64().custom(checkIfValidImageData),
     body('open').isBoolean(),
     body('minTeamSizePerMatch').optional().isInt(),
     body('maxTeamSizePerMatch').optional().isInt(),
@@ -415,8 +415,10 @@ router.post(
         challongeId,
       };
 
-      if (minTeamSizePerMatch) newTournament.minTeamSizePerMatch = minTeamSizePerMatch;
-      if (maxTeamSizePerMatch) newTournament.maxTeamSizePerMatch = maxTeamSizePerMatch;
+      if (minTeamSizePerMatch)
+        newTournament.minTeamSizePerMatch = minTeamSizePerMatch;
+      if (maxTeamSizePerMatch)
+        newTournament.maxTeamSizePerMatch = maxTeamSizePerMatch;
       if (rules) newTournament.rules = rules;
 
       await Tournaments.create(newTournament);
@@ -424,7 +426,7 @@ router.post(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 module.exports = router;

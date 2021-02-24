@@ -1,7 +1,8 @@
 const { body, query, param } = require('express-validator');
 const router = require('express').Router();
 const mongoose = require('mongoose');
-const eloRank = require('elo-rank');
+const got = require('got');
+const EloRank = require('elo-rank');
 const _ = require('lodash');
 const {
   userExistsById,
@@ -24,12 +25,16 @@ const {
   userIsLeaderMiddleware,
 } = require('../models/team/utils');
 const { calculateMatchStatus } = require('../models/tournament/utils');
-const { checkIfValidaImageData } = require('../utils/custom-validators');
+const { checkIfValidImageData } = require('../utils/custom-validators');
 const { checkImgInput } = require('../utils/helpers');
 const { checkIfGameExists } = require('../models/game/utils');
 const { checkTournamentHasNotStarted } = require('../models/tournament/utils');
 const { matchStatusTie } = require('../models/tournament/consts');
-const { ladderType } = require('../models/tournament/consts');
+const {
+  ladderType,
+  tournamentType,
+  bracketType,
+} = require('../models/tournament/consts');
 const { matchStatusTeamOne } = require('../models/tournament/consts');
 const { matchStatusTeamTwo } = require('../models/tournament/consts');
 const { disputeTicketDefaultSubject } = require('../models/ticket/consts');
@@ -51,7 +56,7 @@ const Tickets = mongoose.model('Tickets');
 const Matches = mongoose.model('Matches');
 const Teams = mongoose.model('Teams');
 
-const elo = new eloRank();
+const elo = new EloRank();
 
 router.get(
   '/',
@@ -75,15 +80,15 @@ router.get(
       const tournaments = await Tournaments.find(findQuery).lean();
       const result = await Promise.all(
         tournaments.map(async (tournament) => {
-          const {
-            name, startsOn, endsOn, type, imgUrl,
-          } = tournament;
+          const { name, startsOn, endsOn, type, imgUrl } = tournament;
 
           const teams = await Teams.find({
             tournamentId: tournament._id.toString(),
           }).lean();
           const rulesets = await Promise.all(
-            tournament.rulesets.map(async (ruleset) => await Rulesets.findById(ruleset, '_id').lean()),
+            tournament.rulesets.map(async (ruleset) =>
+              Rulesets.findById(ruleset, '_id').lean(),
+            ),
           );
           const gameDoc = await Games.findById(
             tournament.game.toString(),
@@ -101,13 +106,13 @@ router.get(
             open: tournament.open,
             challongeId: tournament.challongeId,
           };
-        }),
+        })
       );
       return res.json(result);
     } catch (e) {
-      next(e);
+      return next(e);
     }
-  },
+  }
 );
 
 /*
@@ -128,10 +133,11 @@ router.post(
       .escape()
       .custom(checkTeamNameInTournament),
     body('imgUrl').optional().isURL(),
-    body('imgBase64').isBase64().custom(checkIfValidaImageData),
+    body('imgBase64').isBase64().custom(checkIfValidImageData),
   ],
   checkValidation,
   async (req, res, next) => {
+    let createdTeam;
     try {
       const tournament = await Tournaments.findById(
         req.params.tournamentId,
@@ -165,15 +171,33 @@ router.post(
         imgBase64: req.body.imgBase64,
       };
       if (tournament.type === ladderType) newTeam.elo = 1500;
-      else newTeam.points = 0;
-      await Teams.create(newTeam);
-      return res
-        .status(201)
-        .json({ msg: `${req.body.name} added to tournament` });
+      else if (tournament.type === tournamentType) newTeam.points = 0;
+
+      createdTeam = await Teams.create(newTeam);
+
+      if (tournament.type === bracketType) {
+        const challongeBody = {
+          participant: req.body.participant,
+          api_key: process.env.CHALLONGE_API_KEY,
+        };
+        challongeBody.participant.misc = createdTeam._doc._id.toString();
+        await got.post(
+          `${process.env.CHALLONGE_URL}/v1/tournaments/${tournament.challongeId}/participants.json`,
+          {
+            json: challongeBody,
+          },
+        );
+      }
+      if (tournamentType === bracketType)
+        return res
+          .status(201)
+          .json({ msg: `${req.body.name} added to tournament` });
     } catch (e) {
-      next(e);
+      if (createdTeam)
+        await Teams.deleteOne({ _id: createdTeam._doc._id.toString() });
+      return next(e);
     }
-  },
+  }
 );
 
 router.get(
@@ -205,7 +229,10 @@ router.get(
       const calculatedMatches = await calculateMatchStatus(matches, teams);
 
       // Count wins, losses and ties for each team
-      let calculatedTeams = await calculateTeamResults(calculatedMatches, teams);
+      let calculatedTeams = await calculateTeamResults(
+        calculatedMatches,
+        teams,
+      );
 
       // TODO: It does a shit ton of queries
       calculatedTeams = await Promise.all(
@@ -232,7 +259,9 @@ router.get(
       );
 
       // Get the team the user is a part of, if it exists
-      const userTeam = calculatedTeams.find((team) => team.members.some((member) => member.userId.toString() === req.user.id));
+      const userTeam = calculatedTeams.find((team) =>
+        team.members.some((member) => member.userId.toString() === req.user.id),
+      );
       // Check if the team the user is a part of can play in the tournament
       if (userTeam) {
         userTeam.members = await Promise.all(
@@ -266,7 +295,7 @@ router.get(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 /**
@@ -278,8 +307,7 @@ router.patch(
   [
     param('tournamentId').custom(checkTournamentExists).bail(),
     param('teamId').custom(checkTeamExists),
-    body('name').optional().custom(checkTeamNameInTournament).trim()
-      .escape(),
+    body('name').optional().custom(checkTeamNameInTournament).trim().escape(),
     body('membersToRemove').optional().custom(multipleUsersExistById),
     body('imgUrl').optional().isURL(),
     body('imgBase64').optional().isBase64(),
@@ -303,12 +331,15 @@ router.patch(
       // TODO: Fix race condition
       const teamToUpdate = await Teams.findById(req.params.teamId).lean();
       // Update team image
-      if (req.body.imgBase64 || req.body.imgUrl) teamToUpdate.imgUrl = await checkImgInput(req.body);
+      if (req.body.imgBase64 || req.body.imgUrl)
+        teamToUpdate.imgUrl = await checkImgInput(req.body);
       // Update team name
       if (req.body.name) teamToUpdate.name = req.body.name;
       // Remove members
       if (req.body.membersToRemove) {
-        _.remove(teamToUpdate.members, (member) => req.body.membersToRemove.includes(member.userId.toString()));
+        _.remove(teamToUpdate.members, (member) =>
+          req.body.membersToRemove.includes(member.userId.toString()),
+        );
       }
       // Update leader
       if (req.body.newLeader) {
@@ -337,7 +368,7 @@ router.patch(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 /**
@@ -375,7 +406,7 @@ router.delete(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 /**
@@ -402,7 +433,10 @@ router.post(
           .json({ errorMessage: 'The user tried to invite himself' });
       }
 
-      const userTeam = await Teams.findById(req.params.teamId, 'members').lean();
+      const userTeam = await Teams.findById(
+        req.params.teamId,
+        'members',
+      ).lean();
 
       // Check that the user is in the team and is a leader
       if (
@@ -439,7 +473,7 @@ router.post(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 router.post(
@@ -471,17 +505,19 @@ router.post(
       // TODO: Fix race condition
       if (
         matches.some(
-          (match) => !match.teamTwo
-            && match.numberOfPlayers === parseInt(req.body.numberOfPlayers)
-            && match.rulesetId.toString() === req.body.rulesetId
-            && !recentTeamsPlayedWith.includes(match.teamOne.toString()),
+          (match) =>
+            !match.teamTwo &&
+            match.numberOfPlayers === parseInt(req.body.numberOfPlayers) &&
+            match.rulesetId.toString() === req.body.rulesetId &&
+            !recentTeamsPlayedWith.includes(match.teamOne.toString()),
         )
       ) {
         const matchToUpdate = matches.find(
-          (match) => !match.teamTwo
-            && match.numberOfPlayers === parseInt(req.body.numberOfPlayers)
-            && match.rulesetId.toString() === req.body.rulesetId
-            && !recentTeamsPlayedWith.includes(match.teamOne.toString()),
+          (match) =>
+            !match.teamTwo &&
+            match.numberOfPlayers === parseInt(req.body.numberOfPlayers) &&
+            match.rulesetId.toString() === req.body.rulesetId &&
+            !recentTeamsPlayedWith.includes(match.teamOne.toString()),
         );
         matchToUpdate.teamTwo = req.body.teamId;
         matchToUpdate.acceptedAt = getCurrentDateTime();
@@ -504,7 +540,7 @@ router.post(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 router.delete(
@@ -539,7 +575,7 @@ router.delete(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 router.patch(
@@ -568,8 +604,10 @@ router.patch(
       const teams = [teamOne, teamTwo];
 
       // TODO: Fix race condition
-      if (match.teamOne.toString() === req.body.teamId) match.teamOneResult = req.body.result;
-      else if (match.teamTwo.toString() === req.body.teamId) match.teamTwoResult = req.body.result;
+      if (match.teamOne.toString() === req.body.teamId)
+        match.teamOneResult = req.body.result;
+      else if (match.teamTwo.toString() === req.body.teamId)
+        match.teamTwoResult = req.body.result;
       else {
         return res.status(404).json({
           errorMessage: 'This team isn\'t in this match',
@@ -578,7 +616,8 @@ router.patch(
 
       await Matches.replaceOne({ _id: match._id }, match);
       // If only one team posted the result just return
-      if (!match.teamOneResult || !match.teamTwoResult) return res.status(200).json({});
+      if (!match.teamOneResult || !match.teamTwoResult)
+        return res.status(200).json({});
 
       // If both teams posted the result check if it's not a dispute and update points/elo accordingly
       const matchesStatus = await calculateMatchStatus([match], teams);
@@ -598,56 +637,57 @@ router.patch(
           messages: [],
           status: ticketStatusNew,
         });
-      } else {
+      } else if (
+        tournament.type === ladderType &&
+        matchStatus !== matchStatusTie
+      ) {
         // Elo doesn't update in case of a tie
-        if (tournament.type === ladderType && matchStatus !== matchStatusTie) {
-          // UPDATE ELO
-          const expectedScoreTeamOne = elo.getExpected(teamOne.elo, teamTwo.elo);
-          const expectedScoreTeamTwo = elo.getExpected(teamTwo.elo, teamOne.elo);
+        // UPDATE ELO
+        const expectedScoreTeamOne = elo.getExpected(teamOne.elo, teamTwo.elo);
+        const expectedScoreTeamTwo = elo.getExpected(teamTwo.elo, teamOne.elo);
 
-          // +true equals 1
-          // +false equals 0
-          // Update teamOne
-          const teamOneNewElo = elo.updateRating(
-            expectedScoreTeamOne,
-            +(matchStatus === matchStatusTeamOne),
-            teamOne.elo,
-          );
-          await Teams.updateOne({ _id: teamOne._id }, { elo: teamOneNewElo });
+        // +true equals 1
+        // +false equals 0
+        // Update teamOne
+        const teamOneNewElo = elo.updateRating(
+          expectedScoreTeamOne,
+          +(matchStatus === matchStatusTeamOne),
+          teamOne.elo,
+        );
+        await Teams.updateOne({ _id: teamOne._id }, { elo: teamOneNewElo });
 
-          // Update teamTwo
-          const teamTwoNewElo = elo.updateRating(
-            expectedScoreTeamTwo,
-            +(matchStatus === matchStatusTeamTwo),
-            teamTwo.elo,
-          );
-          await Teams.updateOne({ _id: teamTwo._id }, { elo: teamTwoNewElo });
-        } else {
-          // UPDATE POINTS
-          let teamOnePoints = teamOne.points;
-          let teamTwoPoints = teamTwo.points;
-          switch (matchStatus) {
-            case matchStatusTie:
-              teamOnePoints += 1;
-              teamTwoPoints += 1;
-              break;
-            case matchStatusTeamOne:
-              teamOnePoints += 3;
-              break;
-            case matchStatusTeamTwo:
-              teamTwoPoints += 3;
-              break;
-          }
-          await Teams.updateOne({ _id: teamOne._id }, { points: teamOnePoints });
-          await Teams.updateOne({ _id: teamTwo._id }, { points: teamTwoPoints });
+        // Update teamTwo
+        const teamTwoNewElo = elo.updateRating(
+          expectedScoreTeamTwo,
+          +(matchStatus === matchStatusTeamTwo),
+          teamTwo.elo,
+        );
+        await Teams.updateOne({ _id: teamTwo._id }, { elo: teamTwoNewElo });
+      } else {
+        // UPDATE POINTS
+        let teamOnePoints = teamOne.points;
+        let teamTwoPoints = teamTwo.points;
+        switch (matchStatus) {
+          case matchStatusTie:
+            teamOnePoints += 1;
+            teamTwoPoints += 1;
+            break;
+          case matchStatusTeamOne:
+            teamOnePoints += 3;
+            break;
+          case matchStatusTeamTwo:
+            teamTwoPoints += 3;
+            break;
         }
+        await Teams.updateOne({ _id: teamOne._id }, { points: teamOnePoints });
+        await Teams.updateOne({ _id: teamTwo._id }, { points: teamTwoPoints });
       }
 
       return res.status(200).json({});
     } catch (e) {
-      next(e);
+      return next(e);
     }
-  },
+  }
 );
 
 /**
@@ -662,8 +702,7 @@ router.post(
       .bail()
       .custom(checkTournamentExists)
       .bail(),
-    param('matchId').isMongoId().bail().custom(checkMatchExists)
-      .bail(),
+    param('matchId').isMongoId().bail().custom(checkMatchExists).bail(),
     body('teamId')
       .isMongoId()
       .bail()
@@ -727,7 +766,7 @@ router.post(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 /**
@@ -751,9 +790,9 @@ router.get(
 
       return res.status(200).json(calculatedMatches);
     } catch (e) {
-      next(e);
+      return next(e);
     }
-  },
+  }
 );
 
 router.get(
@@ -775,9 +814,9 @@ router.get(
 
       return res.status(200).json(newMatch[0]);
     } catch (e) {
-      next(e);
+      return next(e);
     }
-  },
+  }
 );
 
 /**
@@ -792,8 +831,7 @@ router.get(
       .bail()
       .custom(checkTournamentExists)
       .bail(),
-    param('teamId').isMongoId().bail().custom(checkTeamExists)
-      .bail(),
+    param('teamId').isMongoId().bail().custom(checkTeamExists).bail(),
   ],
   checkValidation,
   async (req, res, next) => {
@@ -823,7 +861,7 @@ router.get(
             ...member,
             username: user.username,
           };
-        }),
+        })
       );
 
       return res.status(200).json({
@@ -836,9 +874,9 @@ router.get(
         imgUrl: calculatedTeam.imgUrl,
       });
     } catch (e) {
-      next(e);
+      return next(e);
     }
-  },
+  }
 );
 
 // Bracket tournaments are identified by "bracket"
@@ -860,7 +898,7 @@ router.get(
     } catch (e) {
       next(e);
     }
-  },
+  }
 );
 
 router.delete(
@@ -901,9 +939,9 @@ router.delete(
 
       return res.status(200).json({});
     } catch (e) {
-      next(e);
+      return next(e);
     }
-  },
+  }
 );
 
 module.exports = router;

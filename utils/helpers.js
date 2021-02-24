@@ -57,23 +57,26 @@ const checkImgInput = async (body) => {
   return imageURL;
 };
 
-const getCurrentDateTime = () => new Date(
-  Date().toLocaleString('en-US', {
-    timeZone: 'Europe/Rome',
-  }),
-);
+const getCurrentDateTime = () =>
+  new Date(
+    Date().toLocaleString('en-US', {
+      timeZone: 'Europe/Rome',
+    }),
+  );
 
 // Find the IDs of all the teams this team played with in the last 30 minutes
-const getRecentTeamsPlayedWith = (matches, teamId) => matches
-  .filter(
-    (match) => (match.teamOne?.toString() === teamId
-      || match.teamTwo?.toString() === teamId)
-      && isAfter(match.acceptedAt, sub(getCurrentDateTime(), { minutes: 150 })),
-  )
-  .map((match) => {
-    if (match.teamOne?.toString() === teamId) return match.teamTwo.toString();
-    return match.teamOne.toString();
-  });
+const getRecentTeamsPlayedWith = (matches, teamId) =>
+  matches
+    .filter(
+      (match) =>
+        (match.teamOne?.toString() === teamId ||
+          match.teamTwo?.toString() === teamId) &&
+        isAfter(match.acceptedAt, sub(getCurrentDateTime(), { minutes: 150 })),
+    )
+    .map((match) => {
+      if (match.teamOne?.toString() === teamId) return match.teamTwo.toString();
+      return match.teamOne.toString();
+    });
 
 module.exports = {
   getImgurToken,

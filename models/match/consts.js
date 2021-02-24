@@ -1,15 +1,15 @@
-const teamSubmittedMatchResultWin = "WIN",
-	teamSubmittedMatchResultLoss = "LOSS",
-	teamSubmittedMatchResultTie = "TIE"
+const teamSubmittedMatchResultWin = 'WIN';
+const teamSubmittedMatchResultLoss = 'LOSS';
+const teamSubmittedMatchResultTie = 'TIE';
 const teamSubmittedResults = [
-	teamSubmittedMatchResultWin,
-	teamSubmittedMatchResultLoss,
-	teamSubmittedMatchResultTie,
-]
+  teamSubmittedMatchResultWin,
+  teamSubmittedMatchResultLoss,
+  teamSubmittedMatchResultTie,
+];
 
 module.exports = {
-	teamSubmittedMatchResultWin,
-	teamSubmittedMatchResultLoss,
-	teamSubmittedMatchResultTie,
-	teamSubmittedResults,
-}
+  teamSubmittedMatchResultWin,
+  teamSubmittedMatchResultLoss,
+  teamSubmittedMatchResultTie,
+  teamSubmittedResults,
+};

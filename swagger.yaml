@@ -995,6 +995,10 @@ paths:
                     The base64 of the new team's image.
                     If `imgur` is present this will be ignored
                   type: string
+                participant:
+                  description: >
+                    Only needed when registering a team to a tournament handled by Challonge
+                    This object get passed to the https://api.challonge.com/v1/documents/participants/create Challonge API, so populate however they indicate in their documentation.
       responses:
         "400":
           description: "The input data was wrongly formatted"
